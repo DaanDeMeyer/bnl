@@ -12,7 +12,7 @@ notifications:
 matrix:
   fast_finish: true
 
-env: REPROC_TIDY=ON
+env: H3C_TIDY=ON
 
 matrix:
   fast_finish: true
@@ -55,7 +55,7 @@ matrix:
       env: CC=clang-8 CXX=clang++-8
 
     - os: osx
-      env: CC=clang CXX=clang++ REPROC_TIDY=OFF
+      env: CC=clang CXX=clang++ H3C_TIDY=OFF
 
 # Install newer CMake
 install:
@@ -76,7 +76,7 @@ script:
       -S .
       -DCMAKE_BUILD_TYPE=Debug
       -DBUILD_SHARED_LIBS=ON
-      -DREPROC_WARNINGS_AS_ERRORS=ON
-      -DREPROC_TIDY=$REPROC_TIDY
-      -DREPROC_SANITIZERS=ON
+      -DH3C_WARNINGS_AS_ERRORS=ON
+      -DH3C_TIDY=$H3C_TIDY
+      -DH3C_SANITIZERS=ON
   - cmake --build build --parallel 2
