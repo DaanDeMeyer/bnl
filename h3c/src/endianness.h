@@ -1,6 +1,7 @@
 #pragma once
 
 #if defined(_MSC_VER)
+#  include <stdlib.h>
 #  define bswap16(x) _byteswap_ushort((x))
 #  define bswap32(x) _byteswap_ulong((x))
 #  define bswap64(x) _byteswap_uint64((x))
