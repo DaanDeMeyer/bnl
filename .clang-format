@@ -1,0 +1,11 @@
+---
+BasedOnStyle: LLVM
+---
+Language: Cpp
+BreakBeforeBraces: Linux
+Cpp11BracedListStyle: false
+PenaltyBreakAssignment: 100
+PenaltyBreakBeforeFirstCallParameter: 100
+SpaceAfterCStyleCast: true
+IndentPPDirectives: AfterHash
+AllowShortFunctionsOnASingleLine: false

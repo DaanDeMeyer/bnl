@@ -1,0 +1,13 @@
+---
+Checks:
+'
+*,
+-cppcoreguidelines-avoid-magic-numbers,
+-hicpp-multiway-paths-covered,
+-hicpp-signed-bitwise,
+-llvm-header-guard,
+-readability-magic-numbers
+'
+HeaderFilterRegex: '.*'
+...
+
