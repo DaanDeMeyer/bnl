@@ -1,5 +1,5 @@
 # CDDM (CMake Daan De Meyer)
-# Version: v0.0.7
+# Version: v0.0.8
 #
 # Description: Encapsulates common CMake configuration for cross-platform
 # C/C++ libraries.
@@ -187,6 +187,7 @@ function(cddm_add_common TARGET LANGUAGE STANDARD OUTPUT_DIRECTORY)
   if(MSVC)
     target_compile_options(${TARGET} PRIVATE
       /nologo # Silence MSVC compiler version output.
+      /wd4068
       $<$<BOOL:${${PNU}_WARNINGS_AS_ERRORS}>:/WX> # -Werror
       $<$<BOOL:${CDDM_${LANGUAGE}_HAVE_PERMISSIVE}>:/permissive->
     )
@@ -243,8 +244,8 @@ endfunction()
 # applied to any public API functions.
 function(cddm_add_library TARGET LANGUAGE STANDARD)
   add_library(${TARGET})
-  cddm_add_common(${TARGET} ${LANGUAGE} ${STANDARD} lib)
 
+  cddm_add_common(${TARGET} ${LANGUAGE} ${STANDARD} lib)
   # Enable -fvisibility=hidden and -fvisibility-inlines-hidden (if applicable).
   set_target_properties(${TARGET} PROPERTIES
     ${LANGUAGE}_VISIBILITY_PRESET hidden
