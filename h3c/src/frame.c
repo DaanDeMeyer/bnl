@@ -44,12 +44,18 @@
   }                                                                            \
   (void) 0
 
+// Casting `frame_length` to `size_t` in `BUFFER_PARSE` is safe since we don't
+// continue parsing in `frame_parse` if `frame_length > size`, so when
+// `BUFFER_PARSE` is first used, we're guaranteed that `frame_length <= size`
+// (both are always subtracted by the same amount) and `frame_length` fits
+// inside `size_t`.
+
 #define BUFFER_PARSE(buffer)                                                   \
   (buffer).data = src;                                                         \
-  (buffer).size = frame_length;                                       \
+  (buffer).size = (size_t) frame_length;                                       \
   src += frame_length;                                                         \
-  size -= frame_length;                                               \
-  *bytes_read += frame_length;                                        \
+  size -= (size_t) frame_length;                                               \
+  *bytes_read += (size_t) frame_length;                                        \
   frame_length -= frame_length;                                                \
   (void) 0
 
