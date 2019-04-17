@@ -63,15 +63,6 @@ static size_t varint_header_parse(uint8_t byte)
   return 0;
 }
 
-bool varint_peek(const uint8_t *src, size_t size)
-{
-  if (size == 0) {
-    return false;
-  }
-
-  return size < varint_header_parse(*src);
-}
-
 // All parse functions convert from network to host byte order before returning
 // a value.
 
