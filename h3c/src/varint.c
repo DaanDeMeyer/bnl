@@ -64,14 +64,10 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
     return 0;
   }
 
-  // header: 00 = 0 => varint size: 1 = 2^0
-  // header: 01 = 1 => varint size: 2 = 2^1
-  // header: 10 = 2 => varint size: 4 = 2^2
-  // header: 11 = 3 => varint size: 8 = 2^3
-  // => varint size = 2^header
+  size_t varint_size = 1;
   uint8_t header = *src & 0xc0;
 
-  size_t varint_size = 1;
+  // varint size = 2^header
   varint_size <<= header; // shift left => x2
 
   if (size < varint_size) {
