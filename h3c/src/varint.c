@@ -70,7 +70,7 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
   // header: 11 = 3 => varint size: 8 = 2^3
   // => varint size = 2^header
   uint8_t header = *src & 0xc0;
-  size_t varint_size = 1U << header; // shift left => x2
+  size_t varint_size = (size_t)(1U << header); // shift left => x2
 
   if (size < varint_size) {
     return 0;
