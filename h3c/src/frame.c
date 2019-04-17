@@ -10,8 +10,8 @@
 
 // Helper macros for `frame_parse`
 
-// Macro to avoid having to manually check and update `src` and `size` values
-// after each call to `varint_parse`.
+// Macro to avoid having to manually check and update `src`, `size` and
+// `bytes_read` values after each call to `varint_parse`.
 #define TRY_VARINT_PARSE_1(value)                                              \
   {                                                                            \
     size_t rv = varint_parse(src, size, &(value));                             \
@@ -21,6 +21,7 @@
                                                                                \
     src += rv;                                                                 \
     size -= rv;                                                                \
+    *bytes_read += rv;                                                         \
   }                                                                            \
   (void) 0
 
@@ -38,15 +39,17 @@
                                                                                \
     src += rv;                                                                 \
     size -= rv;                                                                \
+    *bytes_read += rv;                                                         \
     frame_length -= rv;                                                        \
   }                                                                            \
   (void) 0
 
 #define BUFFER_PARSE(buffer)                                                   \
   (buffer).data = src;                                                         \
-  (buffer).size = frame_length;                                                \
+  (buffer).size = frame_length;                                       \
   src += frame_length;                                                         \
-  size -= frame_length;                                                        \
+  size -= frame_length;                                               \
+  *bytes_read += frame_length;                                        \
   frame_length -= frame_length;                                                \
   (void) 0
 
@@ -54,9 +57,6 @@ FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
                               size_t *bytes_read)
 {
   *bytes_read = 0;
-
-  // Save `size` so we can calculate the amount of bytes read after parsing.
-  size_t original_size = size;
 
   // Before parsing the frame's length, incomplete varints only indicate the
   // full frame is not yet available.
@@ -151,7 +151,6 @@ FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
   }
 
   error = FRAME_PARSE_SUCCESS;
-  *bytes_read = original_size - size;
 
   return error;
 }
@@ -210,6 +209,7 @@ static uint64_t frame_payload_size(const frame_t *frame)
                                                                                \
     dest += rv;                                                                \
     size -= rv;                                                                \
+    *bytes_written += rv;                                                      \
   }                                                                            \
   (void) 0
 
@@ -217,15 +217,14 @@ static uint64_t frame_payload_size(const frame_t *frame)
   memcpy(dest, (buffer).data, (buffer).size);                                  \
   dest += (buffer).size;                                                       \
   size -= (buffer).size;                                                       \
+  *bytes_written += (buffer).size;                                             \
   (void) 0
 
 FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
-                                      const frame_t *frame, size_t *bytes_written)
+                                      const frame_t *frame,
+                                      size_t *bytes_written)
 {
   *bytes_written = 0;
-
-  // Save `size` so we can calculate the amount of bytes read after serializing.
-  size_t original_size = size;
 
   FRAME_SERIALIZE_ERROR error = FRAME_SERIALIZE_BUF_TOO_SMALL;
 
@@ -288,7 +287,6 @@ FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
   }
 
   error = FRAME_SERIALIZE_SUCCESS;
-  *bytes_written = original_size - size;
 
   return error;
 }
