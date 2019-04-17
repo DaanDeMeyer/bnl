@@ -27,42 +27,6 @@ size_t varint_size(varint_t varint)
   return 8;
 }
 
-static uint8_t varint_header(varint_t varint)
-{
-  switch (varint_size(varint)) {
-  case 1:
-    return 0x00;
-  case 2:
-    return 0x40;
-  case 4:
-    return 0x80;
-  case 8:
-    return 0xc0;
-  }
-
-  assert(0);
-  return 0;
-}
-
-static size_t varint_header_parse(uint8_t byte)
-{
-  uint8_t header = byte & 0xc0;
-
-  switch (header) {
-  case 0x00:
-    return 1;
-  case 0x40:
-    return 2;
-  case 0x80:
-    return 4;
-  case 0xc0:
-    return 8;
-  }
-
-  assert(0);
-  return 0;
-}
-
 // All parse functions convert from network to host byte order before returning
 // a value.
 
@@ -100,7 +64,13 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
     return 0;
   }
 
-  size_t varint_size = varint_header_parse(*src);
+  // header: 00 = 0 => varint size: 1 = 2^0
+  // header: 01 = 1 => varint size: 2 = 2^1
+  // header: 10 = 2 => varint size: 4 = 2^2
+  // header: 11 = 3 => varint size: 8 = 2^3
+  // => varint size = 2^header
+  uint8_t header = *src & 0xc0;
+  size_t varint_size = 1U << header; // shift left => x2
 
   if (size < varint_size) {
     return 0;
@@ -124,7 +94,16 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
     return 0;
   }
 
-  *varint &= 0x3fffffffffffffff; // Remove varint header from result
+  // Remove varint header from result. The varint header consists of the two
+  // most significant bits so depending on the platform endianness we have to
+  // zero the first two or the last two bits.
+#if defined(H3C_LITTLE_ENDIAN)
+  *varint &= 0xfffffffffffffffc;
+#elif defined(H3C_BIG_ENDIAN)
+  *varint &= 0x3fffffffffffffff;
+#else
+#  error "Endianness not defined"
+#endif
 
   return varint_size;
 }
@@ -167,28 +146,30 @@ size_t varint_serialize(uint8_t *dest, size_t size, varint_t varint)
     return 0;
   }
 
+  // The variable integer limits are chosen so that after serializing the number
+  // the two leftmost bits are always zero. This makes it possible to serialize
+  // the number first and add the variable integer header second.
   switch (varint_size_) {
   case 1:
     uint8_serialize(dest, (uint8_t) varint);
+    *dest |= 0x00;
     break;
   case 2:
     uint16_serialize(dest, (uint16_t) varint);
+    *dest |= 0x40;
     break;
   case 4:
     uint32_serialize(dest, (uint32_t) varint);
+    *dest |= 0x80;
     break;
   case 8:
     uint64_serialize(dest, varint);
+    *dest |= 0xc0;
     break;
   default:
     assert(0);
     return 0;
   }
-
-  // The variable integer limits are chosen so that after serializing the number
-  // the two leftmost bits are always zero. This makes it possible to serialize
-  // the number first and add the variable integer header second.
-  *dest = (uint8_t)(*dest | varint_header(varint));
 
   return varint_size_;
 }
