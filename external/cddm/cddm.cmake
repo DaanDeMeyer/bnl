@@ -1,5 +1,5 @@
 # CDDM (CMake Daan De Meyer)
-# Version: v0.0.9
+# Version: v0.0.10
 #
 # Description: Encapsulates common CMake configuration for cross-platform
 # C/C++ libraries.
@@ -132,17 +132,17 @@ foreach(LANGUAGE IN ITEMS C CXX)
       check_cxx_compiler_flag(/permissive- CDDM_${LANGUAGE}_HAVE_PERMISSIVE)
     endif()
   endif()
-
-  if(${PNU}_SANITIZERS)
-    if(MSVC)
-      message(FATAL_ERROR "Building with sanitizers is not supported when using the Visual C++ toolchain.")
-    endif()
-
-    if(NOT ${CMAKE_${LANGUAGE}_COMPILER_ID} MATCHES GNU|Clang)
-      message(FATAL_ERROR "Building with sanitizers is not supported when using the ${CMAKE_${LANGUAGE}_COMPILER_ID} compiler.")
-    endif()
-  endif()
 endforeach()
+
+if(${PNU}_SANITIZERS)
+  if(MSVC)
+    message(FATAL_ERROR "Building with sanitizers is not supported when using the Visual C++ toolchain.")
+  endif()
+
+  if(NOT ${CMAKE_${LANGUAGE}_COMPILER_ID} MATCHES GNU|Clang)
+    message(FATAL_ERROR "Building with sanitizers is not supported when using the ${CMAKE_${LANGUAGE}_COMPILER_ID} compiler.")
+  endif()
+endif()
 
 ### Includes ###
 
@@ -162,14 +162,16 @@ function(cddm_add_common TARGET LANGUAGE STANDARD)
   endif()
 
   set_target_properties(${TARGET} PROPERTIES
-    ${LANGUAGE}_EXTENSIONS OFF
+    C_EXTENSIONS OFF
+    CXX_EXTENSIONS OFF
   )
 
   if(${PNU}_TIDY AND CDDM_CLANG_TIDY_PROGRAM)
     set_target_properties(${TARGET} PROPERTIES
       # CLANG_TIDY_PROGRAM is a list so we surround it with quotes to pass it as
       # a single argument.
-      ${LANGUAGE}_CLANG_TIDY "${CDDM_CLANG_TIDY_PROGRAM}"
+      C_CLANG_TIDY "${CDDM_CLANG_TIDY_PROGRAM}"
+      CXX_CLANG_TIDY "${CDDM_CLANG_TIDY_PROGRAM}"
     )
   endif()
 
@@ -239,7 +241,8 @@ function(cddm_add_library TARGET LANGUAGE STANDARD)
   cddm_add_common(${TARGET} ${LANGUAGE} ${STANDARD} lib)
   # Enable -fvisibility=hidden and -fvisibility-inlines-hidden (if applicable).
   set_target_properties(${TARGET} PROPERTIES
-    ${LANGUAGE}_VISIBILITY_PRESET hidden
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN true
 
     RUNTIME_OUTPUT_DIRECTORY lib
