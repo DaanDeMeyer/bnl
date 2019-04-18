@@ -102,6 +102,10 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
 // All serialize functions convert from host to network byte order and insert
 // the varint header before serializing a value.
 
+// The variable integer limits are chosen so that after serializing the number
+// the two leftmost bits are always zero. This makes it possible to serialize
+// the number first and add the variable integer header second.
+
 static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
   *dest = number;
@@ -141,9 +145,6 @@ size_t varint_serialize(uint8_t *dest, size_t size, varint_t varint)
     return 0;
   }
 
-  // The variable integer limits are chosen so that after serializing the number
-  // the two leftmost bits are always zero. This makes it possible to serialize
-  // the number first and add the variable integer header second.
   switch (varint_size_) {
   case 1:
     varint_uint8_serialize(dest, (uint8_t) varint);
