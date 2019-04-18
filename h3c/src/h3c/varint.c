@@ -1,11 +1,6 @@
 #include "varint.h"
 
-#include "endianness.h"
-
 #include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#integer-encoding
 
@@ -32,34 +27,33 @@ size_t varint_size(varint_t varint)
 
 static uint8_t varint_uint8_parse(const uint8_t *src)
 {
-  uint8_t h = 0;
-  memcpy(&h, src, sizeof(h));
-  h &= 0x3f;
-  return h;
+  return src[0] & 0x3f;
 }
 
 static uint16_t varint_uint16_parse(const uint8_t *src)
 {
-  uint16_t h = 0;
-  memcpy(&h, src, sizeof(h));
-  h &= 0x3fff;
-  return ntoh16(h);
+  uint16_t result = (uint16_t)((src[0] & 0x3f) << 8);
+  return (uint16_t)(result | src[1]);
 }
 
 static uint32_t varint_uint32_parse(const uint8_t *src)
 {
-  uint32_t h = 0;
-  memcpy(&h, src, sizeof(h));
-  h &= 0x3fffffff;
-  return ntoh32(h);
+  uint32_t result = ((uint32_t)(src[0] & 0x3f)) << 24;
+  result |= ((uint32_t) src[1]) << 16;
+  result |= ((uint32_t) src[2]) << 8;
+  return (uint32_t)(result | src[3]);
 }
 
 static uint64_t varint_uint64_parse(const uint8_t *src)
 {
-  uint64_t h = 0;
-  memcpy(&h, src, sizeof(h));
-  h &= 0x3fffffffffffffff;
-  return ntoh64(h);
+  uint64_t result = ((uint64_t)(src[0] & 0x3f)) << 56;
+  result |= ((uint64_t) src[1]) << 48;
+  result |= ((uint64_t) src[2]) << 40;
+  result |= ((uint64_t) src[3]) << 32;
+  result |= ((uint64_t) src[4]) << 24;
+  result |= ((uint64_t) src[5]) << 16;
+  result |= ((uint64_t) src[6]) << 8;
+  return (uint64_t)(result | src[7]);
 }
 
 size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
@@ -100,37 +94,37 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
 }
 
 // All serialize functions convert from host to network byte order and insert
-// the varint header before serializing a value.
-
-// The variable integer limits are chosen so that after serializing the number
-// the two leftmost bits are always zero. This makes it possible to serialize
-// the number first and add the variable integer header second.
+// the varint header.
 
 static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
-  *dest = number;
-  *dest |= 0x00;
+  dest[0] = number | 0x00;
 }
 
 static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
 {
-  uint16_t n = hton16(number);
-  memcpy(dest, &n, sizeof(number));
-  *dest |= 0x40;
+  dest[0] = (uint8_t)((number >> 8 & 0xff) | 0x40);
+  dest[1] = (uint8_t)(number & 0xff);
 }
 
 static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
 {
-  uint32_t n = hton32(number);
-  memcpy(dest, &n, sizeof(number));
-  *dest |= 0x80;
+  dest[0] = (uint8_t)((number >> 24 & 0xff) | 0x80);
+  dest[1] = number >> 16 & 0xff;
+  dest[2] = number >> 8 & 0xff;
+  dest[3] = number & 0xff;
 }
 
 static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
 {
-  uint64_t n = hton64(number);
-  memcpy(dest, &n, sizeof(number));
-  *dest |= 0xc0;
+  dest[0] = (uint8_t)((number >> 56 & 0xff) | 0xc0);
+  dest[1] = number >> 48 & 0xff;
+  dest[2] = number >> 40 & 0xff;
+  dest[3] = number >> 32 & 0xff;
+  dest[4] = number >> 24 & 0xff;
+  dest[5] = number >> 16 & 0xff;
+  dest[6] = number >> 8 & 0xff;
+  dest[7] = number & 0xff;
 }
 
 size_t varint_serialize(uint8_t *dest, size_t size, varint_t varint)
