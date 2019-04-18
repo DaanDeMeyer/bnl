@@ -99,8 +99,8 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
   return varint_size;
 }
 
-// All serialize functions convert from host to network byte order before
-// serializing a value.
+// All serialize functions convert from host to network byte order and insert
+// the varint header before serializing a value.
 
 static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
