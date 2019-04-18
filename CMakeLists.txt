@@ -22,9 +22,10 @@ if(H3C_TESTS)
 
   add_executable(h3c-tests)
 
-  cddm_add_common(h3c-tests CXX 11)
+  cddm_add_common(h3c-tests CXX 11 "")
   set_target_properties(h3c-tests PROPERTIES OUTPUT_NAME tests)
   target_link_libraries(h3c-tests PRIVATE doctest)
+
   target_sources(h3c-tests PRIVATE external/doctest/main.cpp)
 endif()
 
