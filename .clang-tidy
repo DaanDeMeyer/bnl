@@ -3,11 +3,11 @@ Checks:
 '
 *,
 -cppcoreguidelines-avoid-magic-numbers,
+-fuchsia-default-arguments,
 -hicpp-multiway-paths-covered,
 -hicpp-signed-bitwise,
 -llvm-header-guard,
 -readability-magic-numbers
 '
-HeaderFilterRegex: '.*'
 ...
 
