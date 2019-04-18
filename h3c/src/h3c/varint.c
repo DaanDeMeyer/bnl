@@ -27,34 +27,38 @@ size_t varint_size(varint_t varint)
   return 8;
 }
 
-// All parse functions convert from network to host byte order before returning
-// a value.
+// All parse functions convert from network to host byte order and remove the
+// varint header before returning a value.
 
-static uint8_t uint8_parse(const uint8_t *src)
+static uint8_t varint_uint8_parse(const uint8_t *src)
 {
   uint8_t h = 0;
   memcpy(&h, src, sizeof(h));
+  h &= 0x3f;
   return h;
 }
 
-static uint16_t uint16_parse(const uint8_t *src)
+static uint16_t varint_uint16_parse(const uint8_t *src)
 {
   uint16_t h = 0;
   memcpy(&h, src, sizeof(h));
+  h &= 0x3fff;
   return ntoh16(h);
 }
 
-static uint32_t uint32_parse(const uint8_t *src)
+static uint32_t varint_uint32_parse(const uint8_t *src)
 {
   uint32_t h = 0;
   memcpy(&h, src, sizeof(h));
+  h &= 0x3fffffff;
   return ntoh32(h);
 }
 
-static uint64_t uint64_parse(const uint8_t *src)
+static uint64_t varint_uint64_parse(const uint8_t *src)
 {
   uint64_t h = 0;
   memcpy(&h, src, sizeof(h));
+  h &= 0x3fffffffffffffff;
   return ntoh64(h);
 }
 
@@ -76,32 +80,21 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
 
   switch (varint_size) {
   case 1:
-    *varint = uint8_parse(src);
+    *varint = varint_uint8_parse(src);
     break;
   case 2:
-    *varint = uint16_parse(src);
+    *varint = varint_uint16_parse(src);
     break;
   case 4:
-    *varint = uint32_parse(src);
+    *varint = varint_uint32_parse(src);
     break;
   case 8:
-    *varint = uint64_parse(src);
+    *varint = varint_uint64_parse(src);
     break;
   default:
     assert(0);
     return 0;
   }
-
-  // Remove varint header from result. The varint header consists of the two
-  // most significant bits so depending on the platform endianness we have to
-  // zero the first two or the last two bits.
-#if defined(H3C_LITTLE_ENDIAN)
-  *varint &= 0xfffffffffffffffc;
-#elif defined(H3C_BIG_ENDIAN)
-  *varint &= 0x3fffffffffffffff;
-#else
-#  error "Endianness not defined"
-#endif
 
   return varint_size;
 }
@@ -109,27 +102,31 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
 // All serialize functions convert from host to network byte order before
 // serializing a value.
 
-static void uint8_serialize(uint8_t *dest, uint8_t number)
+static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
   *dest = number;
+  *dest |= 0x00;
 }
 
-static void uint16_serialize(uint8_t *dest, uint16_t number)
+static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
 {
   uint16_t n = hton16(number);
   memcpy(dest, &n, sizeof(number));
+  *dest |= 0x40;
 }
 
-static void uint32_serialize(uint8_t *dest, uint32_t number)
+static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
 {
   uint32_t n = hton32(number);
   memcpy(dest, &n, sizeof(number));
+  *dest |= 0x80;
 }
 
-static void uint64_serialize(uint8_t *dest, uint64_t number)
+static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
 {
   uint64_t n = hton64(number);
   memcpy(dest, &n, sizeof(number));
+  *dest |= 0xc0;
 }
 
 size_t varint_serialize(uint8_t *dest, size_t size, varint_t varint)
@@ -149,20 +146,16 @@ size_t varint_serialize(uint8_t *dest, size_t size, varint_t varint)
   // the number first and add the variable integer header second.
   switch (varint_size_) {
   case 1:
-    uint8_serialize(dest, (uint8_t) varint);
-    *dest |= 0x00;
+    varint_uint8_serialize(dest, (uint8_t) varint);
     break;
   case 2:
-    uint16_serialize(dest, (uint16_t) varint);
-    *dest |= 0x40;
+    varint_uint16_serialize(dest, (uint16_t) varint);
     break;
   case 4:
-    uint32_serialize(dest, (uint32_t) varint);
-    *dest |= 0x80;
+    varint_uint32_serialize(dest, (uint32_t) varint);
     break;
   case 8:
-    uint64_serialize(dest, varint);
-    *dest |= 0xc0;
+    varint_uint64_serialize(dest, varint);
     break;
   default:
     assert(0);
