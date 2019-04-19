@@ -104,7 +104,7 @@ TEST_CASE("varint")
 
   SUBCASE("max")
   {
-    std::array<uint8_t, 8> dest = {};
+    std::array<uint8_t, 8> dest = { {} };
     uint64_t n = 4611686018427387903;
 
     size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
@@ -127,7 +127,7 @@ TEST_CASE("varint")
 
   SUBCASE("overflow")
   {
-    std::array<uint8_t, 8> dest = {};
+    std::array<uint8_t, 8> dest = { {} };
     uint64_t n = UINT64_MAX;
 
     size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
