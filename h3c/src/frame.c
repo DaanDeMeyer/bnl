@@ -101,7 +101,6 @@ h3c_frame_parse(const uint8_t *src,
 
     frame->priority.prioritized_element_type = *src >> 6;
     frame->priority.element_dependency_type = (*src >> 4) & 0x03;
-
     src++;
     size--;
     frame_length--;
