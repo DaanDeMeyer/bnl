@@ -219,7 +219,11 @@ static uint64_t frame_payload_size(const frame_t *frame)
   }                                                                            \
   (void) 0
 
-#define BUFFER_SERIALIZE(buffer)                                               \
+#define TRY_BUFFER_SERIALIZE(buffer)                                           \
+  if ((buffer).size > size) {                                                  \
+    return error;                                                              \
+  }                                                                            \
+                                                                               \
   memcpy(dest, (buffer).data, (buffer).size);                                  \
   dest += (buffer).size;                                                       \
   size -= (buffer).size;                                                       \
@@ -241,10 +245,10 @@ FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
 
   switch (frame->type) {
   case HTTP3_DATA:
-    BUFFER_SERIALIZE(frame->data.payload);
+    TRY_BUFFER_SERIALIZE(frame->data.payload);
     break;
   case HTTP3_HEADERS:
-    BUFFER_SERIALIZE(frame->headers.header_block);
+    TRY_BUFFER_SERIALIZE(frame->headers.header_block);
     break;
   case HTTP3_PRIORITY:
     if (size == 0) {
@@ -279,7 +283,7 @@ FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
     break;
   case HTTP3_PUSH_PROMISE:
     TRY_VARINT_SERIALIZE(frame->push_promise.push_id);
-    BUFFER_SERIALIZE(frame->push_promise.header_block);
+    TRY_BUFFER_SERIALIZE(frame->push_promise.header_block);
     break;
   case HTTP3_GOAWAY:
     TRY_VARINT_SERIALIZE(frame->goaway.stream_id);
