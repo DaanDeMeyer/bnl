@@ -9,10 +9,13 @@
 #define SETTINGS_MAX_HEADER_LIST_SIZE 0x6U
 #define SETTINGS_NUM_PLACEHOLDERS 0x9U
 
-// Helper macros for `h3c_frame_parse`
+// We use a lot of macros in this file because after each serialize/parse, we
+// have to check the result and update a lot of values. Macros provide us with a
+// concise way to accomplish this. Using functions instead of macros doesn't
+// work because we would still have to check the return value of the function
+// each time we call it, where macros allow us to return directly from the
+// parent function.
 
-// Macro to avoid having to manually check and update `src`, `size` and
-// `bytes_read` values after each call to `h3c_varint_parse`.
 #define TRY_VARINT_PARSE_1(value)                                              \
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
@@ -26,7 +29,8 @@
   }                                                                            \
   (void) 0
 
-// Additionally checks and updates `frame_length` after calling `h3c_varint_parse`.
+// Additionally checks and updates `frame_length` compared to
+// `TRY_VARINT_PARSE_1`.
 #define TRY_VARINT_PARSE_2(value)                                              \
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
@@ -161,10 +165,6 @@ h3c_frame_parse(const uint8_t *src,
   return error;
 }
 
-// Helper macros for `frame_payload_size`
-
-// Macro to avoid having to manually check the return value of `h3c_varint_size`
-// each time we call it.
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
     size_t rv = h3c_varint_size((value));                                      \
