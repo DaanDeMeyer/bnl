@@ -71,7 +71,7 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
   // varint size = 2^header
   varint_size <<= header; // shift left => x2
 
-  if (size < varint_size) {
+  if (varint_size > size) {
     return 0;
   }
 
