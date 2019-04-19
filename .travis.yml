@@ -76,6 +76,7 @@ script:
       -S .
       -DCMAKE_BUILD_TYPE=Debug
       -DBUILD_SHARED_LIBS=ON
+      -DH3C_TESTS=ON
       -DH3C_WARNINGS_AS_ERRORS=ON
       -DH3C_TIDY=$H3C_TIDY
       -DH3C_SANITIZERS=ON
