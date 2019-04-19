@@ -2,6 +2,7 @@
 
 #include <h3c/export.h>
 
+#include <stddef.h>
 #include <stdint.h>
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#rfc.section.4
