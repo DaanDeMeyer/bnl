@@ -21,8 +21,8 @@ typedef uint64_t HTTP3_FRAME;
 #define HTTP3_SETTINGS 0x4U
 #define HTTP3_PUSH_PROMISE 0x5U
 #define HTTP3_GOAWAY 0x7U
-#define HTTP3_MAX_PUSH_ID 0xDU
-#define HTTP3_DUPLICATE_PUSH 0xEU
+#define HTTP3_MAX_PUSH_ID 0xdU
+#define HTTP3_DUPLICATE_PUSH 0xeU
 
 typedef struct {
   HTTP3_FRAME type;
