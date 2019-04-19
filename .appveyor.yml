@@ -59,4 +59,4 @@ before_test:
   - set PATH=%APPVEYOR_BUILD_FOLDER%/build/h3c/lib;%PATH%
 
 test_script:
-  - build/tests
+  - build\tests
