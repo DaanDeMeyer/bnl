@@ -59,7 +59,7 @@ static uint64_t varint_uint64_parse(const uint8_t *src)
   return (uint64_t)(result | src[7]);
 }
 
-size_t varint_parse(const uint8_t *src, size_t size, uint64_t *varint)
+size_t h3c_varint_parse(const uint8_t *src, size_t size, uint64_t *varint)
 {
   if (size == 0) {
     return 0;
@@ -135,7 +135,7 @@ static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
   dest[7] = number & 0xff;
 }
 
-size_t varint_serialize(uint8_t *dest, size_t size, uint64_t varint)
+size_t h3c_varint_serialize(uint8_t *dest, size_t size, uint64_t varint)
 {
   if (size == 0) {
     return 0;
