@@ -141,7 +141,7 @@ size_t h3c_varint_serialize(uint8_t *dest, size_t size, uint64_t varint)
     return 0;
   }
 
-  size_t varint_size_ = varint_size(varint);
+  size_t varint_size_ = h3c_varint_size(varint);
 
   if (varint_size_ == 0 || varint_size_ > size) {
     return 0;

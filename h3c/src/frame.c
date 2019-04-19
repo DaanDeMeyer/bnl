@@ -9,10 +9,10 @@
 #define SETTINGS_MAX_HEADER_LIST_SIZE 0x6U
 #define SETTINGS_NUM_PLACEHOLDERS 0x9U
 
-// Helper macros for `frame_parse`
+// Helper macros for `h3c_frame_parse`
 
 // Macro to avoid having to manually check and update `src`, `size` and
-// `bytes_read` values after each call to `varint_parse`.
+// `bytes_read` values after each call to `h3c_varint_parse`.
 #define TRY_VARINT_PARSE_1(value)                                              \
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
@@ -26,7 +26,7 @@
   }                                                                            \
   (void) 0
 
-// Additionally checks and updates `frame_length` after calling `varint_parse`.
+// Additionally checks and updates `frame_length` after calling `h3c_varint_parse`.
 #define TRY_VARINT_PARSE_2(value)                                              \
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
@@ -46,7 +46,7 @@
   (void) 0
 
 // Casting `frame_length` to `size_t` in `BUFFER_PARSE` is safe since we don't
-// continue parsing in `frame_parse` if `frame_length > size`, so when
+// continue parsing in `h3c_frame_parse` if `frame_length > size`, so when
 // `BUFFER_PARSE` is first used, we're guaranteed that `frame_length <= size`
 // (both are always subtracted by the same amount) and `frame_length` fits
 // inside `size_t`.
@@ -163,7 +163,7 @@ h3c_frame_parse(const uint8_t *src,
 
 // Helper macros for `frame_payload_size`
 
-// Macro to avoid having to manually check the return value of `varint_size`
+// Macro to avoid having to manually check the return value of `h3c_varint_size`
 // each time we call it.
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
