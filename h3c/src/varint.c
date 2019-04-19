@@ -4,7 +4,7 @@
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#integer-encoding
 
-size_t varint_size(uint64_t varint)
+size_t h3c_varint_size(uint64_t varint)
 {
   if (varint < 0x40) {
     return 1;
