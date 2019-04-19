@@ -1,4 +1,5 @@
 #include <h3c/frame.h>
+#include <h3c/varint.h>
 
 #include <assert.h>
 #include <string.h>
