@@ -70,7 +70,7 @@ FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
 
   TRY_VARINT_PARSE_1(frame->type);
 
-  varint_t frame_length = 0;
+  uint64_t frame_length = 0;
   TRY_VARINT_PARSE_1(frame_length);
 
   // We only continue parsing if the full frame payload is available in `src`.
@@ -122,9 +122,9 @@ FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
     break;
   case HTTP3_SETTINGS:
     while (frame_length > 0) {
-      varint_t id = 0;
+      uint64_t id = 0;
       TRY_VARINT_PARSE_2(id);
-      varint_t value = 0;
+      uint64_t value = 0;
       TRY_VARINT_PARSE_2(value);
 
       switch (id) {
@@ -255,7 +255,7 @@ FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
 
   TRY_VARINT_SERIALIZE(frame->type);
 
-  varint_t frame_length = frame_payload_size(frame);
+  uint64_t frame_length = frame_payload_size(frame);
   if (frame_length == 0) {
     return FRAME_SERIALIZE_VARINT_OVERFLOW;
   }

@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-typedef varint_t HTTP3_FRAME;
+typedef uint64_t HTTP3_FRAME;
 #define HTTP3_DATA 0x0U
 #define HTTP3_HEADERS 0x1U
 #define HTTP3_PRIORITY 0x2U
@@ -49,22 +49,22 @@ typedef struct {
     struct {
       uint8_t prioritized_element_type;
       uint8_t element_dependency_type;
-      varint_t prioritized_element_id;
-      varint_t element_dependency_id;
+      uint64_t prioritized_element_id;
+      uint64_t element_dependency_id;
       uint8_t weight;
     } priority;
 
     struct {
-      varint_t push_id;
+      uint64_t push_id;
     } cancel_push;
 
     struct {
-      varint_t max_header_list_size;
-      varint_t num_placeholders;
+      uint64_t max_header_list_size;
+      uint64_t num_placeholders;
     } settings;
 
     struct {
-      varint_t push_id;
+      uint64_t push_id;
       struct {
         const uint8_t *data;
         size_t size;
@@ -72,15 +72,15 @@ typedef struct {
     } push_promise;
 
     struct {
-      varint_t stream_id;
+      uint64_t stream_id;
     } goaway;
 
     struct {
-      varint_t push_id;
+      uint64_t push_id;
     } max_push_id;
 
     struct {
-      varint_t push_id;
+      uint64_t push_id;
     } duplicate_push;
   };
 } frame_t;
