@@ -12,7 +12,7 @@ TEST_CASE("varint")
 {
   SUBCASE("zero")
   {
-    std::array<uint8_t, 1> dest = {};
+    std::array<uint8_t, 1> dest = { {} };
     uint64_t n = 0;
 
     size_t rv = varint_serialize(dest.data(), dest.size(), n);
@@ -28,7 +28,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint8")
   {
-    std::array<uint8_t, 1> dest = {};
+    std::array<uint8_t, 1> dest = { {} };
     uint64_t n = 62;
 
     size_t rv = varint_serialize(dest.data(), dest.size(), n);
@@ -44,7 +44,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint16")
   {
-    std::array<uint8_t, 2> dest = {};
+    std::array<uint8_t, 2> dest = { {} };
     uint64_t n = 15248;
 
     size_t rv = varint_serialize(dest.data(), dest.size(), n);
@@ -61,7 +61,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint32")
   {
-    std::array<uint8_t, 4> dest = {};
+    std::array<uint8_t, 4> dest = { {} };
     uint64_t n = 1073721823;
 
     size_t rv = varint_serialize(dest.data(), dest.size(), n);
@@ -80,7 +80,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint64")
   {
-    std::array<uint8_t, 8> dest = {};
+    std::array<uint8_t, 8> dest = { {} };
     uint64_t n = 4611386010427387203;
 
     size_t rv = varint_serialize(dest.data(), dest.size(), n);
