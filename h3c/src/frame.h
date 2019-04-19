@@ -9,6 +9,10 @@
 // An enum is always backed by a signed integer but we need a varint so we use
 // defines and a typedef instead.
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef varint_t HTTP3_FRAME;
 #define HTTP3_DATA 0x0U
 #define HTTP3_HEADERS 0x1U
@@ -98,3 +102,7 @@ typedef enum {
 FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
                                       const frame_t *frame,
                                       size_t *bytes_written);
+
+#ifdef __cplusplus
+}
+#endif
