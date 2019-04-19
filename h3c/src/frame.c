@@ -59,8 +59,8 @@
   frame_length -= frame_length;                                                \
   (void) 0
 
-FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
-                              size_t *bytes_read)
+FRAME_PARSE_ERROR
+frame_parse(const uint8_t *src, size_t size, frame_t *frame, size_t *bytes_read)
 {
   *bytes_read = 0;
 
@@ -245,7 +245,8 @@ static uint64_t frame_payload_size(const frame_t *frame)
   *bytes_written += (buffer).size;                                             \
   (void) 0
 
-FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
+FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest,
+                                      size_t size,
                                       const frame_t *frame,
                                       size_t *bytes_written)
 {

@@ -90,8 +90,10 @@ typedef enum {
   FRAME_PARSE_MALFORMED = 2
 } FRAME_PARSE_ERROR;
 
-H3C_EXPORT FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size,
-                                         frame_t *frame, size_t *bytes_read);
+H3C_EXPORT FRAME_PARSE_ERROR frame_parse(const uint8_t *src,
+                                         size_t size,
+                                         frame_t *frame,
+                                         size_t *bytes_read);
 
 typedef enum {
   FRAME_SERIALIZE_SUCCESS = 0,
@@ -99,7 +101,8 @@ typedef enum {
   FRAME_SERIALIZE_VARINT_OVERFLOW = 2
 } FRAME_SERIALIZE_ERROR;
 
-H3C_EXPORT FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
+H3C_EXPORT FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest,
+                                                 size_t size,
                                                  const frame_t *frame,
                                                  size_t *bytes_written);
 

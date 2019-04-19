@@ -2,10 +2,12 @@
 BasedOnStyle: LLVM
 ---
 Language: Cpp
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: false
+BinPackParameters: false
 BreakBeforeBraces: Linux
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 Cpp11BracedListStyle: false
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 100
 SpaceAfterCStyleCast: true
-IndentPPDirectives: AfterHash
-AllowShortFunctionsOnASingleLine: false
