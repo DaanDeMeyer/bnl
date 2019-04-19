@@ -91,7 +91,8 @@ FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
 
 typedef enum {
   FRAME_SERIALIZE_SUCCESS = 0,
-  FRAME_SERIALIZE_BUF_TOO_SMALL = 1
+  FRAME_SERIALIZE_BUF_TOO_SMALL = 1,
+  FRAME_SERIALIZE_VARINT_OVERFLOW = 2
 } FRAME_SERIALIZE_ERROR;
 
 FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,

@@ -6,20 +6,23 @@
 
 size_t varint_size(varint_t varint)
 {
-  if (varint < 64) {
+  if (varint < 0x40) {
     return 1;
   }
 
-  if (varint < 16383) {
+  if (varint < (0x40 << 8)) {
     return 2;
   }
 
-  if (varint < 1073741823) {
+  if (varint < (0x40 << 24)) {
     return 4;
   }
 
-  // WARNING: Values that use more than 62 bits are truncated!
-  return 8;
+  if (varint < (0x40ULL << 56)) {
+    return 8;
+  }
+
+  return 0;
 }
 
 // All parse functions convert from network to host byte order and remove the
@@ -140,7 +143,7 @@ size_t varint_serialize(uint8_t *dest, size_t size, varint_t varint)
 
   size_t varint_size_ = varint_size(varint);
 
-  if (varint_size_ > size) {
+  if (varint_size_ == 0 || varint_size_ > size) {
     return 0;
   }
 

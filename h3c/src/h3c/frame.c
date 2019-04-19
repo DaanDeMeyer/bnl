@@ -161,6 +161,21 @@ FRAME_PARSE_ERROR frame_parse(const uint8_t *src, size_t size, frame_t *frame,
   return error;
 }
 
+// Helper macros for `frame_payload_size`
+
+// Macro to avoid having to manually check the return value of `varint_size`
+// each time we call it.
+#define TRY_VARINT_SIZE(value)                                                 \
+  {                                                                            \
+    size_t rv = varint_size((value));                                          \
+    if (rv == 0) {                                                             \
+      return 0;                                                                \
+    }                                                                          \
+                                                                               \
+    size += rv;                                                                \
+  }                                                                            \
+  (void) 0
+
 static uint64_t frame_payload_size(const frame_t *frame)
 {
   uint64_t size = 0;
@@ -175,31 +190,31 @@ static uint64_t frame_payload_size(const frame_t *frame)
   case HTTP3_PRIORITY:
     size++; // PT size + DT size + Empty size = 1 byte. See
             // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
-    size += varint_size(frame->priority.prioritized_element_id);
-    size += varint_size(frame->priority.element_dependency_id);
+    TRY_VARINT_SIZE(frame->priority.prioritized_element_id);
+    TRY_VARINT_SIZE(frame->priority.element_dependency_id);
     size++; // Weight
     break;
   case HTTP3_CANCEL_PUSH:
-    size += varint_size(frame->cancel_push.push_id);
+    TRY_VARINT_SIZE(frame->cancel_push.push_id);
     break;
   case HTTP3_SETTINGS:
-    size += varint_size(SETTINGS_MAX_HEADER_LIST_SIZE);
-    size += varint_size(frame->settings.max_header_list_size);
-    size += varint_size(SETTINGS_NUM_PLACEHOLDERS);
-    size += varint_size(frame->settings.num_placeholders);
+    TRY_VARINT_SIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
+    TRY_VARINT_SIZE(frame->settings.max_header_list_size);
+    TRY_VARINT_SIZE(SETTINGS_NUM_PLACEHOLDERS);
+    TRY_VARINT_SIZE(frame->settings.num_placeholders);
     break;
   case HTTP3_PUSH_PROMISE:
-    size += varint_size(frame->push_promise.push_id);
+    TRY_VARINT_SIZE(frame->push_promise.push_id);
     size += frame->push_promise.header_block.size;
     break;
   case HTTP3_GOAWAY:
-    size += varint_size(frame->goaway.stream_id);
+    TRY_VARINT_SIZE(frame->goaway.stream_id);
     break;
   case HTTP3_MAX_PUSH_ID:
-    size += varint_size(frame->max_push_id.push_id);
+    TRY_VARINT_SIZE(frame->max_push_id.push_id);
     break;
   case HTTP3_DUPLICATE_PUSH:
-    size += varint_size(frame->duplicate_push.push_id);
+    TRY_VARINT_SIZE(frame->duplicate_push.push_id);
     break;
   }
 
@@ -241,6 +256,10 @@ FRAME_SERIALIZE_ERROR frame_serialize(uint8_t *dest, size_t size,
   TRY_VARINT_SERIALIZE(frame->type);
 
   varint_t frame_length = frame_payload_size(frame);
+  if (frame_length == 0) {
+    return FRAME_SERIALIZE_VARINT_OVERFLOW;
+  }
+
   TRY_VARINT_SERIALIZE(frame_length);
 
   switch (frame->type) {
