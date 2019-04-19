@@ -99,11 +99,8 @@ h3c_frame_parse(const uint8_t *src,
       return error;
     }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
     frame->priority.prioritized_element_type = *src >> 6;
     frame->priority.element_dependency_type = (*src >> 4) & 0x03;
-#pragma GCC diagnostic pop
 
     src++;
     size--;
