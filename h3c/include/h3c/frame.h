@@ -1,7 +1,6 @@
 #pragma once
 
 #include <h3c/export.h>
-#include <h3c/varint.h>
 
 #include <stdint.h>
 
