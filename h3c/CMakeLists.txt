@@ -7,10 +7,9 @@ target_sources(h3c PRIVATE
 )
 
 if(H3C_TESTS)
-  target_link_libraries(h3c PRIVATE doctest)
   cddm_add_common(h3c CXX 11 lib)
 
-  target_sources(h3c PRIVATE
+  target_sources(h3c-tests PRIVATE
     tests/varint.cpp
   )
 

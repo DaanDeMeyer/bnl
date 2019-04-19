@@ -1,7 +1,6 @@
-#define DOCTEST_CONFIG_IMPLEMENTATION_IN_DLL
 #include <doctest.h>
 
-#include <varint.h>
+#include <h3c/varint.h>
 
 #include <array>
 
