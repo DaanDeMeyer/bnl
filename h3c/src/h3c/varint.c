@@ -93,23 +93,28 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
   return varint_size;
 }
 
-// All serialize functions convert from host to network byte order and insert
-// the varint header.
+// All serialize functions convert from host to network byte order (big-endian)
+// and insert the varint header.
+
+#define VARINT_UINT8_HEADER 0x00
+#define VARINT_UINT16_HEADER 0x40
+#define VARINT_UINT32_HEADER 0x80
+#define VARINT_UINT64_HEADER 0xc0
 
 static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
-  dest[0] = number | 0x00;
+  dest[0] = number | VARINT_UINT8_HEADER;
 }
 
 static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
 {
-  dest[0] = (uint8_t)((number >> 8 & 0xff) | 0x40);
+  dest[0] = (uint8_t)((number >> 8) | VARINT_UINT16_HEADER);
   dest[1] = (uint8_t)(number & 0xff);
 }
 
 static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
 {
-  dest[0] = (uint8_t)((number >> 24 & 0xff) | 0x80);
+  dest[0] = (uint8_t)((number >> 24) | VARINT_UINT32_HEADER);
   dest[1] = number >> 16 & 0xff;
   dest[2] = number >> 8 & 0xff;
   dest[3] = number & 0xff;
@@ -117,7 +122,7 @@ static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
 
 static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
 {
-  dest[0] = (uint8_t)((number >> 56 & 0xff) | 0xc0);
+  dest[0] = (uint8_t)((number >> 56) | VARINT_UINT64_HEADER);
   dest[1] = number >> 48 & 0xff;
   dest[2] = number >> 40 & 0xff;
   dest[3] = number >> 32 & 0xff;
