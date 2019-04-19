@@ -63,7 +63,7 @@ size_t varint_parse(const uint8_t *src, size_t size, varint_t *varint)
   }
 
   size_t varint_size = 1;
-  uint8_t header = *src & 0xc0;
+  uint8_t header = *src >> 6;
 
   // varint size = 2^header
   varint_size <<= header; // shift left => x2
