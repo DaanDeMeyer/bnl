@@ -107,6 +107,7 @@ h3c_frame_parse(const uint8_t *src,
     frame->priority.element_dependency_type = (*src >> 4) & 0x03;
     src++;
     size--;
+    (*bytes_read)++;
     frame_length--;
 
     TRY_VARINT_PARSE_2(frame->priority.prioritized_element_id);
@@ -119,6 +120,7 @@ h3c_frame_parse(const uint8_t *src,
     frame->priority.weight = *src;
     src++;
     size--;
+    (*bytes_read)++;
     frame_length--;
     break;
   case H3C_CANCEL_PUSH:
