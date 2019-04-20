@@ -3,6 +3,7 @@ Checks:
 '
 *,
 -cppcoreguidelines-avoid-magic-numbers,
+-cppcoreguidelines-pro-type-union-access,
 -fuchsia-default-arguments,
 -hicpp-multiway-paths-covered,
 -hicpp-signed-bitwise,
