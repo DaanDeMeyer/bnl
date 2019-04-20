@@ -134,7 +134,7 @@ TEST_CASE("varint")
     REQUIRE(rv == 0);
   }
 
-  SUBCASE("out of bounds")
+  SUBCASE("buffer too small")
   {
     std::array<uint8_t, 1> dest = { {} };
     uint8_t n = 169;
