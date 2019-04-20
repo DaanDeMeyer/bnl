@@ -1,0 +1,29 @@
+parameters:
+  name: ''
+  image: ''
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+  steps:
+  - script: brew upgrade cmake
+    displayName: Install
+
+  - script: |
+      cmake \
+        -B $(Build.SourcesDirectory)/build \
+        -S $(Build.SourcesDirectory) \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DBUILD_SHARED_LIBS=ON \
+        -DH3C_TEST=ON \
+        -DH3C_WARNINGS_AS_ERRORS=ON \
+        -DH3C_SANITIZERS=ON
+    displayName: Configure
+
+  - script: cmake --build $(Build.SourcesDirectory)/build --parallel 2
+    displayName: Build
+
+  - script: build/test
+    displayName: Test
+
