@@ -9,25 +9,23 @@ project(h3c
   LANGUAGES C
 )
 
-option(H3C_TESTS "Build tests")
+option(H3C_TEST "Build tests")
 
-if(H3C_TESTS)
+if(H3C_TEST)
   enable_language(CXX)
 endif()
 
 include(external/cddm/cddm.cmake)
 
-if(H3C_TESTS)
-  add_subdirectory(external/doctest)
-
+if(H3C_TEST)
   # h3c uses the doctest testing framework. All tests are grouped inside a
-  # single executable. Use `target_sources(h3c-tests PRIVATE <file>)` to add
-  # new tests. Tests are executed by running the build/tests executable.
-  add_executable(h3c-tests)
+  # single executable. Use `target_sources(h3c-test PRIVATE <file>)` to add
+  # new tests. Tests are executed by running the build/test executable.
+  add_executable(h3c-test)
 
-  cddm_add_common(h3c-tests CXX 11 "")
-  set_target_properties(h3c-tests PROPERTIES OUTPUT_NAME tests)
-  target_link_libraries(h3c-tests PRIVATE doctest)
+  cddm_add_common(h3c-test CXX 11 "")
+  set_target_properties(h3c-test PROPERTIES OUTPUT_NAME test)
+  target_link_libraries(h3c-test PRIVATE doctest)
 endif()
 
 add_subdirectory(h3c)

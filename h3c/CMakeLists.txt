@@ -6,12 +6,12 @@ target_sources(h3c PRIVATE
   src/varint.c
 )
 
-if(H3C_TESTS)
+if(H3C_TEST)
   cddm_add_common(h3c CXX 11 lib)
 
-  target_sources(h3c-tests PRIVATE
-    tests/varint.cpp
+  target_sources(h3c-test PRIVATE
+    test/varint.cpp
   )
 
-  target_link_libraries(h3c-tests PRIVATE h3c)
+  target_link_libraries(h3c-test PRIVATE h3c)
 endif()
