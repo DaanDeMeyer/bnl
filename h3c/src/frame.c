@@ -255,13 +255,12 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
 
   H3C_FRAME_SERIALIZE_ERROR error = H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;
 
-  TRY_VARINT_SERIALIZE(frame->type);
-
   uint64_t frame_length = frame_payload_size(frame);
   if (frame_length == 0) {
     return H3C_FRAME_SERIALIZE_VARINT_OVERFLOW;
   }
 
+  TRY_VARINT_SERIALIZE(frame->type);
   TRY_VARINT_SERIALIZE(frame_length);
 
   switch (frame->type) {
