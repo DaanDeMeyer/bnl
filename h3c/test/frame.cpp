@@ -153,7 +153,7 @@ TEST_CASE("frame")
     src.type = H3C_GOAWAY;
     src.goaway.stream_id = 1073741823; // varint size = 4
 
-    std::array<uint8_t, 6> buffer = {{}};
+    std::array<uint8_t, 6> buffer = { {} };
     h3c_frame_t dest = serialize_and_parse(src, buffer);
 
     REQUIRE(dest.goaway.stream_id == src.goaway.stream_id);
@@ -165,7 +165,7 @@ TEST_CASE("frame")
     src.type = H3C_MAX_PUSH_ID;
     src.max_push_id.push_id = 1073741824; // varint size = 8;
 
-    std::array<uint8_t, 10> buffer = {{}};
+    std::array<uint8_t, 10> buffer = { {} };
     h3c_frame_t dest = serialize_and_parse(src, buffer);
 
     REQUIRE(dest.max_push_id.push_id == src.max_push_id.push_id);
@@ -177,9 +177,95 @@ TEST_CASE("frame")
     src.type = H3C_DUPLICATE_PUSH;
     src.duplicate_push.push_id = 4611686018427387903; // varint size = 8
 
-    std::array<uint8_t, 10> buffer = {{}};
+    std::array<uint8_t, 10> buffer = { {} };
     h3c_frame_t dest = serialize_and_parse(src, buffer);
 
     REQUIRE(dest.duplicate_push.push_id == src.duplicate_push.push_id);
+  }
+
+  SUBCASE("parse: frame incomplete")
+  {
+    h3c_frame_t src;
+    src.type = H3C_DUPLICATE_PUSH;
+    src.duplicate_push.push_id = 50;
+
+    std::array<uint8_t, 3> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(!error);
+    REQUIRE(bytes_written == buffer.size());
+
+    h3c_frame_t dest;
+    size_t bytes_read = 0;
+    error = h3c_frame_parse(buffer.data(), buffer.size() - 1, &dest,
+                            &bytes_read);
+
+    REQUIRE(error == H3C_FRAME_PARSE_INCOMPLETE);
+    REQUIRE(bytes_read == 2); // Only frame type and length can be parsed.
+
+    error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &bytes_read);
+
+    REQUIRE(!error);
+    REQUIRE(bytes_read == buffer.size());
+  }
+
+  SUBCASE("parse: frame malformed")
+  {
+    h3c_frame_t src;
+    src.type = H3C_CANCEL_PUSH;
+    src.cancel_push.push_id = 16384; // varint size = 4
+
+    std::array<uint8_t, 20> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(!error);
+    REQUIRE(bytes_written == 6);
+
+    buffer[1] = 16; // mangle the frame length
+
+    h3c_frame_t dest;
+    size_t bytes_read = 0;
+    error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &bytes_read);
+
+    REQUIRE(error == H3C_FRAME_PARSE_MALFORMED);
+    REQUIRE(bytes_read == 6); // Only frame type and length can be parsed.
+  }
+
+  SUBCASE("serialize: buffer too small")
+  {
+    h3c_frame_t src;
+    src.type = H3C_DATA;
+
+    std::array<uint8_t, 20> payload = { {} };
+    src.data.payload.data = payload.data();
+    src.data.payload.size = payload.size();
+
+    std::array<uint8_t, 10> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(error == H3C_FRAME_SERIALIZE_BUF_TOO_SMALL);
+    REQUIRE(bytes_written == 2); // Only type and length will be serialized.
+  }
+
+  SUBCASE("serialize: varint overflow")
+  {
+    h3c_frame_t src;
+    src.type = H3C_SETTINGS;
+    src.settings.max_header_list_size = 4611686018427387904; // overflows
+    src.settings.num_placeholders = 15;
+
+    std::array<uint8_t, 20> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(error == H3C_FRAME_SERIALIZE_VARINT_OVERFLOW);
+    REQUIRE(bytes_written == 0);
   }
 }
