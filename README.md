@@ -1,2 +1,3 @@
 [![Build Status](https://travis-ci.com/DaanDeMeyer/h3c.svg?branch=master)](https://travis-ci.com/DaanDeMeyer/h3c)
 [![Build status](https://ci.appveyor.com/api/projects/status/cdo8r77v27fx4gp3?svg=true)](https://ci.appveyor.com/project/DaanDeMeyer/h3c)
+[![Build Status](https://dev.azure.com/daanjdemeyer/h3c/_apis/build/status/DaanDeMeyer.h3c?branchName=master)](https://dev.azure.com/daanjdemeyer/h3c/_build/latest?definitionId=2&branchName=master)
