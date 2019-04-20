@@ -8,6 +8,7 @@ target_sources(h3c PRIVATE
 
 if(H3C_TEST)
   target_sources(h3c-test PRIVATE
+    test/frame.cpp
     test/varint.cpp
   )
 
