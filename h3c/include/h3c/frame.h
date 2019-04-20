@@ -7,12 +7,12 @@
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#rfc.section.4
 
-// An enum is always backed by a signed integer but we need a varint so we use
-// defines and a typedef instead.
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// Enums are always integers, we need unsigned types so we make do with typedefs
+// and defines.
 
 typedef uint64_t H3C_FRAME;
 #define H3C_DATA 0x0U
