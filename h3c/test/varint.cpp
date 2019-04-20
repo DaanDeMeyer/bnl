@@ -133,4 +133,19 @@ TEST_CASE("varint")
     size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
     REQUIRE(rv == 0);
   }
+
+  SUBCASE("out of bounds")
+  {
+    std::array<uint8_t, 1> dest = { {} };
+    uint8_t n = 169;
+
+    // `h3c_varint_serialize` returns 0 both when the varint overflows and when
+    // the varint doesn't fit in `dest`. To make sure we're testing the out of
+    // bounds case, we verify that the varint doesn't overflow first.
+    size_t rv = h3c_varint_size(n);
+    REQUIRE(rv != 0);
+
+    rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    REQUIRE(rv == 0);
+  }
 }
