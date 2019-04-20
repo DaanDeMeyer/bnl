@@ -9,7 +9,7 @@ project(h3c
   LANGUAGES C
 )
 
-option(H3C_TEST "Build tests")
+option(H3C_TEST "Build tests.")
 
 if(H3C_TEST)
   enable_language(CXX)
@@ -24,8 +24,10 @@ if(H3C_TEST)
   add_executable(h3c-test)
 
   cddm_add_common(h3c-test CXX 11 "")
+  target_include_directories(h3c-test PRIVATE external/doctest)
   set_target_properties(h3c-test PROPERTIES OUTPUT_NAME test)
-  target_link_libraries(h3c-test PRIVATE doctest)
+
+  target_sources(h3c-test PRIVATE external/doctest/main.cpp)
 endif()
 
 add_subdirectory(h3c)
