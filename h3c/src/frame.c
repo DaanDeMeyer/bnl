@@ -282,6 +282,7 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     *dest &= 0xf0;
     dest++;
     size--;
+    (*bytes_written)++;
 
     TRY_VARINT_SERIALIZE(frame->priority.prioritized_element_id);
     TRY_VARINT_SERIALIZE(frame->priority.element_dependency_id);
@@ -293,6 +294,7 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     *dest = frame->priority.weight;
     dest++;
     size--;
+    (*bytes_written)++;
     break;
   case H3C_CANCEL_PUSH:
     TRY_VARINT_SERIALIZE(frame->cancel_push.push_id);
