@@ -64,11 +64,10 @@
   frame_length -= frame_length;                                                \
   (void) 0
 
-H3C_FRAME_PARSE_ERROR
-h3c_frame_parse(const uint8_t *src,
-                size_t size,
-                h3c_frame_t *frame,
-                size_t *bytes_read)
+H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
+                                      size_t size,
+                                      h3c_frame_t *frame,
+                                      size_t *bytes_read)
 {
   *bytes_read = 0;
 
