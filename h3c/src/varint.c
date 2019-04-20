@@ -4,6 +4,11 @@
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#integer-encoding
 
+#define VARINT_UINT8_HEADER 0x00
+#define VARINT_UINT16_HEADER 0x40
+#define VARINT_UINT32_HEADER 0x80
+#define VARINT_UINT64_HEADER 0xc0
+
 size_t h3c_varint_size(uint64_t varint)
 {
   if (varint < 0x40) {
@@ -98,11 +103,6 @@ size_t h3c_varint_parse(const uint8_t *src, size_t size, uint64_t *varint)
 
 // All serialize functions convert from host to network byte order (big-endian)
 // and insert the varint header.
-
-#define VARINT_UINT8_HEADER 0x00
-#define VARINT_UINT16_HEADER 0x40
-#define VARINT_UINT32_HEADER 0x80
-#define VARINT_UINT64_HEADER 0xc0
 
 static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
