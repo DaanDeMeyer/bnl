@@ -20,7 +20,7 @@
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
     if (rv == 0) {                                                             \
-      return error;                                                            \
+      return H3C_FRAME_PARSE_INCOMPLETE;                                       \
     }                                                                          \
                                                                                \
     src += rv;                                                                 \
@@ -35,11 +35,11 @@
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
     if (rv == 0) {                                                             \
-      return error;                                                            \
+      return H3C_FRAME_PARSE_INCOMPLETE;                                       \
     }                                                                          \
                                                                                \
     if (rv > frame_length) {                                                   \
-      return error;                                                            \
+      return H3C_FRAME_PARSE_MALFORMED;                                        \
     }                                                                          \
                                                                                \
     src += rv;                                                                 \
@@ -49,18 +49,8 @@
   }                                                                            \
   (void) 0
 
-// Casting `frame_length` to `size_t` in `BUFFER_PARSE` is safe since we don't
-// continue parsing in `h3c_frame_parse` if `frame_length > size`, so when
-// `BUFFER_PARSE` is first used, we're guaranteed that `frame_length <= size`
-// (both are always subtracted by the same amount) and `frame_length` fits
-// inside `size_t`.
-
 #define BUFFER_PARSE(buffer)                                                   \
-  (buffer).data = src;                                                         \
-  (buffer).size = (size_t) frame_length;                                       \
-  src += frame_length;                                                         \
-  size -= (size_t) frame_length;                                               \
-  *bytes_read += (size_t) frame_length;                                        \
+  (buffer).size = frame_length;                                                \
   frame_length -= frame_length;                                                \
   (void) 0
 
@@ -71,24 +61,10 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
 {
   *bytes_read = 0;
 
-  // Before parsing the frame's length, incomplete varints only indicate the
-  // full frame is not yet available.
-  H3C_FRAME_PARSE_ERROR error = H3C_FRAME_PARSE_INCOMPLETE;
-
   TRY_VARINT_PARSE_1(frame->type);
 
   uint64_t frame_length = 0;
   TRY_VARINT_PARSE_1(frame_length);
-
-  // We only continue parsing if the full frame payload is available in `src`.
-  if (frame_length > size) {
-    return error;
-  }
-
-  // From now on, if the frame's content size exceeds the frame's length or a
-  // varint's size goes out of bounds of `src`, we're dealing with a malformed
-  // frame.
-  error = H3C_FRAME_PARSE_MALFORMED;
 
   switch (frame->type) {
   case H3C_DATA:
@@ -98,8 +74,12 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
     BUFFER_PARSE(frame->headers.header_block);
     break;
   case H3C_PRIORITY:
-    if (size == 0 || frame_length == 0) {
-      return error;
+    if (size == 0) {
+      return H3C_FRAME_PARSE_INCOMPLETE;
+    }
+
+    if (frame_length == 0) {
+      return H3C_FRAME_PARSE_MALFORMED;
     }
 
     frame->priority.prioritized_element_type = *src >> 6;
@@ -112,8 +92,12 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
     TRY_VARINT_PARSE_2(frame->priority.prioritized_element_id);
     TRY_VARINT_PARSE_2(frame->priority.element_dependency_id);
 
-    if (size == 0 || frame_length == 0) {
-      return error;
+    if (size == 0) {
+      return H3C_FRAME_PARSE_INCOMPLETE;
+    }
+
+    if (frame_length == 0) {
+      return H3C_FRAME_PARSE_MALFORMED;
     }
 
     frame->priority.weight = *src;
@@ -158,12 +142,10 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
   }
 
   if (frame_length > 0) {
-    return error;
+    return H3C_FRAME_PARSE_MALFORMED;
   }
 
-  error = H3C_FRAME_PARSE_SUCCESS;
-
-  return error;
+  return H3C_FRAME_PARSE_SUCCESS;
 }
 
 #define TRY_VARINT_SIZE(value)                                                 \
@@ -226,7 +208,7 @@ static uint64_t frame_payload_size(const h3c_frame_t *frame)
   {                                                                            \
     size_t rv = h3c_varint_serialize(dest, size, (value));                     \
     if (rv == 0) {                                                             \
-      return error;                                                            \
+      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;                                \
     }                                                                          \
                                                                                \
     dest += rv;                                                                \
@@ -235,25 +217,12 @@ static uint64_t frame_payload_size(const h3c_frame_t *frame)
   }                                                                            \
   (void) 0
 
-#define TRY_BUFFER_SERIALIZE(buffer)                                           \
-  if ((buffer).size > size) {                                                  \
-    return error;                                                              \
-  }                                                                            \
-                                                                               \
-  memcpy(dest, (buffer).data, (buffer).size);                                  \
-  dest += (buffer).size;                                                       \
-  size -= (buffer).size;                                                       \
-  *bytes_written += (buffer).size;                                             \
-  (void) 0
-
 H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
                                               size_t size,
                                               const h3c_frame_t *frame,
                                               size_t *bytes_written)
 {
   *bytes_written = 0;
-
-  H3C_FRAME_SERIALIZE_ERROR error = H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;
 
   uint64_t frame_length = frame_payload_size(frame);
   if (frame_length == 0) {
@@ -265,14 +234,12 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
 
   switch (frame->type) {
   case H3C_DATA:
-    TRY_BUFFER_SERIALIZE(frame->data.payload);
     break;
   case H3C_HEADERS:
-    TRY_BUFFER_SERIALIZE(frame->headers.header_block);
     break;
   case H3C_PRIORITY:
     if (size == 0) {
-      return error;
+      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;
     }
 
     *dest = (uint8_t)(*dest | frame->priority.prioritized_element_type << 6);
@@ -286,7 +253,7 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     TRY_VARINT_SERIALIZE(frame->priority.element_dependency_id);
 
     if (size == 0) {
-      return error;
+      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;
     }
 
     *dest = frame->priority.weight;
@@ -305,7 +272,6 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     break;
   case H3C_PUSH_PROMISE:
     TRY_VARINT_SERIALIZE(frame->push_promise.push_id);
-    TRY_BUFFER_SERIALIZE(frame->push_promise.header_block);
     break;
   case H3C_GOAWAY:
     TRY_VARINT_SERIALIZE(frame->goaway.stream_id);
@@ -318,7 +284,5 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     break;
   }
 
-  error = H3C_FRAME_SERIALIZE_SUCCESS;
-
-  return error;
+  return H3C_FRAME_SERIALIZE_SUCCESS;
 }

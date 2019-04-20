@@ -5,15 +5,11 @@
 #include <array>
 #include <cstring>
 
-// We pass the storage buffer to the function because `h3c_frame_parse` does not
-// copy data and header blocks from the input, but instead just stores
-// where a buffer starts in the input and how large it is. If we declare the
-// input buffer inside the function, the buffer pointers in the parsed frame
-// would point to invalid memory when the function returns.
 template <size_t N>
-static h3c_frame_t serialize_and_parse(const h3c_frame_t &src,
-                                       std::array<uint8_t, N> &buffer)
+static h3c_frame_t serialize_and_parse(const h3c_frame_t &src)
 {
+  std::array<uint8_t, N> buffer = {{}};
+
   int error = 0;
   CAPTURE(error);
 
@@ -46,35 +42,22 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_DATA;
+    src.data.payload.size = 64; // frame length varint size = 2
 
-    std::array<uint8_t, 4> payload = { 1, 2, 3, 4 };
-    src.data.payload.data = payload.data();
-    src.data.payload.size = payload.size();
+    h3c_frame_t dest = serialize_and_parse<3>(src);
 
-    std::array<uint8_t, 6> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
-
-    REQUIRE(dest.data.payload.size == payload.size());
-    REQUIRE(std::memcmp(dest.data.payload.data, src.data.payload.data,
-                        src.data.payload.size) == 0);
+    REQUIRE(dest.data.payload.size == src.data.payload.size);
   }
 
   SUBCASE("headers")
   {
     h3c_frame_t src;
     src.type = H3C_HEADERS;
+    src.headers.header_block.size = 16384; // frame length varint size = 4
 
-    std::array<uint8_t, 4> header_block = { 1, 2, 3, 4 };
-    src.headers.header_block.data = header_block.data();
-    src.headers.header_block.size = header_block.size();
-
-    std::array<uint8_t, 6> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<5>(src);
 
     REQUIRE(dest.headers.header_block.size == src.headers.header_block.size);
-    REQUIRE(std::memcmp(dest.headers.header_block.data,
-                        src.headers.header_block.data,
-                        dest.headers.header_block.size) == 0);
   }
 
   SUBCASE("priority")
@@ -87,8 +70,7 @@ TEST_CASE("frame")
     src.priority.element_dependency_id = 1073781823; // varint size = 8
     src.priority.weight = 43;
 
-    std::array<uint8_t, 16> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<16>(src);
 
     REQUIRE(dest.priority.prioritized_element_type ==
             src.priority.prioritized_element_type);
@@ -105,8 +87,7 @@ TEST_CASE("frame")
     src.type = H3C_CANCEL_PUSH;
     src.cancel_push.push_id = 64; // varint size = 2
 
-    std::array<uint8_t, 4> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<4>(src);
 
     REQUIRE(dest.cancel_push.push_id == src.cancel_push.push_id);
   }
@@ -118,8 +99,7 @@ TEST_CASE("frame")
     src.settings.max_header_list_size = 63; // varint size = 1
     src.settings.num_placeholders = 16383;  // varint size = 2
 
-    std::array<uint8_t, 7> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<7>(src);
 
     REQUIRE(dest.settings.max_header_list_size ==
             src.settings.max_header_list_size);
@@ -131,20 +111,14 @@ TEST_CASE("frame")
     h3c_frame_t src;
     src.type = H3C_PUSH_PROMISE;
     src.push_promise.push_id = 16384; // varint size = 4
+    // frame length varint size = 8
+    src.push_promise.header_block.size = 1073741824;
 
-    std::array<uint8_t, 7> header_block = { 1, 2, 3, 4, 5, 6, 7 };
-    src.push_promise.header_block.data = header_block.data();
-    src.push_promise.header_block.size = header_block.size();
-
-    std::array<uint8_t, 13> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<13>(src);
 
     REQUIRE(dest.push_promise.push_id == src.push_promise.push_id);
     REQUIRE(dest.push_promise.header_block.size ==
             src.push_promise.header_block.size);
-    REQUIRE(std::memcmp(dest.push_promise.header_block.data,
-                        src.push_promise.header_block.data,
-                        dest.push_promise.header_block.size) == 0);
   }
 
   SUBCASE("goaway")
@@ -153,8 +127,7 @@ TEST_CASE("frame")
     src.type = H3C_GOAWAY;
     src.goaway.stream_id = 1073741823; // varint size = 4
 
-    std::array<uint8_t, 6> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<6>(src);
 
     REQUIRE(dest.goaway.stream_id == src.goaway.stream_id);
   }
@@ -165,8 +138,7 @@ TEST_CASE("frame")
     src.type = H3C_MAX_PUSH_ID;
     src.max_push_id.push_id = 1073741824; // varint size = 8;
 
-    std::array<uint8_t, 10> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<10>(src);
 
     REQUIRE(dest.max_push_id.push_id == src.max_push_id.push_id);
   }
@@ -177,8 +149,7 @@ TEST_CASE("frame")
     src.type = H3C_DUPLICATE_PUSH;
     src.duplicate_push.push_id = 4611686018427387903; // varint size = 8
 
-    std::array<uint8_t, 10> buffer = { {} };
-    h3c_frame_t dest = serialize_and_parse(src, buffer);
+    h3c_frame_t dest = serialize_and_parse<10>(src);
 
     REQUIRE(dest.duplicate_push.push_id == src.duplicate_push.push_id);
   }
@@ -238,19 +209,18 @@ TEST_CASE("frame")
   SUBCASE("serialize: buffer too small")
   {
     h3c_frame_t src;
-    src.type = H3C_DATA;
+    src.type = H3C_SETTINGS;
+    src.settings.max_header_list_size = 64; // varint size = 2
+    src.settings.num_placeholders = 5; // varint size = 1
 
-    std::array<uint8_t, 20> payload = { {} };
-    src.data.payload.data = payload.data();
-    src.data.payload.size = payload.size();
-
-    std::array<uint8_t, 10> buffer = { {} };
+    std::array<uint8_t, 3> buffer = { {} };
     size_t bytes_written = 0;
     int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
                                     &bytes_written);
 
     REQUIRE(error == H3C_FRAME_SERIALIZE_BUF_TOO_SMALL);
-    REQUIRE(bytes_written == 2); // Only type and length will be serialized.
+    // Only type and length and the first setting id will be serialized.
+    REQUIRE(bytes_written == buffer.size());
   }
 
   SUBCASE("serialize: varint overflow")

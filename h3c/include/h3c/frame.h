@@ -34,15 +34,13 @@ typedef uint8_t H3C_STREAM_TYPE;
 
 typedef struct {
   struct {
-    const uint8_t *data;
-    size_t size;
+    uint64_t size;
   } payload;
 } h3c_frame_data_t;
 
 typedef struct {
   struct {
-    const uint8_t *data;
-    size_t size;
+    uint64_t size;
   } header_block;
 } h3c_frame_headers_t;
 
@@ -66,8 +64,7 @@ typedef struct {
 typedef struct {
   uint64_t push_id;
   struct {
-    const uint8_t *data;
-    size_t size;
+    uint64_t size;
   } header_block;
 } h3c_frame_push_promise_t;
 
