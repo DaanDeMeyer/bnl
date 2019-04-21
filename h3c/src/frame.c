@@ -8,6 +8,8 @@
 
 #define SETTINGS_MAX_HEADER_LIST_SIZE 0x6U
 #define SETTINGS_NUM_PLACEHOLDERS 0x9U
+#define SETTINGS_QPACK_MAX_TABLE_CAPACITY 0x1U
+#define SETTINGS_QPACK_BLOCKED_STREAMS 0x7U
 
 // We use a lot of macros in this file because after each serialize/parse, we
 // have to check the result and update a lot of values. Macros provide us with a
@@ -123,6 +125,12 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
       case SETTINGS_NUM_PLACEHOLDERS:
         frame->settings.num_placeholders = value;
         break;
+      case SETTINGS_QPACK_MAX_TABLE_CAPACITY:
+        frame->settings.qpack_max_table_capacity = value;
+        break;
+      case SETTINGS_QPACK_BLOCKED_STREAMS:
+        frame->settings.qpack_blocked_streams = value;
+        break;
       }
     }
     break;
@@ -185,6 +193,10 @@ static uint64_t frame_payload_size(const h3c_frame_t *frame)
     TRY_VARINT_SIZE(frame->settings.max_header_list_size);
     TRY_VARINT_SIZE(SETTINGS_NUM_PLACEHOLDERS);
     TRY_VARINT_SIZE(frame->settings.num_placeholders);
+    TRY_VARINT_SIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
+    TRY_VARINT_SIZE(frame->settings.qpack_max_table_capacity);
+    TRY_VARINT_SIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
+    TRY_VARINT_SIZE(frame->settings.qpack_blocked_streams);
     break;
   case H3C_PUSH_PROMISE:
     TRY_VARINT_SIZE(frame->push_promise.push_id);
@@ -269,6 +281,10 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     TRY_VARINT_SERIALIZE(frame->settings.max_header_list_size);
     TRY_VARINT_SERIALIZE(SETTINGS_NUM_PLACEHOLDERS);
     TRY_VARINT_SERIALIZE(frame->settings.num_placeholders);
+    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
+    TRY_VARINT_SERIALIZE(frame->settings.qpack_max_table_capacity);
+    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
+    TRY_VARINT_SERIALIZE(frame->settings.qpack_blocked_streams);
     break;
   case H3C_PUSH_PROMISE:
     TRY_VARINT_SERIALIZE(frame->push_promise.push_id);
