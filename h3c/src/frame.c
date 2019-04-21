@@ -4,6 +4,13 @@
 #include <assert.h>
 #include <string.h>
 
+const h3c_frame_settings_t h3c_frame_settings_default = {
+  .max_header_list_size = 4611686018427387903, // varint max
+  .num_placeholders = 0,
+  .qpack_max_table_capacity = 0,
+  .qpack_blocked_streams = 0
+};
+
 // Setting identifiers
 
 #define SETTINGS_MAX_HEADER_LIST_SIZE 0x6U
@@ -112,6 +119,8 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
     TRY_VARINT_PARSE_2(frame->cancel_push.push_id);
     break;
   case H3C_SETTINGS:
+    frame->settings = h3c_frame_settings_default;
+
     while (frame_length > 0) {
       uint64_t id = 0;
       TRY_VARINT_PARSE_2(id);

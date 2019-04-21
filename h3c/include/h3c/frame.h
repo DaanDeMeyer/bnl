@@ -59,6 +59,8 @@ typedef struct {
   uint64_t qpack_blocked_streams; // Max: 2^16 - 1
 } h3c_frame_settings_t;
 
+H3C_EXPORT extern const h3c_frame_settings_t h3c_frame_settings_default;
+
 typedef struct {
   uint64_t push_id;
 } h3c_frame_cancel_push_t;
