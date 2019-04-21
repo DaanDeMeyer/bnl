@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#integer-encoding
+
 #ifdef __cplusplus
 extern "C" {
 #endif

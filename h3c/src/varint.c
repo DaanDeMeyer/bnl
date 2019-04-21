@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-// https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#integer-encoding
-
 size_t h3c_varint_size(uint64_t varint)
 {
   if (varint < 0x40) {
