@@ -233,6 +233,18 @@ static uint64_t frame_payload_size(const h3c_frame_t *frame)
   }                                                                            \
   (void) 0
 
+#define TRY_UINT8_SERIALIZE(value)                                             \
+  if (size == 0) {                                                             \
+    return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;                                  \
+  }                                                                            \
+                                                                               \
+  *dest = (value);                                                             \
+                                                                               \
+  dest++;                                                                      \
+  size--;                                                                      \
+  (*bytes_written)++;                                                          \
+  (void) 0
+
 H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
                                               size_t size,
                                               const h3c_frame_t *frame,
@@ -253,29 +265,17 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     break;
   case H3C_HEADERS:
     break;
-  case H3C_PRIORITY:
-    if (size == 0) {
-      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;
-    }
-
-    *dest = (uint8_t)(*dest | frame->priority.prioritized_element_type << 6);
-    *dest = (uint8_t)(*dest | frame->priority.element_dependency_type << 4);
-    *dest &= 0xf0;
-    dest++;
-    size--;
-    (*bytes_written)++;
+  case H3C_PRIORITY:;
+    uint8_t byte = 0;
+    byte |= (uint8_t)(frame->priority.prioritized_element_type << 6);
+    byte |= (uint8_t)(frame->priority.element_dependency_type << 4);
+    byte &= 0xf0;
+    TRY_UINT8_SERIALIZE(byte);
 
     TRY_VARINT_SERIALIZE(frame->priority.prioritized_element_id);
     TRY_VARINT_SERIALIZE(frame->priority.element_dependency_id);
 
-    if (size == 0) {
-      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;
-    }
-
-    *dest = frame->priority.weight;
-    dest++;
-    size--;
-    (*bytes_written)++;
+    TRY_UINT8_SERIALIZE(frame->priority.weight);
     break;
   case H3C_CANCEL_PUSH:
     TRY_VARINT_SERIALIZE(frame->cancel_push.push_id);
