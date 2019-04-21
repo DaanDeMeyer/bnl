@@ -14,16 +14,16 @@ extern "C" {
 // Enums are always integers, we need unsigned types so we make do with typedefs
 // and defines.
 
-typedef uint64_t H3C_FRAME;
-#define H3C_DATA 0x0U
-#define H3C_HEADERS 0x1U
-#define H3C_PRIORITY 0x2U
-#define H3C_CANCEL_PUSH 0x3U
-#define H3C_SETTINGS 0x4U
-#define H3C_PUSH_PROMISE 0x5U
-#define H3C_GOAWAY 0x7U
-#define H3C_MAX_PUSH_ID 0xdU
-#define H3C_DUPLICATE_PUSH 0xeU
+typedef uint64_t H3C_FRAME_TYPE;
+#define H3C_FRAME_DATA 0x0U
+#define H3C_FRAME_HEADERS 0x1U
+#define H3C_FRAME_PRIORITY 0x2U
+#define H3C_FRAME_CANCEL_PUSH 0x3U
+#define H3C_FRAME_SETTINGS 0x4U
+#define H3C_FRAME_PUSH_PROMISE 0x5U
+#define H3C_FRAME_GOAWAY 0x7U
+#define H3C_FRAME_MAX_PUSH_ID 0xdU
+#define H3C_FRAME_DUPLICATE_PUSH 0xeU
 
 typedef uint8_t H3C_PRIORITY_TYPE;
 #define H3C_PRIORITY_REQUEST 0x0U
@@ -85,7 +85,7 @@ typedef struct {
 } h3c_frame_duplicate_push_t;
 
 typedef struct {
-  H3C_FRAME type;
+  H3C_FRAME_TYPE type;
 
   // We don't store the frame length since (for now) it's easier to calculate it
   // when needed. This also prevents it from getting stale.

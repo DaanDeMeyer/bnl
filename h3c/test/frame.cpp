@@ -41,7 +41,7 @@ TEST_CASE("frame")
   SUBCASE("data")
   {
     h3c_frame_t src;
-    src.type = H3C_DATA;
+    src.type = H3C_FRAME_DATA;
     src.data.payload.size = 64; // frame length varint size = 2
 
     h3c_frame_t dest = serialize_and_parse<3>(src);
@@ -52,7 +52,7 @@ TEST_CASE("frame")
   SUBCASE("headers")
   {
     h3c_frame_t src;
-    src.type = H3C_HEADERS;
+    src.type = H3C_FRAME_HEADERS;
     src.headers.header_block.size = 16384; // frame length varint size = 4
 
     h3c_frame_t dest = serialize_and_parse<5>(src);
@@ -63,7 +63,7 @@ TEST_CASE("frame")
   SUBCASE("priority")
   {
     h3c_frame_t src;
-    src.type = H3C_PRIORITY;
+    src.type = H3C_FRAME_PRIORITY;
     src.priority.prioritized_element_type = H3C_PRIORITY_CURRENT;
     src.priority.element_dependency_type = H3C_PRIORITY_PLACEHOLDER;
     src.priority.prioritized_element_id = 16482;     // varint size = 4
@@ -84,7 +84,7 @@ TEST_CASE("frame")
   SUBCASE("cancel push")
   {
     h3c_frame_t src;
-    src.type = H3C_CANCEL_PUSH;
+    src.type = H3C_FRAME_CANCEL_PUSH;
     src.cancel_push.push_id = 64; // varint size = 2
 
     h3c_frame_t dest = serialize_and_parse<4>(src);
@@ -95,7 +95,7 @@ TEST_CASE("frame")
   SUBCASE("settings")
   {
     h3c_frame_t src;
-    src.type = H3C_SETTINGS;
+    src.type = H3C_FRAME_SETTINGS;
     src.settings = h3c_frame_settings_default;
 
     h3c_frame_t dest = serialize_and_parse<17>(src);
@@ -108,7 +108,7 @@ TEST_CASE("frame")
   SUBCASE("push promise")
   {
     h3c_frame_t src;
-    src.type = H3C_PUSH_PROMISE;
+    src.type = H3C_FRAME_PUSH_PROMISE;
     src.push_promise.push_id = 16384; // varint size = 4
     // frame length varint size = 8
     src.push_promise.header_block.size = 1073741824;
@@ -123,7 +123,7 @@ TEST_CASE("frame")
   SUBCASE("goaway")
   {
     h3c_frame_t src;
-    src.type = H3C_GOAWAY;
+    src.type = H3C_FRAME_GOAWAY;
     src.goaway.stream_id = 1073741823; // varint size = 4
 
     h3c_frame_t dest = serialize_and_parse<6>(src);
@@ -134,7 +134,7 @@ TEST_CASE("frame")
   SUBCASE("max push id")
   {
     h3c_frame_t src;
-    src.type = H3C_MAX_PUSH_ID;
+    src.type = H3C_FRAME_MAX_PUSH_ID;
     src.max_push_id.push_id = 1073741824; // varint size = 8;
 
     h3c_frame_t dest = serialize_and_parse<10>(src);
@@ -145,7 +145,7 @@ TEST_CASE("frame")
   SUBCASE("duplicate push")
   {
     h3c_frame_t src;
-    src.type = H3C_DUPLICATE_PUSH;
+    src.type = H3C_FRAME_DUPLICATE_PUSH;
     src.duplicate_push.push_id = 4611686018427387903; // varint size = 8
 
     h3c_frame_t dest = serialize_and_parse<10>(src);
@@ -156,7 +156,7 @@ TEST_CASE("frame")
   SUBCASE("parse: frame incomplete")
   {
     h3c_frame_t src;
-    src.type = H3C_DUPLICATE_PUSH;
+    src.type = H3C_FRAME_DUPLICATE_PUSH;
     src.duplicate_push.push_id = 50;
 
     std::array<uint8_t, 3> buffer = { {} };
@@ -184,7 +184,7 @@ TEST_CASE("frame")
   SUBCASE("parse: frame malformed")
   {
     h3c_frame_t src;
-    src.type = H3C_CANCEL_PUSH;
+    src.type = H3C_FRAME_CANCEL_PUSH;
     src.cancel_push.push_id = 16384; // varint size = 4
 
     std::array<uint8_t, 20> buffer = { {} };
@@ -208,7 +208,7 @@ TEST_CASE("frame")
   SUBCASE("serialize: buffer too small")
   {
     h3c_frame_t src;
-    src.type = H3C_SETTINGS;
+    src.type = H3C_FRAME_SETTINGS;
     src.settings = h3c_frame_settings_default;
 
     std::array<uint8_t, 3> buffer = { {} };
@@ -224,7 +224,7 @@ TEST_CASE("frame")
   SUBCASE("serialize: varint overflow")
   {
     h3c_frame_t src;
-    src.type = H3C_SETTINGS;
+    src.type = H3C_FRAME_SETTINGS;
     src.settings.max_header_list_size = 4611686018427387904; // overflows
     src.settings.num_placeholders = 15;
 
