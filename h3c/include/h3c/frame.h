@@ -29,8 +29,8 @@ typedef uint8_t H3C_STREAM_TYPE;
 #define H3C_STREAM_REQUEST 0x0U
 #define H3C_STREAM_PUSH 0x1U
 #define H3C_STREAM_PLACEHOLDER 0x2U
-#define H3C_STREAM_CURRENT 0x3U // Only valid for prioritized_element_type
-#define H3C_STREAM_ROOT 0x3U // Only valid for element_dependency_type
+#define H3C_STREAM_CURRENT 0x3U // Only valid for prioritized_element_type.
+#define H3C_STREAM_ROOT 0x3U    // Only valid for element_dependency_type.
 
 typedef struct {
   struct {
