@@ -64,8 +64,8 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_PRIORITY;
-    src.priority.prioritized_element_type = H3C_STREAM_CURRENT;
-    src.priority.element_dependency_type = H3C_STREAM_PLACEHOLDER;
+    src.priority.prioritized_element_type = H3C_PRIORITY_CURRENT;
+    src.priority.element_dependency_type = H3C_PRIORITY_PLACEHOLDER;
     src.priority.prioritized_element_id = 16482;     // varint size = 4
     src.priority.element_dependency_id = 1073781823; // varint size = 8
     src.priority.weight = 43;
