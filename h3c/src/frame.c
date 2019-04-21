@@ -63,6 +63,23 @@ const h3c_frame_settings_t h3c_frame_settings_default = {
   frame_length -= frame_length;                                                \
   (void) 0
 
+#define TRY_UINT8_PARSE(value)                                                 \
+  if (size == 0) {                                                             \
+    return H3C_FRAME_PARSE_INCOMPLETE;                                         \
+  }                                                                            \
+                                                                               \
+  if (frame_length == 0) {                                                     \
+    return H3C_FRAME_PARSE_MALFORMED;                                          \
+  }                                                                            \
+                                                                               \
+  (value) = *src;                                                              \
+                                                                               \
+  src++;                                                                       \
+  size--;                                                                      \
+  (*bytes_read)++;                                                             \
+  frame_length--;                                                              \
+  (void) 0
+
 H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
                                       size_t size,
                                       h3c_frame_t *frame,
@@ -82,38 +99,16 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
   case H3C_HEADERS:
     BUFFER_PARSE(frame->headers.header_block);
     break;
-  case H3C_PRIORITY:
-    if (size == 0) {
-      return H3C_FRAME_PARSE_INCOMPLETE;
-    }
-
-    if (frame_length == 0) {
-      return H3C_FRAME_PARSE_MALFORMED;
-    }
-
-    frame->priority.prioritized_element_type = *src >> 6;
-    frame->priority.element_dependency_type = (*src >> 4) & 0x03;
-    src++;
-    size--;
-    (*bytes_read)++;
-    frame_length--;
+  case H3C_PRIORITY:;
+    uint8_t byte = 0;
+    TRY_UINT8_PARSE(byte);
+    frame->priority.prioritized_element_type = byte >> 6;
+    frame->priority.element_dependency_type = (byte >> 4) & 0x03;
 
     TRY_VARINT_PARSE_2(frame->priority.prioritized_element_id);
     TRY_VARINT_PARSE_2(frame->priority.element_dependency_id);
 
-    if (size == 0) {
-      return H3C_FRAME_PARSE_INCOMPLETE;
-    }
-
-    if (frame_length == 0) {
-      return H3C_FRAME_PARSE_MALFORMED;
-    }
-
-    frame->priority.weight = *src;
-    src++;
-    size--;
-    (*bytes_read)++;
-    frame_length--;
+    TRY_UINT8_PARSE(frame->priority.weight);
     break;
   case H3C_CANCEL_PUSH:
     TRY_VARINT_PARSE_2(frame->cancel_push.push_id);
