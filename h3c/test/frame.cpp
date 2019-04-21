@@ -153,6 +153,38 @@ TEST_CASE("frame")
     REQUIRE(dest.duplicate_push.push_id == src.duplicate_push.push_id);
   }
 
+  SUBCASE("serialize: buffer too small")
+  {
+    h3c_frame_t src;
+    src.type = H3C_FRAME_SETTINGS;
+    src.settings = h3c_frame_settings_default;
+
+    std::array<uint8_t, 3> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(error == H3C_FRAME_SERIALIZE_BUF_TOO_SMALL);
+    // Only type and length and the first setting id will be serialized.
+    REQUIRE(bytes_written == buffer.size());
+  }
+
+  SUBCASE("serialize: varint overflow")
+  {
+    h3c_frame_t src;
+    src.type = H3C_FRAME_SETTINGS;
+    src.settings.max_header_list_size = 4611686018427387904; // overflows
+    src.settings.num_placeholders = 15;
+
+    std::array<uint8_t, 20> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(error == H3C_FRAME_SERIALIZE_VARINT_OVERFLOW);
+    REQUIRE(bytes_written == 0);
+  }
+
   SUBCASE("parse: frame incomplete")
   {
     h3c_frame_t src;
@@ -203,37 +235,5 @@ TEST_CASE("frame")
 
     REQUIRE(error == H3C_FRAME_PARSE_MALFORMED);
     REQUIRE(bytes_read == 6); // Only frame type and length can be parsed.
-  }
-
-  SUBCASE("serialize: buffer too small")
-  {
-    h3c_frame_t src;
-    src.type = H3C_FRAME_SETTINGS;
-    src.settings = h3c_frame_settings_default;
-
-    std::array<uint8_t, 3> buffer = { {} };
-    size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
-
-    REQUIRE(error == H3C_FRAME_SERIALIZE_BUF_TOO_SMALL);
-    // Only type and length and the first setting id will be serialized.
-    REQUIRE(bytes_written == buffer.size());
-  }
-
-  SUBCASE("serialize: varint overflow")
-  {
-    h3c_frame_t src;
-    src.type = H3C_FRAME_SETTINGS;
-    src.settings.max_header_list_size = 4611686018427387904; // overflows
-    src.settings.num_placeholders = 15;
-
-    std::array<uint8_t, 20> buffer = { {} };
-    size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
-
-    REQUIRE(error == H3C_FRAME_SERIALIZE_VARINT_OVERFLOW);
-    REQUIRE(bytes_written == 0);
   }
 }

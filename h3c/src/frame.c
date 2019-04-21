@@ -25,6 +25,159 @@ const h3c_frame_settings_t h3c_frame_settings_default = {
 // each time we call it, where macros allow us to return directly from the
 // parent function.
 
+#define TRY_VARINT_SIZE(value)                                                 \
+  {                                                                            \
+    size_t rv = h3c_varint_size((value));                                      \
+    if (rv == 0) {                                                             \
+      return 0;                                                                \
+    }                                                                          \
+                                                                               \
+    size += rv;                                                                \
+  }                                                                            \
+  (void) 0
+
+static uint64_t frame_payload_size(const h3c_frame_t *frame)
+{
+  assert(frame);
+
+  uint64_t size = 0;
+
+  switch (frame->type) {
+  case H3C_FRAME_DATA:
+    size += frame->data.payload.size;
+    break;
+  case H3C_FRAME_HEADERS:
+    size += frame->headers.header_block.size;
+    break;
+  case H3C_FRAME_PRIORITY:
+    size++; // PT size + DT size + Empty size = 1 byte. See
+            // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
+    TRY_VARINT_SIZE(frame->priority.prioritized_element_id);
+    TRY_VARINT_SIZE(frame->priority.element_dependency_id);
+    size++; // Weight
+    break;
+  case H3C_FRAME_CANCEL_PUSH:
+    TRY_VARINT_SIZE(frame->cancel_push.push_id);
+    break;
+  case H3C_FRAME_SETTINGS:
+    TRY_VARINT_SIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
+    TRY_VARINT_SIZE(frame->settings.max_header_list_size);
+    TRY_VARINT_SIZE(SETTINGS_NUM_PLACEHOLDERS);
+    TRY_VARINT_SIZE(frame->settings.num_placeholders);
+    TRY_VARINT_SIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
+    TRY_VARINT_SIZE(frame->settings.qpack_max_table_capacity);
+    TRY_VARINT_SIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
+    TRY_VARINT_SIZE(frame->settings.qpack_blocked_streams);
+    break;
+  case H3C_FRAME_PUSH_PROMISE:
+    TRY_VARINT_SIZE(frame->push_promise.push_id);
+    size += frame->push_promise.header_block.size;
+    break;
+  case H3C_FRAME_GOAWAY:
+    TRY_VARINT_SIZE(frame->goaway.stream_id);
+    break;
+  case H3C_FRAME_MAX_PUSH_ID:
+    TRY_VARINT_SIZE(frame->max_push_id.push_id);
+    break;
+  case H3C_FRAME_DUPLICATE_PUSH:
+    TRY_VARINT_SIZE(frame->duplicate_push.push_id);
+    break;
+  }
+
+  return size;
+}
+
+#define TRY_VARINT_SERIALIZE(value)                                            \
+  {                                                                            \
+    size_t rv = h3c_varint_serialize(dest, size, (value));                     \
+    if (rv == 0) {                                                             \
+      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;                                \
+    }                                                                          \
+                                                                               \
+    dest += rv;                                                                \
+    size -= rv;                                                                \
+    *bytes_written += rv;                                                      \
+  }                                                                            \
+  (void) 0
+
+#define TRY_UINT8_SERIALIZE(value)                                             \
+  if (size == 0) {                                                             \
+    return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;                                  \
+  }                                                                            \
+                                                                               \
+  *dest = (value);                                                             \
+                                                                               \
+  dest++;                                                                      \
+  size--;                                                                      \
+  (*bytes_written)++;                                                          \
+  (void) 0
+
+H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
+                                              size_t size,
+                                              const h3c_frame_t *frame,
+                                              size_t *bytes_written)
+{
+  assert(dest);
+  assert(frame);
+  assert(bytes_written);
+
+  *bytes_written = 0;
+
+  uint64_t frame_length = frame_payload_size(frame);
+  if (frame_length == 0) {
+    return H3C_FRAME_SERIALIZE_VARINT_OVERFLOW;
+  }
+
+  TRY_VARINT_SERIALIZE(frame->type);
+  TRY_VARINT_SERIALIZE(frame_length);
+
+  switch (frame->type) {
+  case H3C_FRAME_DATA:
+    break;
+  case H3C_FRAME_HEADERS:
+    break;
+  case H3C_FRAME_PRIORITY:;
+    uint8_t byte = 0;
+    byte |= (uint8_t)(frame->priority.prioritized_element_type << 6);
+    byte |= (uint8_t)(frame->priority.element_dependency_type << 4);
+    byte &= 0xf0;
+    TRY_UINT8_SERIALIZE(byte);
+
+    TRY_VARINT_SERIALIZE(frame->priority.prioritized_element_id);
+    TRY_VARINT_SERIALIZE(frame->priority.element_dependency_id);
+
+    TRY_UINT8_SERIALIZE(frame->priority.weight);
+    break;
+  case H3C_FRAME_CANCEL_PUSH:
+    TRY_VARINT_SERIALIZE(frame->cancel_push.push_id);
+    break;
+  case H3C_FRAME_SETTINGS:
+    TRY_VARINT_SERIALIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
+    TRY_VARINT_SERIALIZE(frame->settings.max_header_list_size);
+    TRY_VARINT_SERIALIZE(SETTINGS_NUM_PLACEHOLDERS);
+    TRY_VARINT_SERIALIZE(frame->settings.num_placeholders);
+    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
+    TRY_VARINT_SERIALIZE(frame->settings.qpack_max_table_capacity);
+    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
+    TRY_VARINT_SERIALIZE(frame->settings.qpack_blocked_streams);
+    break;
+  case H3C_FRAME_PUSH_PROMISE:
+    TRY_VARINT_SERIALIZE(frame->push_promise.push_id);
+    break;
+  case H3C_FRAME_GOAWAY:
+    TRY_VARINT_SERIALIZE(frame->goaway.stream_id);
+    break;
+  case H3C_FRAME_MAX_PUSH_ID:
+    TRY_VARINT_SERIALIZE(frame->max_push_id.push_id);
+    break;
+  case H3C_FRAME_DUPLICATE_PUSH:
+    TRY_VARINT_SERIALIZE(frame->duplicate_push.push_id);
+    break;
+  }
+
+  return H3C_FRAME_SERIALIZE_SUCCESS;
+}
+
 #define TRY_VARINT_PARSE_1(value)                                              \
   {                                                                            \
     size_t rv = h3c_varint_parse(src, size, &(value));                         \
@@ -162,157 +315,4 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
   }
 
   return H3C_FRAME_PARSE_SUCCESS;
-}
-
-#define TRY_VARINT_SIZE(value)                                                 \
-  {                                                                            \
-    size_t rv = h3c_varint_size((value));                                      \
-    if (rv == 0) {                                                             \
-      return 0;                                                                \
-    }                                                                          \
-                                                                               \
-    size += rv;                                                                \
-  }                                                                            \
-  (void) 0
-
-static uint64_t frame_payload_size(const h3c_frame_t *frame)
-{
-  assert(frame);
-
-  uint64_t size = 0;
-
-  switch (frame->type) {
-  case H3C_FRAME_DATA:
-    size += frame->data.payload.size;
-    break;
-  case H3C_FRAME_HEADERS:
-    size += frame->headers.header_block.size;
-    break;
-  case H3C_FRAME_PRIORITY:
-    size++; // PT size + DT size + Empty size = 1 byte. See
-            // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
-    TRY_VARINT_SIZE(frame->priority.prioritized_element_id);
-    TRY_VARINT_SIZE(frame->priority.element_dependency_id);
-    size++; // Weight
-    break;
-  case H3C_FRAME_CANCEL_PUSH:
-    TRY_VARINT_SIZE(frame->cancel_push.push_id);
-    break;
-  case H3C_FRAME_SETTINGS:
-    TRY_VARINT_SIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
-    TRY_VARINT_SIZE(frame->settings.max_header_list_size);
-    TRY_VARINT_SIZE(SETTINGS_NUM_PLACEHOLDERS);
-    TRY_VARINT_SIZE(frame->settings.num_placeholders);
-    TRY_VARINT_SIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
-    TRY_VARINT_SIZE(frame->settings.qpack_max_table_capacity);
-    TRY_VARINT_SIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
-    TRY_VARINT_SIZE(frame->settings.qpack_blocked_streams);
-    break;
-  case H3C_FRAME_PUSH_PROMISE:
-    TRY_VARINT_SIZE(frame->push_promise.push_id);
-    size += frame->push_promise.header_block.size;
-    break;
-  case H3C_FRAME_GOAWAY:
-    TRY_VARINT_SIZE(frame->goaway.stream_id);
-    break;
-  case H3C_FRAME_MAX_PUSH_ID:
-    TRY_VARINT_SIZE(frame->max_push_id.push_id);
-    break;
-  case H3C_FRAME_DUPLICATE_PUSH:
-    TRY_VARINT_SIZE(frame->duplicate_push.push_id);
-    break;
-  }
-
-  return size;
-}
-
-#define TRY_VARINT_SERIALIZE(value)                                            \
-  {                                                                            \
-    size_t rv = h3c_varint_serialize(dest, size, (value));                     \
-    if (rv == 0) {                                                             \
-      return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;                                \
-    }                                                                          \
-                                                                               \
-    dest += rv;                                                                \
-    size -= rv;                                                                \
-    *bytes_written += rv;                                                      \
-  }                                                                            \
-  (void) 0
-
-#define TRY_UINT8_SERIALIZE(value)                                             \
-  if (size == 0) {                                                             \
-    return H3C_FRAME_SERIALIZE_BUF_TOO_SMALL;                                  \
-  }                                                                            \
-                                                                               \
-  *dest = (value);                                                             \
-                                                                               \
-  dest++;                                                                      \
-  size--;                                                                      \
-  (*bytes_written)++;                                                          \
-  (void) 0
-
-H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
-                                              size_t size,
-                                              const h3c_frame_t *frame,
-                                              size_t *bytes_written)
-{
-  assert(dest);
-  assert(frame);
-  assert(bytes_written);
-  
-  *bytes_written = 0;
-
-  uint64_t frame_length = frame_payload_size(frame);
-  if (frame_length == 0) {
-    return H3C_FRAME_SERIALIZE_VARINT_OVERFLOW;
-  }
-
-  TRY_VARINT_SERIALIZE(frame->type);
-  TRY_VARINT_SERIALIZE(frame_length);
-
-  switch (frame->type) {
-  case H3C_FRAME_DATA:
-    break;
-  case H3C_FRAME_HEADERS:
-    break;
-  case H3C_FRAME_PRIORITY:;
-    uint8_t byte = 0;
-    byte |= (uint8_t)(frame->priority.prioritized_element_type << 6);
-    byte |= (uint8_t)(frame->priority.element_dependency_type << 4);
-    byte &= 0xf0;
-    TRY_UINT8_SERIALIZE(byte);
-
-    TRY_VARINT_SERIALIZE(frame->priority.prioritized_element_id);
-    TRY_VARINT_SERIALIZE(frame->priority.element_dependency_id);
-
-    TRY_UINT8_SERIALIZE(frame->priority.weight);
-    break;
-  case H3C_FRAME_CANCEL_PUSH:
-    TRY_VARINT_SERIALIZE(frame->cancel_push.push_id);
-    break;
-  case H3C_FRAME_SETTINGS:
-    TRY_VARINT_SERIALIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
-    TRY_VARINT_SERIALIZE(frame->settings.max_header_list_size);
-    TRY_VARINT_SERIALIZE(SETTINGS_NUM_PLACEHOLDERS);
-    TRY_VARINT_SERIALIZE(frame->settings.num_placeholders);
-    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
-    TRY_VARINT_SERIALIZE(frame->settings.qpack_max_table_capacity);
-    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
-    TRY_VARINT_SERIALIZE(frame->settings.qpack_blocked_streams);
-    break;
-  case H3C_FRAME_PUSH_PROMISE:
-    TRY_VARINT_SERIALIZE(frame->push_promise.push_id);
-    break;
-  case H3C_FRAME_GOAWAY:
-    TRY_VARINT_SERIALIZE(frame->goaway.stream_id);
-    break;
-  case H3C_FRAME_MAX_PUSH_ID:
-    TRY_VARINT_SERIALIZE(frame->max_push_id.push_id);
-    break;
-  case H3C_FRAME_DUPLICATE_PUSH:
-    TRY_VARINT_SERIALIZE(frame->duplicate_push.push_id);
-    break;
-  }
-
-  return H3C_FRAME_SERIALIZE_SUCCESS;
 }

@@ -104,17 +104,6 @@ typedef struct {
 } h3c_frame_t;
 
 typedef enum {
-  H3C_FRAME_PARSE_SUCCESS = 0,
-  H3C_FRAME_PARSE_INCOMPLETE = 1,
-  H3C_FRAME_PARSE_MALFORMED = 2
-} H3C_FRAME_PARSE_ERROR;
-
-H3C_EXPORT H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
-                                                 size_t size,
-                                                 h3c_frame_t *frame,
-                                                 size_t *bytes_read);
-
-typedef enum {
   H3C_FRAME_SERIALIZE_SUCCESS = 0,
   H3C_FRAME_SERIALIZE_BUF_TOO_SMALL = 1,
   H3C_FRAME_SERIALIZE_VARINT_OVERFLOW = 2
@@ -125,6 +114,17 @@ h3c_frame_serialize(uint8_t *dest,
                     size_t size,
                     const h3c_frame_t *frame,
                     size_t *bytes_written);
+
+typedef enum {
+  H3C_FRAME_PARSE_SUCCESS = 0,
+  H3C_FRAME_PARSE_INCOMPLETE = 1,
+  H3C_FRAME_PARSE_MALFORMED = 2
+} H3C_FRAME_PARSE_ERROR;
+
+H3C_EXPORT H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
+                                                 size_t size,
+                                                 h3c_frame_t *frame,
+                                                 size_t *bytes_read);
 
 #ifdef __cplusplus
 }
