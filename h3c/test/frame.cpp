@@ -96,10 +96,9 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_SETTINGS;
-    src.settings.max_header_list_size = 63; // varint size = 1
-    src.settings.num_placeholders = 16383;  // varint size = 2
+    src.settings = h3c_frame_settings_default;
 
-    h3c_frame_t dest = serialize_and_parse<7>(src);
+    h3c_frame_t dest = serialize_and_parse<17>(src);
 
     REQUIRE(dest.settings.max_header_list_size ==
             src.settings.max_header_list_size);
@@ -210,8 +209,7 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_SETTINGS;
-    src.settings.max_header_list_size = 64; // varint size = 2
-    src.settings.num_placeholders = 5; // varint size = 1
+    src.settings = h3c_frame_settings_default;
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t bytes_written = 0;
