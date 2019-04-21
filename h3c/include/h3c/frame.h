@@ -25,12 +25,12 @@ typedef uint64_t H3C_FRAME_TYPE;
 #define H3C_FRAME_MAX_PUSH_ID 0xdU
 #define H3C_FRAME_DUPLICATE_PUSH 0xeU
 
-typedef uint8_t H3C_PRIORITY_TYPE;
-#define H3C_PRIORITY_REQUEST 0x0U
-#define H3C_PRIORITY_PUSH 0x1U
-#define H3C_PRIORITY_PLACEHOLDER 0x2U
-#define H3C_PRIORITY_CURRENT 0x3U // Only valid for prioritized_element_type.
-#define H3C_PRIORITY_ROOT 0x3U    // Only valid for element_dependency_type.
+typedef uint8_t H3C_FRAME_PRIORITY_TYPE;
+#define H3C_FRAME_PRIORITY_REQUEST 0x0U
+#define H3C_FRAME_PRIORITY_PUSH 0x1U
+#define H3C_FRAME_PRIORITY_PLACEHOLDER 0x2U
+#define H3C_FRAME_PRIORITY_CURRENT 0x3U // Only valid for prioritized_element_type.
+#define H3C_FRAME_PRIORITY_ROOT 0x3U    // Only valid for element_dependency_type.
 
 typedef struct {
   struct {
@@ -45,8 +45,8 @@ typedef struct {
 } h3c_frame_headers_t;
 
 typedef struct {
-  H3C_PRIORITY_TYPE prioritized_element_type;
-  H3C_PRIORITY_TYPE element_dependency_type;
+  H3C_FRAME_PRIORITY_TYPE prioritized_element_type;
+  H3C_FRAME_PRIORITY_TYPE element_dependency_type;
   uint64_t prioritized_element_id;
   uint64_t element_dependency_id;
   uint8_t weight;
