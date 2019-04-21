@@ -85,6 +85,10 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
                                       h3c_frame_t *frame,
                                       size_t *bytes_read)
 {
+  assert(src);
+  assert(frame);
+  assert(bytes_read);
+
   *bytes_read = 0;
 
   TRY_VARINT_PARSE_1(frame->type);
@@ -173,6 +177,8 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
 
 static uint64_t frame_payload_size(const h3c_frame_t *frame)
 {
+  assert(frame);
+
   uint64_t size = 0;
 
   switch (frame->type) {
@@ -250,6 +256,10 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
                                               const h3c_frame_t *frame,
                                               size_t *bytes_written)
 {
+  assert(dest);
+  assert(frame);
+  assert(bytes_written);
+  
   *bytes_written = 0;
 
   uint64_t frame_length = frame_payload_size(frame);
