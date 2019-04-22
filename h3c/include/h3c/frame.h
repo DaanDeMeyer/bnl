@@ -29,8 +29,10 @@ typedef uint8_t H3C_FRAME_PRIORITY_TYPE;
 #define H3C_FRAME_PRIORITY_REQUEST 0x0U
 #define H3C_FRAME_PRIORITY_PUSH 0x1U
 #define H3C_FRAME_PRIORITY_PLACEHOLDER 0x2U
-#define H3C_FRAME_PRIORITY_CURRENT 0x3U // Only valid for prioritized_element_type.
-#define H3C_FRAME_PRIORITY_ROOT 0x3U    // Only valid for element_dependency_type.
+// Only valid for prioritized_element_type.
+#define H3C_FRAME_PRIORITY_CURRENT 0x3U
+// Only valid for element_dependency_type.
+#define H3C_FRAME_PRIORITY_ROOT 0x3U
 
 typedef struct {
   struct {
