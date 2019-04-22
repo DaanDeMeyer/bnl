@@ -10,7 +10,7 @@ static h3c_frame_t serialize_and_parse(const h3c_frame_t &src)
 {
   std::array<uint8_t, N> buffer = { {} };
 
-  int error = 0;
+  H3C_ERROR error = H3C_SUCCESS;
   CAPTURE(error);
 
   size_t bytes_written = 0;
@@ -161,10 +161,10 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
+    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                          &bytes_written);
 
-    REQUIRE(error == H3C_FRAME_SERIALIZE_BUF_TOO_SMALL);
+    REQUIRE(error == H3C_BUF_TOO_SMALL);
     // Only type and length and the first setting id will be serialized.
     REQUIRE(bytes_written == buffer.size());
   }
@@ -177,10 +177,10 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
+    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                          &bytes_written);
 
-    REQUIRE(error == H3C_FRAME_SERIALIZE_VARINT_OVERFLOW);
+    REQUIRE(error == H3C_VARINT_OVERFLOW);
     REQUIRE(bytes_written == 0);
   }
 
@@ -193,10 +193,10 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 30> buffer = { {} };
     size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
+    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                          &bytes_written);
 
-    REQUIRE(error == H3C_FRAME_SERIALIZE_SETTING_OVERFLOW);
+    REQUIRE(error == H3C_SETTING_OVERFLOW);
     REQUIRE(bytes_written == 0);
   }
 
@@ -208,8 +208,8 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
+    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                          &bytes_written);
 
     REQUIRE(!error);
     REQUIRE(bytes_written == buffer.size());
@@ -219,7 +219,7 @@ TEST_CASE("frame")
     error = h3c_frame_parse(buffer.data(), buffer.size() - 1, &dest,
                             &bytes_read);
 
-    REQUIRE(error == H3C_FRAME_PARSE_INCOMPLETE);
+    REQUIRE(error == H3C_FRAME_INCOMPLETE);
     REQUIRE(bytes_read == 2); // Only frame type and length can be parsed.
 
     error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &bytes_read);
@@ -236,8 +236,8 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t bytes_written = 0;
-    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                    &bytes_written);
+    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                          &bytes_written);
 
     REQUIRE(!error);
     REQUIRE(bytes_written == 6);
@@ -248,7 +248,7 @@ TEST_CASE("frame")
     size_t bytes_read = 0;
     error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &bytes_read);
 
-    REQUIRE(error == H3C_FRAME_PARSE_MALFORMED);
+    REQUIRE(error == H3C_FRAME_MALFORMED);
     REQUIRE(bytes_read == 6); // Only frame type and length can be parsed.
   }
 }
