@@ -20,6 +20,8 @@ const h3c_frame_settings_t h3c_frame_settings_default = {
 
 // Setting limits
 
+#define SETTINGS_MAX_HEADER_LIST_SIZE_MAX (H3C_VARINT_MAX)
+#define SETTINGS_NUM_PLACEHOLDERS_MAX (H3C_VARINT_MAX)
 #define SETTINGS_QPACK_MAX_TABLE_CAPACITY_MAX ((1U << 30) - 1)
 #define SETTINGS_QPACK_BLOCKED_STREAMS_MAX ((1U << 16) - 1)
 
@@ -34,49 +36,65 @@ const h3c_frame_settings_t h3c_frame_settings_default = {
   {                                                                            \
     size_t rv = h3c_varint_size((value));                                      \
     if (rv == 0) {                                                             \
-      return 0;                                                                \
+      return H3C_FRAME_SERIALIZE_VARINT_OVERFLOW;                              \
     }                                                                          \
                                                                                \
-    size += rv;                                                                \
+    *size += rv;                                                               \
   }                                                                            \
   (void) 0
 
-static uint64_t frame_payload_size(const h3c_frame_t *frame)
+#define TRY_SETTING_SIZE(id, value)                                            \
+  if ((value) > id##_MAX) {                                                    \
+    return H3C_FRAME_SERIALIZE_SETTING_OVERFLOW;                               \
+  }                                                                            \
+                                                                               \
+  TRY_VARINT_SIZE((id));                                                       \
+  TRY_VARINT_SIZE((value));                                                    \
+  (void) 0
+
+static H3C_FRAME_SERIALIZE_ERROR frame_payload_size(const h3c_frame_t *frame,
+                                                    uint64_t *size)
 {
   assert(frame);
 
-  uint64_t size = 0;
+  *size = 0;
 
   switch (frame->type) {
   case H3C_FRAME_DATA:
-    size += frame->data.payload.size;
+    *size += frame->data.payload.size;
     break;
   case H3C_FRAME_HEADERS:
-    size += frame->headers.header_block.size;
+    *size += frame->headers.header_block.size;
     break;
   case H3C_FRAME_PRIORITY:
-    size++; // PT size + DT size + Empty size = 1 byte. See
-            // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
+    (*size)++; // PT size + DT size + Empty size = 1 byte. See
+               // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
     TRY_VARINT_SIZE(frame->priority.prioritized_element_id);
     TRY_VARINT_SIZE(frame->priority.element_dependency_id);
-    size++; // Weight
+    (*size)++; // Weight
     break;
   case H3C_FRAME_CANCEL_PUSH:
     TRY_VARINT_SIZE(frame->cancel_push.push_id);
     break;
   case H3C_FRAME_SETTINGS:
-    TRY_VARINT_SIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
-    TRY_VARINT_SIZE(frame->settings.max_header_list_size);
-    TRY_VARINT_SIZE(SETTINGS_NUM_PLACEHOLDERS);
-    TRY_VARINT_SIZE(frame->settings.num_placeholders);
-    TRY_VARINT_SIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
-    TRY_VARINT_SIZE(frame->settings.qpack_max_table_capacity);
-    TRY_VARINT_SIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
-    TRY_VARINT_SIZE(frame->settings.qpack_blocked_streams);
+// GCC warns us when a setting max is the same as the max size for the setting's
+// integer type which we choose to ignore since `TRY_SETTING_SIZE` has to work
+// with any kind of maximum.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+    TRY_SETTING_SIZE(SETTINGS_MAX_HEADER_LIST_SIZE,
+                     frame->settings.max_header_list_size);
+    TRY_SETTING_SIZE(SETTINGS_NUM_PLACEHOLDERS,
+                     frame->settings.num_placeholders);
+    TRY_SETTING_SIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY,
+                     frame->settings.qpack_max_table_capacity);
+    TRY_SETTING_SIZE(SETTINGS_QPACK_BLOCKED_STREAMS,
+                     frame->settings.qpack_blocked_streams);
+#pragma GCC diagnostic pop
     break;
   case H3C_FRAME_PUSH_PROMISE:
     TRY_VARINT_SIZE(frame->push_promise.push_id);
-    size += frame->push_promise.header_block.size;
+    *size += frame->push_promise.header_block.size;
     break;
   case H3C_FRAME_GOAWAY:
     TRY_VARINT_SIZE(frame->goaway.stream_id);
@@ -89,7 +107,7 @@ static uint64_t frame_payload_size(const h3c_frame_t *frame)
     break;
   }
 
-  return size;
+  return H3C_FRAME_SERIALIZE_SUCCESS;
 }
 
 #define TRY_VARINT_SERIALIZE(value)                                            \
@@ -117,6 +135,11 @@ static uint64_t frame_payload_size(const h3c_frame_t *frame)
   (*bytes_written)++;                                                          \
   (void) 0
 
+#define TRY_SETTING_SERIALIZE(id, value)                                       \
+  TRY_VARINT_SERIALIZE((id));                                                  \
+  TRY_VARINT_SERIALIZE((value));                                               \
+  (void) 0
+
 H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
                                               size_t size,
                                               const h3c_frame_t *frame,
@@ -128,9 +151,10 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
 
   *bytes_written = 0;
 
-  uint64_t frame_length = frame_payload_size(frame);
-  if (frame_length == 0) {
-    return H3C_FRAME_SERIALIZE_VARINT_OVERFLOW;
+  uint64_t frame_length = 0;
+  H3C_FRAME_SERIALIZE_ERROR error = frame_payload_size(frame, &frame_length);
+  if (error) {
+    return error;
   }
 
   TRY_VARINT_SERIALIZE(frame->type);
@@ -157,14 +181,14 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
     TRY_VARINT_SERIALIZE(frame->cancel_push.push_id);
     break;
   case H3C_FRAME_SETTINGS:
-    TRY_VARINT_SERIALIZE(SETTINGS_MAX_HEADER_LIST_SIZE);
-    TRY_VARINT_SERIALIZE(frame->settings.max_header_list_size);
-    TRY_VARINT_SERIALIZE(SETTINGS_NUM_PLACEHOLDERS);
-    TRY_VARINT_SERIALIZE(frame->settings.num_placeholders);
-    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
-    TRY_VARINT_SERIALIZE(frame->settings.qpack_max_table_capacity);
-    TRY_VARINT_SERIALIZE(SETTINGS_QPACK_BLOCKED_STREAMS);
-    TRY_VARINT_SERIALIZE(frame->settings.qpack_blocked_streams);
+    TRY_SETTING_SERIALIZE(SETTINGS_MAX_HEADER_LIST_SIZE,
+                          frame->settings.max_header_list_size);
+    TRY_SETTING_SERIALIZE(SETTINGS_NUM_PLACEHOLDERS,
+                          frame->settings.num_placeholders);
+    TRY_SETTING_SERIALIZE(SETTINGS_QPACK_MAX_TABLE_CAPACITY,
+                          frame->settings.qpack_max_table_capacity);
+    TRY_SETTING_SERIALIZE(SETTINGS_QPACK_BLOCKED_STREAMS,
+                          frame->settings.qpack_blocked_streams);
     break;
   case H3C_FRAME_PUSH_PROMISE:
     TRY_VARINT_SERIALIZE(frame->push_promise.push_id);

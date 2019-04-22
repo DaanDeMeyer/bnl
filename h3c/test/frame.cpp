@@ -8,7 +8,7 @@
 template <size_t N>
 static h3c_frame_t serialize_and_parse(const h3c_frame_t &src)
 {
-  std::array<uint8_t, N> buffer = {{}};
+  std::array<uint8_t, N> buffer = { {} };
 
   int error = 0;
   CAPTURE(error);
@@ -182,6 +182,22 @@ TEST_CASE("frame")
                                     &bytes_written);
 
     REQUIRE(error == H3C_FRAME_SERIALIZE_VARINT_OVERFLOW);
+    REQUIRE(bytes_written == 0);
+  }
+
+  SUBCASE("serialize: setting overflow")
+  {
+    h3c_frame_t src;
+    src.type = H3C_FRAME_SETTINGS;
+    src.settings = h3c_frame_settings_default;
+    src.settings.qpack_max_table_capacity = 1U << 30; // overflows
+
+    std::array<uint8_t, 30> buffer = { {} };
+    size_t bytes_written = 0;
+    int error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
+                                    &bytes_written);
+
+    REQUIRE(error == H3C_FRAME_SERIALIZE_SETTING_OVERFLOW);
     REQUIRE(bytes_written == 0);
   }
 
