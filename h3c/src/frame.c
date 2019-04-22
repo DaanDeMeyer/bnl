@@ -18,6 +18,11 @@ const h3c_frame_settings_t h3c_frame_settings_default = {
 #define SETTINGS_QPACK_MAX_TABLE_CAPACITY 0x1U
 #define SETTINGS_QPACK_BLOCKED_STREAMS 0x7U
 
+// Setting limits
+
+#define SETTINGS_QPACK_MAX_TABLE_CAPACITY_MAX ((1U << 30) - 1)
+#define SETTINGS_QPACK_BLOCKED_STREAMS_MAX ((1U << 16) - 1)
+
 // We use a lot of macros in this file because after each serialize/parse, we
 // have to check the result and update a lot of values. Macros provide us with a
 // concise way to accomplish this. Using functions instead of macros doesn't
@@ -287,9 +292,15 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
         frame->settings.num_placeholders = value;
         break;
       case SETTINGS_QPACK_MAX_TABLE_CAPACITY:
+        if (value > SETTINGS_QPACK_MAX_TABLE_CAPACITY_MAX) {
+          return H3C_FRAME_PARSE_MALFORMED;
+        }
         frame->settings.qpack_max_table_capacity = (uint32_t) value;
         break;
       case SETTINGS_QPACK_BLOCKED_STREAMS:
+        if (value > SETTINGS_QPACK_BLOCKED_STREAMS_MAX) {
+          return H3C_FRAME_PARSE_MALFORMED;
+        }
         frame->settings.qpack_blocked_streams = (uint16_t) value;
         break;
       }
