@@ -172,9 +172,8 @@ TEST_CASE("frame")
   SUBCASE("serialize: varint overflow")
   {
     h3c_frame_t src;
-    src.type = H3C_FRAME_SETTINGS;
-    src.settings.max_header_list_size = 4611686018427387904; // overflows
-    src.settings.num_placeholders = 15;
+    src.type = H3C_FRAME_DATA;
+    src.data.payload.size = 4611686018427387904; // overflows
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t bytes_written = 0;
