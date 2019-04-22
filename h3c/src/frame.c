@@ -5,7 +5,7 @@
 #include <string.h>
 
 const h3c_frame_settings_t h3c_frame_settings_default = {
-  .max_header_list_size = 4611686018427387903, // varint max
+  .max_header_list_size = H3C_VARINT_MAX, // varint max
   .num_placeholders = 0,
   .qpack_max_table_capacity = 0,
   .qpack_blocked_streams = 0
