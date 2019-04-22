@@ -7,6 +7,8 @@
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#integer-encoding
 
+#define H3C_VARINT_MAX ((0x40ULL << 56) - 1)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
