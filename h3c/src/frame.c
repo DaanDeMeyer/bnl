@@ -287,10 +287,10 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
         frame->settings.num_placeholders = value;
         break;
       case SETTINGS_QPACK_MAX_TABLE_CAPACITY:
-        frame->settings.qpack_max_table_capacity = value;
+        frame->settings.qpack_max_table_capacity = (uint32_t) value;
         break;
       case SETTINGS_QPACK_BLOCKED_STREAMS:
-        frame->settings.qpack_blocked_streams = value;
+        frame->settings.qpack_blocked_streams = (uint16_t) value;
         break;
       }
     }

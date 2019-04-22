@@ -55,8 +55,8 @@ typedef struct {
 typedef struct {
   uint64_t max_header_list_size;
   uint64_t num_placeholders;
-  uint64_t qpack_max_table_capacity; // Max: 2^30 - 1
-  uint64_t qpack_blocked_streams; // Max: 2^16 - 1
+  uint32_t qpack_max_table_capacity; // Max: 2^30 - 1
+  uint16_t qpack_blocked_streams; // Max: 2^16 - 1
 } h3c_frame_settings_t;
 
 H3C_EXPORT extern const h3c_frame_settings_t h3c_frame_settings_default;
