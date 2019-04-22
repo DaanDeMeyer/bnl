@@ -107,6 +107,10 @@ static H3C_FRAME_SERIALIZE_ERROR frame_payload_size(const h3c_frame_t *frame,
     break;
   }
 
+  if (*size > H3C_VARINT_MAX) {
+    return H3C_FRAME_SERIALIZE_VARINT_OVERFLOW;
+  }
+
   return H3C_FRAME_SERIALIZE_SUCCESS;
 }
 
