@@ -266,6 +266,19 @@ H3C_FRAME_SERIALIZE_ERROR h3c_frame_serialize(uint8_t *dest,
   frame_length--;                                                              \
   (void) 0
 
+#define TRY_SETTING_PARSE(id, value, type)                                     \
+  {                                                                            \
+    uint64_t varint = 0;                                                       \
+    TRY_VARINT_PARSE_2(varint);                                                \
+                                                                               \
+    if (varint > id##_MAX) {                                                   \
+      return H3C_FRAME_PARSE_MALFORMED;                                        \
+    }                                                                          \
+                                                                               \
+    (value) = (type) varint;                                                   \
+  }                                                                            \
+  (void) 0
+
 H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
                                       size_t size,
                                       h3c_frame_t *frame,
@@ -309,28 +322,28 @@ H3C_FRAME_PARSE_ERROR h3c_frame_parse(const uint8_t *src,
     while (frame_length > 0) {
       uint64_t id = 0;
       TRY_VARINT_PARSE_2(id);
-      uint64_t value = 0;
-      TRY_VARINT_PARSE_2(value);
 
       switch (id) {
       case SETTINGS_MAX_HEADER_LIST_SIZE:
-        frame->settings.max_header_list_size = value;
+        TRY_SETTING_PARSE(SETTINGS_MAX_HEADER_LIST_SIZE,
+                          frame->settings.max_header_list_size, uint64_t);
         break;
       case SETTINGS_NUM_PLACEHOLDERS:
-        frame->settings.num_placeholders = value;
+        TRY_SETTING_PARSE(SETTINGS_NUM_PLACEHOLDERS,
+                          frame->settings.num_placeholders, uint64_t);
         break;
       case SETTINGS_QPACK_MAX_TABLE_CAPACITY:
-        if (value > SETTINGS_QPACK_MAX_TABLE_CAPACITY_MAX) {
-          return H3C_FRAME_PARSE_MALFORMED;
-        }
-        frame->settings.qpack_max_table_capacity = (uint32_t) value;
+        TRY_SETTING_PARSE(SETTINGS_QPACK_MAX_TABLE_CAPACITY,
+                          frame->settings.qpack_max_table_capacity, uint32_t);
         break;
       case SETTINGS_QPACK_BLOCKED_STREAMS:
-        if (value > SETTINGS_QPACK_BLOCKED_STREAMS_MAX) {
-          return H3C_FRAME_PARSE_MALFORMED;
-        }
-        frame->settings.qpack_blocked_streams = (uint16_t) value;
+        TRY_SETTING_PARSE(SETTINGS_QPACK_BLOCKED_STREAMS,
+                          frame->settings.qpack_blocked_streams, uint16_t);
         break;
+      default:;
+        // Unknown setting id => ignore its value
+        uint64_t value = 0;
+        TRY_VARINT_PARSE_2(value);
       }
     }
     break;
