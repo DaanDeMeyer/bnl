@@ -5,6 +5,8 @@ const char *h3c_strerror(H3C_ERROR error)
   switch (error) {
   case H3C_SUCCESS:
     return "success";
+  case H3C_ERROR_INTERNAL:
+    return "internal error";
   case H3C_ERROR_BUF_TOO_SMALL:
     return "buf too small";
   case H3C_ERROR_VARINT_OVERFLOW:
