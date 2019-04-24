@@ -27,3 +27,16 @@ const char *h3c_strerror(H3C_ERROR error)
 
   return "unknown error";
 }
+
+H3C_ERROR_TYPE h3c_error_type(H3C_ERROR error)
+{
+  if (error == H3C_SUCCESS) {
+    return H3C_ERROR_TYPE_SUCCESS;
+  }
+
+  if (error > UINT16_MAX) {
+    return H3C_ERROR_TYPE_LIBRARY;
+  }
+
+  return H3C_ERROR_TYPE_CONNECTION;
+}

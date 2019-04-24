@@ -31,6 +31,15 @@ typedef enum {
 
 H3C_EXPORT const char *h3c_strerror(H3C_ERROR error);
 
+typedef enum {
+  H3C_ERROR_TYPE_SUCCESS,
+  H3C_ERROR_TYPE_CONNECTION,
+  H3C_ERROR_TYPE_STREAM,
+  H3C_ERROR_TYPE_LIBRARY
+} H3C_ERROR_TYPE;
+
+H3C_EXPORT H3C_ERROR_TYPE h3c_error_type(H3C_ERROR error);
+
 #ifdef __cplusplus
 }
 #endif
