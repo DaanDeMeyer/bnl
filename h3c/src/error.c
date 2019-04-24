@@ -8,7 +8,7 @@ const char *h3c_strerror(H3C_ERROR error)
 
   // HTTP/3 connection errors
 
-  case H3C_ERROR_FRAME_MALFORMED:
+  case H3C_ERROR_MALFORMED_FRAME:
     return "HTTP/3: malformed frame";
 
   // h3c library errors
@@ -21,7 +21,7 @@ const char *h3c_strerror(H3C_ERROR error)
     return "h3c: varint overflow";
   case H3C_ERROR_SETTING_OVERFLOW:
     return "h3c: setting overflow";
-  case H3C_ERROR_FRAME_INCOMPLETE:
+  case H3C_ERROR_INCOMPLETE_FRAME:
     return "h3c: frame incomplete";
   }
 

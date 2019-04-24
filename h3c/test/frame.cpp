@@ -219,7 +219,7 @@ TEST_CASE("frame")
     error = h3c_frame_parse(buffer.data(), buffer.size() - 1, &dest,
                             &bytes_read);
 
-    REQUIRE(error == H3C_ERROR_FRAME_INCOMPLETE);
+    REQUIRE(error == H3C_ERROR_INCOMPLETE_FRAME);
     REQUIRE(bytes_read == 2); // Only frame type and length can be parsed.
 
     error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &bytes_read);
@@ -248,7 +248,7 @@ TEST_CASE("frame")
     size_t bytes_read = 0;
     error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &bytes_read);
 
-    REQUIRE(error == H3C_ERROR_FRAME_MALFORMED);
+    REQUIRE(error == H3C_ERROR_MALFORMED_FRAME);
     REQUIRE(bytes_read == 6); // Only frame type and length can be parsed.
   }
 }

@@ -13,7 +13,7 @@ typedef enum {
 
   // HTTP/3 connection errors
 
-  H3C_ERROR_FRAME_MALFORMED = 0x0100,
+  H3C_ERROR_MALFORMED_FRAME = 0x0100,
 
   // HTTP/3 stream errors
 
@@ -26,7 +26,7 @@ typedef enum {
   H3C_ERROR_BUF_TOO_SMALL,
   H3C_ERROR_VARINT_OVERFLOW,
   H3C_ERROR_SETTING_OVERFLOW,
-  H3C_ERROR_FRAME_INCOMPLETE
+  H3C_ERROR_INCOMPLETE_FRAME
 } H3C_ERROR;
 
 H3C_EXPORT const char *h3c_strerror(H3C_ERROR error);
