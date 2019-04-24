@@ -22,7 +22,7 @@ const char *h3c_strerror(H3C_ERROR error)
     case H3C_ERROR_SETTING_OVERFLOW:
       return "setting overflow";
     case H3C_ERROR_INCOMPLETE_FRAME:
-      return "frame incomplete";
+      return "incomplete frame";
   }
 
   return "unknown error";
