@@ -8,6 +8,7 @@ BinPackParameters: false
 BreakBeforeBraces: Linux
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 Cpp11BracedListStyle: false
+IndentCaseLabels: true
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 100
 SpaceAfterCStyleCast: true

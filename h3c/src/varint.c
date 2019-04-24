@@ -93,21 +93,21 @@ size_t h3c_varint_serialize(uint8_t *dest, size_t size, uint64_t varint)
   }
 
   switch (varint_size_) {
-  case 1:
-    varint_uint8_serialize(dest, (uint8_t) varint);
-    break;
-  case 2:
-    varint_uint16_serialize(dest, (uint16_t) varint);
-    break;
-  case 4:
-    varint_uint32_serialize(dest, (uint32_t) varint);
-    break;
-  case 8:
-    varint_uint64_serialize(dest, varint);
-    break;
-  default:
-    assert(0);
-    return 0;
+    case 1:
+      varint_uint8_serialize(dest, (uint8_t) varint);
+      break;
+    case 2:
+      varint_uint16_serialize(dest, (uint16_t) varint);
+      break;
+    case 4:
+      varint_uint32_serialize(dest, (uint32_t) varint);
+      break;
+    case 8:
+      varint_uint64_serialize(dest, varint);
+      break;
+    default:
+      assert(0);
+      return 0;
   }
 
   return varint_size_;
@@ -175,21 +175,21 @@ size_t h3c_varint_parse(const uint8_t *src, size_t size, uint64_t *varint)
   }
 
   switch (varint_size) {
-  case 1:
-    *varint = varint_uint8_parse(src);
-    break;
-  case 2:
-    *varint = varint_uint16_parse(src);
-    break;
-  case 4:
-    *varint = varint_uint32_parse(src);
-    break;
-  case 8:
-    *varint = varint_uint64_parse(src);
-    break;
-  default:
-    assert(0);
-    return 0;
+    case 1:
+      *varint = varint_uint8_parse(src);
+      break;
+    case 2:
+      *varint = varint_uint16_parse(src);
+      break;
+    case 4:
+      *varint = varint_uint32_parse(src);
+      break;
+    case 8:
+      *varint = varint_uint64_parse(src);
+      break;
+    default:
+      assert(0);
+      return 0;
   }
 
   return varint_size;
