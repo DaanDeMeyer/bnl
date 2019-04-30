@@ -174,4 +174,22 @@ TEST_CASE("varint")
     REQUIRE(error == H3C_ERROR_BUF_TOO_SMALL);
     REQUIRE(varint_size == 2);
   }
+
+  SUBCASE("parse: incomplete varint")
+  {
+    std::array<uint8_t, 2> dest = { {} };
+    uint64_t n = 169;
+
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
+
+    REQUIRE(!error);
+    REQUIRE(varint_size == 2);
+
+    error = h3c_varint_parse(dest.data(), dest.size() - 1, &n, &varint_size);
+
+    REQUIRE(error == H3C_ERROR_INCOMPLETE_VARINT);
+    REQUIRE(varint_size == 2);
+  }
 }
