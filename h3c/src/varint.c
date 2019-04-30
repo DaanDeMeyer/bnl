@@ -83,13 +83,16 @@ H3C_ERROR h3c_varint_serialize(uint8_t *dest,
                                uint64_t varint,
                                size_t *varint_size)
 {
-  assert(dest);
   assert(varint_size);
 
   *varint_size = h3c_varint_size(varint);
 
   if (*varint_size == 0) {
     return H3C_ERROR_VARINT_OVERFLOW;
+  }
+
+  if (dest == NULL) {
+    return H3C_SUCCESS;
   }
 
   if (*varint_size > size) {

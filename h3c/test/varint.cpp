@@ -149,6 +149,17 @@ TEST_CASE("varint")
     REQUIRE(n == 4611686018427387903);
   }
 
+  SUBCASE("serialize: varint size")
+  {
+    uint64_t n = 159;
+
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(nullptr, 0, n, &varint_size);
+
+    REQUIRE(!error);
+    REQUIRE(varint_size == 2);
+  }
+
   SUBCASE("serialize: overflow")
   {
     std::array<uint8_t, 8> dest = { {} };
