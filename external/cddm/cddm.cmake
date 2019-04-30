@@ -1,5 +1,5 @@
 # CDDM (CMake Daan De Meyer)
-# Version: v0.0.13
+# Version: v0.0.14
 #
 # Description: Encapsulates common CMake configuration for cross-platform
 # C/C++ libraries.
@@ -203,7 +203,6 @@ function(cddm_add_common TARGET LANGUAGE STANDARD OUTPUT_DIRECTORY)
       -Wall
       -Wextra
       -pedantic-errors
-      -Wshadow
       -Wconversion
       -Wsign-conversion
       $<$<BOOL:${${PNU}_WARNINGS_AS_ERRORS}>:-Werror>
