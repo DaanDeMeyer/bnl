@@ -2,6 +2,7 @@
 
 #include <h3c/error.h>
 #include <h3c/export.h>
+#include <h3c/settings.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -55,14 +56,7 @@ typedef struct {
   uint8_t weight;
 } h3c_frame_priority_t;
 
-typedef struct {
-  uint64_t max_header_list_size;
-  uint64_t num_placeholders;
-  uint32_t qpack_max_table_capacity; // Max: 2^30 - 1
-  uint16_t qpack_blocked_streams;    // Max: 2^16 - 1
-} h3c_frame_settings_t;
-
-H3C_EXPORT extern const h3c_frame_settings_t h3c_frame_settings_default;
+typedef h3c_settings_t h3c_frame_settings_t;
 
 typedef struct {
   uint64_t push_id;

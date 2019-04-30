@@ -4,6 +4,7 @@ target_include_directories(h3c PRIVATE src)
 target_sources(h3c PRIVATE
   src/error.c
   src/frame.c
+  src/settings.c
   src/varint.c
 )
 

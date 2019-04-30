@@ -96,7 +96,7 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_SETTINGS;
-    src.settings = h3c_frame_settings_default;
+    src.settings = h3c_settings_default;
 
     h3c_frame_t dest = serialize_and_parse<17>(src);
 
@@ -157,7 +157,7 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_SETTINGS;
-    src.settings = h3c_frame_settings_default;
+    src.settings = h3c_settings_default;
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t bytes_written = 0;
@@ -188,7 +188,7 @@ TEST_CASE("frame")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_SETTINGS;
-    src.settings = h3c_frame_settings_default;
+    src.settings = h3c_settings_default;
     src.settings.qpack_max_table_capacity = 1U << 30; // overflows
 
     std::array<uint8_t, 30> buffer = { {} };
