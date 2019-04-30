@@ -103,7 +103,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
                                                                                \
     dest += varint_size;                                                       \
     size -= varint_size;                                                       \
-    *bytes_written += varint_size;                                             \
+    *frame_size += varint_size;                                             \
   }                                                                            \
   (void) 0
 
@@ -116,7 +116,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
                                                                                \
   dest++;                                                                      \
   size--;                                                                      \
-  (*bytes_written)++;                                                          \
+  (*frame_size)++;                                                          \
   (void) 0
 
 #define TRY_SETTING_SERIALIZE(id, value)                                       \
@@ -127,22 +127,22 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
 H3C_ERROR h3c_frame_serialize(uint8_t *dest,
                               size_t size,
                               const h3c_frame_t *frame,
-                              size_t *bytes_written)
+                              size_t *frame_size)
 {
   assert(dest);
   assert(frame);
-  assert(bytes_written);
+  assert(frame_size);
 
-  *bytes_written = 0;
+  *frame_size = 0;
 
-  uint64_t frame_length = 0;
-  H3C_ERROR error = frame_payload_size(frame, &frame_length);
+  uint64_t payload_size = 0;
+  H3C_ERROR error = frame_payload_size(frame, &payload_size);
   if (error) {
     return error;
   }
 
   TRY_VARINT_SERIALIZE(frame->type);
-  TRY_VARINT_SERIALIZE(frame_length);
+  TRY_VARINT_SERIALIZE(payload_size);
 
   switch (frame->type) {
     case H3C_FRAME_DATA:
@@ -201,7 +201,7 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
                                                                                \
     src += varint_size;                                                        \
     size -= varint_size;                                                       \
-    *bytes_read += varint_size;                                                \
+    *frame_size += varint_size;                                                \
   }                                                                            \
   (void) 0
 
@@ -215,20 +215,20 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
       return H3C_ERROR_INCOMPLETE_FRAME;                                       \
     }                                                                          \
                                                                                \
-    if (varint_size > frame_length) {                                          \
+    if (varint_size > payload_size) {                                          \
       return H3C_ERROR_MALFORMED_FRAME;                                        \
     }                                                                          \
                                                                                \
     src += varint_size;                                                        \
     size -= varint_size;                                                       \
-    *bytes_read += varint_size;                                                \
-    frame_length -= varint_size;                                               \
+    *frame_size += varint_size;                                                \
+    payload_size -= varint_size;                                               \
   }                                                                            \
   (void) 0
 
 #define BUFFER_PARSE(buffer)                                                   \
-  (buffer).size = frame_length;                                                \
-  frame_length -= frame_length;                                                \
+  (buffer).size = payload_size;                                                \
+  payload_size -= payload_size;                                                \
   (void) 0
 
 #define TRY_UINT8_PARSE(value)                                                 \
@@ -236,7 +236,7 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
     return H3C_ERROR_INCOMPLETE_FRAME;                                         \
   }                                                                            \
                                                                                \
-  if (frame_length == 0) {                                                     \
+  if (payload_size == 0) {                                                     \
     return H3C_ERROR_MALFORMED_FRAME;                                          \
   }                                                                            \
                                                                                \
@@ -244,8 +244,8 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
                                                                                \
   src++;                                                                       \
   size--;                                                                      \
-  (*bytes_read)++;                                                             \
-  frame_length--;                                                              \
+  (*frame_size)++;                                                             \
+  payload_size--;                                                              \
   (void) 0
 
 #define TRY_SETTING_PARSE(id, value, type)                                     \
@@ -264,18 +264,18 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
 H3C_ERROR h3c_frame_parse(const uint8_t *src,
                           size_t size,
                           h3c_frame_t *frame,
-                          size_t *bytes_read)
+                          size_t *frame_size)
 {
   assert(src);
   assert(frame);
-  assert(bytes_read);
+  assert(frame_size);
 
-  *bytes_read = 0;
+  *frame_size = 0;
 
   TRY_VARINT_PARSE_1(frame->type);
 
-  uint64_t frame_length = 0;
-  TRY_VARINT_PARSE_1(frame_length);
+  uint64_t payload_size = 0;
+  TRY_VARINT_PARSE_1(payload_size);
 
   switch (frame->type) {
     case H3C_FRAME_DATA:
@@ -301,7 +301,7 @@ H3C_ERROR h3c_frame_parse(const uint8_t *src,
     case H3C_FRAME_SETTINGS:
       frame->settings = h3c_settings_default;
 
-      while (frame_length > 0) {
+      while (payload_size > 0) {
         uint64_t id = 0;
         TRY_VARINT_PARSE_2(id);
 
@@ -345,7 +345,7 @@ H3C_ERROR h3c_frame_parse(const uint8_t *src,
       break;
   }
 
-  if (frame_length > 0) {
+  if (payload_size > 0) {
     return H3C_ERROR_MALFORMED_FRAME;
   }
 

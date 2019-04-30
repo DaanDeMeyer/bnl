@@ -103,12 +103,12 @@ typedef struct {
 H3C_EXPORT H3C_ERROR h3c_frame_serialize(uint8_t *dest,
                                          size_t size,
                                          const h3c_frame_t *frame,
-                                         size_t *bytes_written);
+                                         size_t *frame_size);
 
 H3C_EXPORT H3C_ERROR h3c_frame_parse(const uint8_t *src,
                                      size_t size,
                                      h3c_frame_t *frame,
-                                     size_t *bytes_read);
+                                     size_t *frame_size);
 
 #ifdef __cplusplus
 }
