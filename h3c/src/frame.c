@@ -13,12 +13,13 @@
 
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
-    size_t rv = h3c_varint_size((value));                                      \
-    if (rv == 0) {                                                             \
-      return H3C_ERROR_VARINT_OVERFLOW;                                        \
+    size_t varint_size = 0;                                                    \
+    H3C_ERROR error = h3c_varint_serialize(NULL, 0, (value), &varint_size);    \
+    if (error) {                                                               \
+      return error;                                                            \
     }                                                                          \
                                                                                \
-    *size += rv;                                                               \
+    *size += varint_size;                                                      \
   }                                                                            \
   (void) 0
 
