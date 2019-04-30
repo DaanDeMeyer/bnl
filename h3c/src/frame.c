@@ -101,22 +101,27 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
       return error;                                                            \
     }                                                                          \
                                                                                \
-    dest += varint_size;                                                       \
-    size -= varint_size;                                                       \
-    *frame_size += varint_size;                                             \
+    if (dest) {                                                                \
+      dest += varint_size;                                                     \
+      size -= varint_size;                                                     \
+    }                                                                          \
+                                                                               \
+    *frame_size += varint_size;                                                \
   }                                                                            \
   (void) 0
 
 #define TRY_UINT8_SERIALIZE(value)                                             \
-  if (size == 0) {                                                             \
-    return H3C_ERROR_BUF_TOO_SMALL;                                            \
+  if (dest) {                                                                  \
+    if (size == 0) {                                                           \
+      return H3C_ERROR_BUF_TOO_SMALL;                                          \
+    }                                                                          \
+                                                                               \
+    *dest = (value);                                                           \
+    dest++;                                                                    \
+    size--;                                                                    \
   }                                                                            \
                                                                                \
-  *dest = (value);                                                             \
-                                                                               \
-  dest++;                                                                      \
-  size--;                                                                      \
-  (*frame_size)++;                                                          \
+  (*frame_size)++;                                                             \
   (void) 0
 
 #define TRY_SETTING_SERIALIZE(id, value)                                       \
@@ -129,7 +134,6 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
                               const h3c_frame_t *frame,
                               size_t *frame_size)
 {
-  assert(dest);
   assert(frame);
   assert(frame_size);
 

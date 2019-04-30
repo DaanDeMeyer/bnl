@@ -151,6 +151,19 @@ TEST_CASE("frame")
     REQUIRE(dest.duplicate_push.push_id == src.duplicate_push.push_id);
   }
 
+  SUBCASE("serialize: frame size")
+  {
+    h3c_frame_t src;
+    src.type = H3C_FRAME_DATA;
+    src.data.payload.size = 1000;
+
+    size_t frame_size = 0;
+    H3C_ERROR error = h3c_frame_serialize(nullptr, 0, &src, &frame_size);
+
+    REQUIRE(!error);
+    REQUIRE(frame_size == 3);
+  }
+
   SUBCASE("serialize: buffer too small")
   {
     h3c_frame_t src;
