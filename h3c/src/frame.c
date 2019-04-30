@@ -94,14 +94,15 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
 
 #define TRY_VARINT_SERIALIZE(value)                                            \
   {                                                                            \
-    size_t rv = h3c_varint_serialize(dest, size, (value));                     \
-    if (rv == 0) {                                                             \
-      return H3C_ERROR_BUF_TOO_SMALL;                                          \
+    size_t varint_size = 0;                                                    \
+    H3C_ERROR error = h3c_varint_serialize(dest, size, (value), &varint_size); \
+    if (error) {                                                               \
+      return error;                                                            \
     }                                                                          \
                                                                                \
-    dest += rv;                                                                \
-    size -= rv;                                                                \
-    *bytes_written += rv;                                                      \
+    dest += varint_size;                                                       \
+    size -= varint_size;                                                       \
+    *bytes_written += varint_size;                                             \
   }                                                                            \
   (void) 0
 
@@ -191,14 +192,15 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
 
 #define TRY_VARINT_PARSE_1(value)                                              \
   {                                                                            \
-    size_t rv = h3c_varint_parse(src, size, &(value));                         \
-    if (rv == 0) {                                                             \
+    size_t varint_size = 0;                                                    \
+    H3C_ERROR error = h3c_varint_parse(src, size, &(value), &varint_size);     \
+    if (error) {                                                               \
       return H3C_ERROR_INCOMPLETE_FRAME;                                       \
     }                                                                          \
                                                                                \
-    src += rv;                                                                 \
-    size -= rv;                                                                \
-    *bytes_read += rv;                                                         \
+    src += varint_size;                                                        \
+    size -= varint_size;                                                       \
+    *bytes_read += varint_size;                                                \
   }                                                                            \
   (void) 0
 
@@ -206,19 +208,20 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
 // `TRY_VARINT_PARSE_1`.
 #define TRY_VARINT_PARSE_2(value)                                              \
   {                                                                            \
-    size_t rv = h3c_varint_parse(src, size, &(value));                         \
-    if (rv == 0) {                                                             \
+    size_t varint_size = 0;                                                    \
+    H3C_ERROR error = h3c_varint_parse(src, size, &(value), &varint_size);     \
+    if (error) {                                                               \
       return H3C_ERROR_INCOMPLETE_FRAME;                                       \
     }                                                                          \
                                                                                \
-    if (rv > frame_length) {                                                   \
+    if (varint_size > frame_length) {                                          \
       return H3C_ERROR_MALFORMED_FRAME;                                        \
     }                                                                          \
                                                                                \
-    src += rv;                                                                 \
-    size -= rv;                                                                \
-    *bytes_read += rv;                                                         \
-    frame_length -= rv;                                                        \
+    src += varint_size;                                                        \
+    size -= varint_size;                                                       \
+    *bytes_read += varint_size;                                                \
+    frame_length -= varint_size;                                               \
   }                                                                            \
   (void) 0
 

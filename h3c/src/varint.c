@@ -78,21 +78,25 @@ static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
   dest[0] |= VARINT_UINT64_HEADER;
 }
 
-size_t h3c_varint_serialize(uint8_t *dest, size_t size, uint64_t varint)
+H3C_ERROR h3c_varint_serialize(uint8_t *dest,
+                               size_t size,
+                               uint64_t varint,
+                               size_t *varint_size)
 {
   assert(dest);
+  assert(varint_size);
 
-  if (size == 0) {
-    return 0;
+  *varint_size = h3c_varint_size(varint);
+
+  if (*varint_size == 0) {
+    return H3C_ERROR_VARINT_OVERFLOW;
   }
 
-  size_t varint_size_ = h3c_varint_size(varint);
-
-  if (varint_size_ == 0 || varint_size_ > size) {
-    return 0;
+  if (*varint_size > size) {
+    return H3C_ERROR_BUF_TOO_SMALL;
   }
 
-  switch (varint_size_) {
+  switch (*varint_size) {
     case 1:
       varint_uint8_serialize(dest, (uint8_t) varint);
       break;
@@ -110,7 +114,7 @@ size_t h3c_varint_serialize(uint8_t *dest, size_t size, uint64_t varint)
       return 0;
   }
 
-  return varint_size_;
+  return H3C_SUCCESS;
 }
 
 // All parse functions convert from network to host byte order and remove the
@@ -155,26 +159,32 @@ static uint64_t varint_uint64_parse(const uint8_t *src)
   return result & 0x3fffffffffffffff;
 }
 
-size_t h3c_varint_parse(const uint8_t *src, size_t size, uint64_t *varint)
+H3C_ERROR h3c_varint_parse(const uint8_t *src,
+                           size_t size,
+                           uint64_t *varint,
+                           size_t *varint_size)
 {
   assert(src);
   assert(varint);
+  assert(varint_size);
+
+  *varint_size = 0;
 
   if (size == 0) {
-    return 0;
+    return H3C_ERROR_INCOMPLETE_VARINT;
   }
 
-  size_t varint_size = 1;
+  *varint_size = 1;
   uint8_t header = *src >> 6;
 
   // varint size = 2^header
-  varint_size <<= header; // shift left => x2
+  *varint_size <<= header; // shift left => x2
 
-  if (varint_size > size) {
-    return 0;
+  if (*varint_size > size) {
+    return H3C_ERROR_INCOMPLETE_VARINT;
   }
 
-  switch (varint_size) {
+  switch (*varint_size) {
     case 1:
       *varint = varint_uint8_parse(src);
       break;
@@ -192,5 +202,5 @@ size_t h3c_varint_parse(const uint8_t *src, size_t size, uint64_t *varint)
       return 0;
   }
 
-  return varint_size;
+  return H3C_SUCCESS;
 }

@@ -16,14 +16,18 @@ TEST_CASE("varint")
     std::array<uint8_t, 1> dest = { {} };
     uint64_t n = 0;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    REQUIRE(rv == 1);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 1);
     REQUIRE(dest[0] == (0x00 | VARINT_UINT8_HEADER));
 
-    rv = h3c_varint_parse(dest.data(), dest.size(), &n);
+    error = h3c_varint_parse(dest.data(), dest.size(), &n, &varint_size);
 
-    REQUIRE(rv == 1);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 1);
     REQUIRE(n == 0);
   }
 
@@ -32,14 +36,18 @@ TEST_CASE("varint")
     std::array<uint8_t, 1> dest = { {} };
     uint64_t n = 62;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    REQUIRE(rv == 1);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 1);
     REQUIRE(dest[0] == (0x3E | VARINT_UINT8_HEADER));
 
-    rv = h3c_varint_parse(dest.data(), dest.size(), &n);
+    error = h3c_varint_parse(dest.data(), dest.size(), &n, &varint_size);
 
-    REQUIRE(rv == 1);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 1);
     REQUIRE(n == 62);
   }
 
@@ -48,15 +56,19 @@ TEST_CASE("varint")
     std::array<uint8_t, 2> dest = { {} };
     uint64_t n = 15248;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    REQUIRE(rv == 2);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 2);
     REQUIRE(dest[0] == (0x3b | VARINT_UINT16_HEADER));
     REQUIRE(dest[1] == 0x90);
 
-    rv = h3c_varint_parse(dest.data(), dest.size(), &n);
+    error = h3c_varint_parse(dest.data(), dest.size(), &n, &varint_size);
 
-    REQUIRE(rv == 2);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 2);
     REQUIRE(n == 15248);
   }
 
@@ -65,17 +77,21 @@ TEST_CASE("varint")
     std::array<uint8_t, 4> dest = { {} };
     uint64_t n = 1073721823;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    REQUIRE(rv == 4);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 4);
     REQUIRE(dest[0] == (0x3f | VARINT_UINT32_HEADER));
     REQUIRE(dest[1] == 0xff);
     REQUIRE(dest[2] == 0xb1);
     REQUIRE(dest[3] == 0xdf);
 
-    rv = h3c_varint_parse(dest.data(), dest.size(), &n);
+    error = h3c_varint_parse(dest.data(), dest.size(), &n, &varint_size);
 
-    REQUIRE(rv == 4);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 4);
     REQUIRE(n == 1073721823);
   }
 
@@ -84,9 +100,12 @@ TEST_CASE("varint")
     std::array<uint8_t, 8> dest = { {} };
     uint64_t n = 4611386010427387203;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    REQUIRE(rv == 8);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 8);
     REQUIRE(dest[0] == (0x3f | VARINT_UINT64_HEADER));
     REQUIRE(dest[1] == 0xfe);
     REQUIRE(dest[2] == 0xef);
@@ -96,9 +115,10 @@ TEST_CASE("varint")
     REQUIRE(dest[6] == 0xed);
     REQUIRE(dest[7] == 0x43);
 
-    rv = h3c_varint_parse(dest.data(), dest.size(), &n);
+    error = h3c_varint_parse(dest.data(), dest.size(), &n, &varint_size);
 
-    REQUIRE(rv == 8);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 8);
     REQUIRE(n == 4611386010427387203);
   }
 
@@ -107,9 +127,12 @@ TEST_CASE("varint")
     std::array<uint8_t, 8> dest = { {} };
     uint64_t n = 4611686018427387903;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    REQUIRE(rv == 8);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 8);
     REQUIRE(dest[0] == (0x3f | VARINT_UINT64_HEADER));
     REQUIRE(dest[1] == 0xff);
     REQUIRE(dest[2] == 0xff);
@@ -119,9 +142,10 @@ TEST_CASE("varint")
     REQUIRE(dest[6] == 0xff);
     REQUIRE(dest[7] == 0xff);
 
-    rv = h3c_varint_parse(dest.data(), dest.size(), &n);
+    error = h3c_varint_parse(dest.data(), dest.size(), &n, &varint_size);
 
-    REQUIRE(rv == 8);
+    REQUIRE(!error);
+    REQUIRE(varint_size == 8);
     REQUIRE(n == 4611686018427387903);
   }
 
@@ -130,8 +154,12 @@ TEST_CASE("varint")
     std::array<uint8_t, 8> dest = { {} };
     uint64_t n = UINT64_MAX;
 
-    size_t rv = h3c_varint_serialize(dest.data(), dest.size(), n);
-    REQUIRE(rv == 0);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
+
+    REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
+    REQUIRE(varint_size == 0);
   }
 
   SUBCASE("buffer too small")
@@ -139,13 +167,11 @@ TEST_CASE("varint")
     std::array<uint8_t, 1> dest = { {} };
     uint8_t n = 169;
 
-    // `h3c_varint_serialize` returns 0 both when the varint overflows and when
-    // the varint doesn't fit in `dest`. To make sure we're testing the out of
-    // bounds case, we verify that the varint doesn't overflow first.
-    size_t rv = h3c_varint_size(n);
-    REQUIRE(rv != 0);
+    size_t varint_size = 0;
+    H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
+                                           &varint_size);
 
-    rv = h3c_varint_serialize(dest.data(), dest.size(), n);
-    REQUIRE(rv == 0);
+    REQUIRE(error == H3C_ERROR_BUF_TOO_SMALL);
+    REQUIRE(varint_size == 2);
   }
 }
