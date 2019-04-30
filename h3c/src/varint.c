@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-size_t h3c_varint_size(uint64_t varint)
+static size_t varint_size_(uint64_t varint)
 {
   if (varint < 0x40) {
     return 1;
@@ -85,7 +85,7 @@ H3C_ERROR h3c_varint_serialize(uint8_t *dest,
 {
   assert(varint_size);
 
-  *varint_size = h3c_varint_size(varint);
+  *varint_size = varint_size_(varint);
 
   if (*varint_size == 0) {
     return H3C_ERROR_VARINT_OVERFLOW;

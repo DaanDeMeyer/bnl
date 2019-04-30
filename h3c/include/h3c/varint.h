@@ -14,8 +14,6 @@
 extern "C" {
 #endif
 
-H3C_EXPORT size_t h3c_varint_size(uint64_t varint);
-
 H3C_EXPORT H3C_ERROR h3c_varint_serialize(uint8_t *dest,
                                           size_t size,
                                           uint64_t varint,
