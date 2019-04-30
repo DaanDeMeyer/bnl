@@ -149,7 +149,7 @@ TEST_CASE("varint")
     REQUIRE(n == 4611686018427387903);
   }
 
-  SUBCASE("overflow")
+  SUBCASE("serialize: overflow")
   {
     std::array<uint8_t, 8> dest = { {} };
     uint64_t n = UINT64_MAX;
@@ -162,7 +162,7 @@ TEST_CASE("varint")
     REQUIRE(varint_size == 0);
   }
 
-  SUBCASE("buffer too small")
+  SUBCASE("serialize: buffer too small")
   {
     std::array<uint8_t, 1> dest = { {} };
     uint8_t n = 169;
