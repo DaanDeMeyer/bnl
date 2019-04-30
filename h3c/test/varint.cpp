@@ -165,7 +165,7 @@ TEST_CASE("varint")
   SUBCASE("serialize: buffer too small")
   {
     std::array<uint8_t, 1> dest = { {} };
-    uint8_t n = 169;
+    uint64_t n = 169;
 
     size_t varint_size = 0;
     H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
