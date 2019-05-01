@@ -182,7 +182,7 @@ TEST_CASE("varint")
     H3C_ERROR error = h3c_varint_serialize(dest.data(), dest.size(), n,
                                            &varint_size);
 
-    REQUIRE(error == H3C_ERROR_BUF_TOO_SMALL);
+    REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
     REQUIRE(varint_size == 2);
   }
 

@@ -113,7 +113,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
 #define TRY_UINT8_SERIALIZE(value)                                             \
   if (dest) {                                                                  \
     if (size == 0) {                                                           \
-      return H3C_ERROR_BUF_TOO_SMALL;                                          \
+      return H3C_ERROR_BUFFER_TOO_SMALL;                                       \
     }                                                                          \
                                                                                \
     *dest = (value);                                                           \

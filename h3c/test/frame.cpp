@@ -175,7 +175,7 @@ TEST_CASE("frame")
     H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
                                           &frame_size);
 
-    REQUIRE(error == H3C_ERROR_BUF_TOO_SMALL);
+    REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
     // Only type and length and the first setting id will be serialized.
     REQUIRE(frame_size == buffer.size());
   }

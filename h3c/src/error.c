@@ -15,7 +15,7 @@ const char *h3c_strerror(H3C_ERROR error)
 
     case H3C_ERROR_INTERNAL:
       return "internal error";
-    case H3C_ERROR_BUF_TOO_SMALL:
+    case H3C_ERROR_BUFFER_TOO_SMALL:
       return "buffer too small";
     case H3C_ERROR_VARINT_OVERFLOW:
       return "varint overflow";

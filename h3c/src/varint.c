@@ -96,7 +96,7 @@ H3C_ERROR h3c_varint_serialize(uint8_t *dest,
   }
 
   if (*varint_size > size) {
-    return H3C_ERROR_BUF_TOO_SMALL;
+    return H3C_ERROR_BUFFER_TOO_SMALL;
   }
 
   switch (*varint_size) {
