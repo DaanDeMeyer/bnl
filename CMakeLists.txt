@@ -1,6 +1,6 @@
-# 3.13 is needed for to allow using `target_link_libraries` to modify targets
-# created outside the current directory.
-cmake_minimum_required(VERSION 3.13...3.14)
+# 3.14 introduced `FetchContent_MakeAvailable` which is used to download
+# dependencies at configure time.
+cmake_minimum_required(VERSION 3.14)
 
 project(h3c
   VERSION 0.0.1
@@ -15,7 +15,7 @@ if(H3C_TEST)
   enable_language(CXX)
 endif()
 
-include(external/cddm/cddm.cmake)
+include(external/CMakeLists.txt)
 
 if(H3C_TEST)
   # h3c uses the doctest testing framework. All tests are grouped inside a
@@ -24,10 +24,8 @@ if(H3C_TEST)
   add_executable(h3c-test)
 
   cddm_add_common(h3c-test CXX 11 "")
-  target_include_directories(h3c-test PRIVATE external/doctest)
+  target_link_libraries(h3c-test PRIVATE doctest_with_main)
   set_target_properties(h3c-test PROPERTIES OUTPUT_NAME test)
-
-  target_sources(h3c-test PRIVATE external/doctest/main.cpp)
 endif()
 
 add_subdirectory(h3c)
