@@ -10,6 +10,11 @@
 
 #define H3C_VARINT_MAX ((0x40ULL << 56) - 1)
 
+#define H3C_VARINT_UINT8_SIZE 1
+#define H3C_VARINT_UINT16_SIZE 2
+#define H3C_VARINT_UINT32_SIZE 4
+#define H3C_VARINT_UINT64_SIZE 8
+
 #ifdef __cplusplus
 extern "C" {
 #endif

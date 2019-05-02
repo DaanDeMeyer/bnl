@@ -7,19 +7,19 @@
 static size_t varint_size_(uint64_t varint)
 {
   if (varint < 0x40) {
-    return 1;
+    return H3C_VARINT_UINT8_SIZE;
   }
 
   if (varint < (0x40 << 8)) {
-    return 2;
+    return H3C_VARINT_UINT16_SIZE;
   }
 
   if (varint < (0x40 << 24)) {
-    return 4;
+    return H3C_VARINT_UINT32_SIZE;
   }
 
   if (varint < (0x40ULL << 56)) {
-    return 8;
+    return H3C_VARINT_UINT64_SIZE;
   }
 
   return 0;
@@ -110,16 +110,16 @@ H3C_ERROR h3c_varint_serialize(uint8_t *dest,
   }
 
   switch (*varint_size) {
-    case 1:
+    case H3C_VARINT_UINT8_SIZE:
       varint_uint8_serialize(dest, (uint8_t) varint);
       break;
-    case 2:
+    case H3C_VARINT_UINT16_SIZE:
       varint_uint16_serialize(dest, (uint16_t) varint);
       break;
-    case 4:
+    case H3C_VARINT_UINT32_SIZE:
       varint_uint32_serialize(dest, (uint32_t) varint);
       break;
-    case 8:
+    case H3C_VARINT_UINT64_SIZE:
       varint_uint64_serialize(dest, varint);
       break;
     default:
@@ -198,16 +198,16 @@ H3C_ERROR h3c_varint_parse(const uint8_t *src,
   }
 
   switch (*varint_size) {
-    case 1:
+    case H3C_VARINT_UINT8_SIZE:
       *varint = varint_uint8_parse(src);
       break;
-    case 2:
+    case H3C_VARINT_UINT16_SIZE:
       *varint = varint_uint16_parse(src);
       break;
-    case 4:
+    case H3C_VARINT_UINT32_SIZE:
       *varint = varint_uint32_parse(src);
       break;
-    case 8:
+    case H3C_VARINT_UINT64_SIZE:
       *varint = varint_uint64_parse(src);
       break;
     default:
