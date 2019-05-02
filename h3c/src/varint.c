@@ -1,5 +1,7 @@
 #include <h3c/varint.h>
 
+#include <util.h>
+
 #include <assert.h>
 
 static size_t varint_size_(uint64_t varint)
@@ -85,11 +87,19 @@ H3C_ERROR h3c_varint_serialize(uint8_t *dest,
 {
   assert(varint_size);
 
-  *varint_size = varint_size_(varint);
+  size_t actual_varint_size = varint_size_(varint);
 
-  if (*varint_size == 0) {
+  if (actual_varint_size == 0) {
     return H3C_ERROR_VARINT_OVERFLOW;
   }
+
+  // If the varint's actual size is larger than the user's wanted (fixed) varint
+  // size, return overflow as well.
+  if (*varint_size != 0 && actual_varint_size > *varint_size) {
+    return H3C_ERROR_VARINT_OVERFLOW;
+  }
+
+  *varint_size = MAX(actual_varint_size, *varint_size);
 
   if (dest == NULL) {
     return H3C_SUCCESS;
