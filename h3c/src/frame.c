@@ -200,7 +200,7 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
     size_t varint_size = 0;                                                    \
     H3C_ERROR error = h3c_varint_parse(src, size, &(value), &varint_size);     \
     if (error) {                                                               \
-      return H3C_ERROR_INCOMPLETE_FRAME;                                       \
+      return H3C_ERROR_INCOMPLETE;                                             \
     }                                                                          \
                                                                                \
     src += varint_size;                                                        \
@@ -216,7 +216,7 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
     size_t varint_size = 0;                                                    \
     H3C_ERROR error = h3c_varint_parse(src, size, &(value), &varint_size);     \
     if (error) {                                                               \
-      return H3C_ERROR_INCOMPLETE_FRAME;                                       \
+      return H3C_ERROR_INCOMPLETE;                                             \
     }                                                                          \
                                                                                \
     if (varint_size > payload_size) {                                          \
@@ -237,7 +237,7 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
 
 #define TRY_UINT8_PARSE(value)                                                 \
   if (size == 0) {                                                             \
-    return H3C_ERROR_INCOMPLETE_FRAME;                                         \
+    return H3C_ERROR_INCOMPLETE;                                               \
   }                                                                            \
                                                                                \
   if (payload_size == 0) {                                                     \

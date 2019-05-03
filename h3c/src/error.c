@@ -21,10 +21,8 @@ const char *h3c_strerror(H3C_ERROR error)
       return "varint overflow";
     case H3C_ERROR_SETTING_OVERFLOW:
       return "setting overflow";
-    case H3C_ERROR_INCOMPLETE_VARINT:
-      return "incomplete varint";
-    case H3C_ERROR_INCOMPLETE_FRAME:
-      return "incomplete frame";
+    case H3C_ERROR_INCOMPLETE:
+      return "incomplete";
   }
 
   return "unknown error";

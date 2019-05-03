@@ -197,7 +197,7 @@ TEST_CASE("varint")
     REQUIRE(varint_size == H3C_VARINT_UINT16_SIZE);
   }
 
-  SUBCASE("parse: incomplete varint")
+  SUBCASE("parse: incomplete")
   {
     std::array<uint8_t, H3C_VARINT_UINT16_SIZE> dest = { {} };
     uint64_t n = 169;
@@ -211,7 +211,7 @@ TEST_CASE("varint")
 
     error = h3c_varint_parse(dest.data(), dest.size() - 1, &n, &varint_size);
 
-    REQUIRE(error == H3C_ERROR_INCOMPLETE_VARINT);
+    REQUIRE(error == H3C_ERROR_INCOMPLETE);
     REQUIRE(varint_size == H3C_VARINT_UINT16_SIZE);
   }
 }

@@ -211,7 +211,7 @@ TEST_CASE("frame")
     REQUIRE(frame_size == 0);
   }
 
-  SUBCASE("parse: frame incomplete")
+  SUBCASE("parse: incomplete")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_DUPLICATE_PUSH;
@@ -229,7 +229,7 @@ TEST_CASE("frame")
     error = h3c_frame_parse(buffer.data(), buffer.size() - 1, &dest,
                             &frame_size);
 
-    REQUIRE(error == H3C_ERROR_INCOMPLETE_FRAME);
+    REQUIRE(error == H3C_ERROR_INCOMPLETE);
     REQUIRE(frame_size == 2); // Only frame type and length can be parsed.
 
     error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &frame_size);

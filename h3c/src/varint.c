@@ -184,7 +184,7 @@ H3C_ERROR h3c_varint_parse(const uint8_t *src,
   *varint_size = 0;
 
   if (size == 0) {
-    return H3C_ERROR_INCOMPLETE_VARINT;
+    return H3C_ERROR_INCOMPLETE;
   }
 
   *varint_size = 1;
@@ -194,7 +194,7 @@ H3C_ERROR h3c_varint_parse(const uint8_t *src,
   *varint_size <<= header; // shift left => x2
 
   if (*varint_size > size) {
-    return H3C_ERROR_INCOMPLETE_VARINT;
+    return H3C_ERROR_INCOMPLETE;
   }
 
   switch (*varint_size) {
