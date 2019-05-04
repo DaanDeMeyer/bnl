@@ -19,15 +19,15 @@
 extern "C" {
 #endif
 
-H3C_EXPORT H3C_ERROR h3c_varint_serialize(uint8_t *dest,
-                                          size_t size,
-                                          uint64_t varint,
-                                          size_t *varint_size);
+H3C_EXPORT H3C_ERROR h3c_varint_encode(uint8_t *dest,
+                                       size_t size,
+                                       uint64_t varint,
+                                       size_t *varint_size);
 
-H3C_EXPORT H3C_ERROR h3c_varint_parse(const uint8_t *src,
-                                      size_t size,
-                                      uint64_t *varint,
-                                      size_t *varint_size);
+H3C_EXPORT H3C_ERROR h3c_varint_decode(const uint8_t *src,
+                                       size_t size,
+                                       uint64_t *varint,
+                                       size_t *varint_size);
 
 #ifdef __cplusplus
 }

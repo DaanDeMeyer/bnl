@@ -5,7 +5,7 @@
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
     size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_serialize(NULL, 0, (value), &varint_size);    \
+    H3C_ERROR error = h3c_varint_encode(NULL, 0, (value), &varint_size);       \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
@@ -84,10 +84,10 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
   return H3C_SUCCESS;
 }
 
-#define TRY_VARINT_SERIALIZE(value)                                            \
+#define TRY_VARINT_ENCODE(value)                                               \
   {                                                                            \
     size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_serialize(dest, size, (value), &varint_size); \
+    H3C_ERROR error = h3c_varint_encode(dest, size, (value), &varint_size);    \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
@@ -101,7 +101,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
   }                                                                            \
   (void) 0
 
-#define TRY_UINT8_SERIALIZE(value)                                             \
+#define TRY_UINT8_ENCODE(value)                                                \
   if (dest) {                                                                  \
     if (size == 0) {                                                           \
       return H3C_ERROR_BUFFER_TOO_SMALL;                                       \
@@ -115,15 +115,15 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
   (*frame_size)++;                                                             \
   (void) 0
 
-#define TRY_SETTING_SERIALIZE(id, value)                                       \
-  TRY_VARINT_SERIALIZE((id));                                                  \
-  TRY_VARINT_SERIALIZE((value));                                               \
+#define TRY_SETTING_ENCODE(id, value)                                          \
+  TRY_VARINT_ENCODE((id));                                                     \
+  TRY_VARINT_ENCODE((value));                                                  \
   (void) 0
 
-H3C_ERROR h3c_frame_serialize(uint8_t *dest,
-                              size_t size,
-                              const h3c_frame_t *frame,
-                              size_t *frame_size)
+H3C_ERROR h3c_frame_encode(uint8_t *dest,
+                           size_t size,
+                           const h3c_frame_t *frame,
+                           size_t *frame_size)
 {
   assert(frame);
   assert(frame_size);
@@ -136,8 +136,8 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
     return error;
   }
 
-  TRY_VARINT_SERIALIZE(frame->type);
-  TRY_VARINT_SERIALIZE(payload_size);
+  TRY_VARINT_ENCODE(frame->type);
+  TRY_VARINT_ENCODE(payload_size);
 
   switch (frame->type) {
     case H3C_FRAME_DATA:
@@ -149,37 +149,37 @@ H3C_ERROR h3c_frame_serialize(uint8_t *dest,
       byte |= (uint8_t)(frame->priority.prioritized_element_type << 6);
       byte |= (uint8_t)(frame->priority.element_dependency_type << 4);
       byte &= 0xf0;
-      TRY_UINT8_SERIALIZE(byte);
+      TRY_UINT8_ENCODE(byte);
 
-      TRY_VARINT_SERIALIZE(frame->priority.prioritized_element_id);
-      TRY_VARINT_SERIALIZE(frame->priority.element_dependency_id);
+      TRY_VARINT_ENCODE(frame->priority.prioritized_element_id);
+      TRY_VARINT_ENCODE(frame->priority.element_dependency_id);
 
-      TRY_UINT8_SERIALIZE(frame->priority.weight);
+      TRY_UINT8_ENCODE(frame->priority.weight);
       break;
     case H3C_FRAME_CANCEL_PUSH:
-      TRY_VARINT_SERIALIZE(frame->cancel_push.push_id);
+      TRY_VARINT_ENCODE(frame->cancel_push.push_id);
       break;
     case H3C_FRAME_SETTINGS:
-      TRY_SETTING_SERIALIZE(H3C_SETTINGS_MAX_HEADER_LIST_SIZE,
-                            frame->settings.max_header_list_size);
-      TRY_SETTING_SERIALIZE(H3C_SETTINGS_NUM_PLACEHOLDERS,
-                            frame->settings.num_placeholders);
-      TRY_SETTING_SERIALIZE(H3C_SETTINGS_QPACK_MAX_TABLE_CAPACITY,
-                            frame->settings.qpack_max_table_capacity);
-      TRY_SETTING_SERIALIZE(H3C_SETTINGS_QPACK_BLOCKED_STREAMS,
-                            frame->settings.qpack_blocked_streams);
+      TRY_SETTING_ENCODE(H3C_SETTINGS_MAX_HEADER_LIST_SIZE,
+                         frame->settings.max_header_list_size);
+      TRY_SETTING_ENCODE(H3C_SETTINGS_NUM_PLACEHOLDERS,
+                         frame->settings.num_placeholders);
+      TRY_SETTING_ENCODE(H3C_SETTINGS_QPACK_MAX_TABLE_CAPACITY,
+                         frame->settings.qpack_max_table_capacity);
+      TRY_SETTING_ENCODE(H3C_SETTINGS_QPACK_BLOCKED_STREAMS,
+                         frame->settings.qpack_blocked_streams);
       break;
     case H3C_FRAME_PUSH_PROMISE:
-      TRY_VARINT_SERIALIZE(frame->push_promise.push_id);
+      TRY_VARINT_ENCODE(frame->push_promise.push_id);
       break;
     case H3C_FRAME_GOAWAY:
-      TRY_VARINT_SERIALIZE(frame->goaway.stream_id);
+      TRY_VARINT_ENCODE(frame->goaway.stream_id);
       break;
     case H3C_FRAME_MAX_PUSH_ID:
-      TRY_VARINT_SERIALIZE(frame->max_push_id.push_id);
+      TRY_VARINT_ENCODE(frame->max_push_id.push_id);
       break;
     case H3C_FRAME_DUPLICATE_PUSH:
-      TRY_VARINT_SERIALIZE(frame->duplicate_push.push_id);
+      TRY_VARINT_ENCODE(frame->duplicate_push.push_id);
       break;
   }
 

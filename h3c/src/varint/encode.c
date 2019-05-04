@@ -25,7 +25,7 @@ static size_t varint_size_(uint64_t varint)
   return 0;
 }
 
-// All serialize functions convert from host to network byte order (big-endian)
+// All encode functions convert from host to network byte order (big-endian)
 // and insert the varint header.
 
 #define VARINT_UINT8_HEADER 0x00
@@ -33,14 +33,14 @@ static size_t varint_size_(uint64_t varint)
 #define VARINT_UINT32_HEADER 0x80
 #define VARINT_UINT64_HEADER 0xc0
 
-static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
+static void varint_uint8_encode(uint8_t *dest, uint8_t number)
 {
   dest[0] = (uint8_t)(number >> 0);
 
   dest[0] |= VARINT_UINT8_HEADER;
 }
 
-static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
+static void varint_uint16_encode(uint8_t *dest, uint16_t number)
 {
   dest[0] = (uint8_t)(number >> 8);
   dest[1] = (uint8_t)(number >> 0);
@@ -48,7 +48,7 @@ static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
   dest[0] |= VARINT_UINT16_HEADER;
 }
 
-static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
+static void varint_uint32_encode(uint8_t *dest, uint32_t number)
 {
   dest[0] = (uint8_t)(number >> 24);
   dest[1] = (uint8_t)(number >> 16);
@@ -58,7 +58,7 @@ static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
   dest[0] |= VARINT_UINT32_HEADER;
 }
 
-static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
+static void varint_uint64_encode(uint8_t *dest, uint64_t number)
 {
   dest[0] = (uint8_t)(number >> 56);
   dest[1] = (uint8_t)(number >> 48);
@@ -72,10 +72,10 @@ static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
   dest[0] |= VARINT_UINT64_HEADER;
 }
 
-H3C_ERROR h3c_varint_serialize(uint8_t *dest,
-                               size_t size,
-                               uint64_t varint,
-                               size_t *varint_size)
+H3C_ERROR h3c_varint_encode(uint8_t *dest,
+                            size_t size,
+                            uint64_t varint,
+                            size_t *varint_size)
 {
   assert(varint_size);
 
@@ -103,16 +103,16 @@ H3C_ERROR h3c_varint_serialize(uint8_t *dest,
 
   switch (*varint_size) {
     case H3C_VARINT_UINT8_SIZE:
-      varint_uint8_serialize(dest, (uint8_t) varint);
+      varint_uint8_encode(dest, (uint8_t) varint);
       break;
     case H3C_VARINT_UINT16_SIZE:
-      varint_uint16_serialize(dest, (uint16_t) varint);
+      varint_uint16_encode(dest, (uint16_t) varint);
       break;
     case H3C_VARINT_UINT32_SIZE:
-      varint_uint32_serialize(dest, (uint32_t) varint);
+      varint_uint32_encode(dest, (uint32_t) varint);
       break;
     case H3C_VARINT_UINT64_SIZE:
-      varint_uint64_serialize(dest, varint);
+      varint_uint64_encode(dest, varint);
       break;
     default:
       assert(0);

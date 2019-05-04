@@ -3,11 +3,11 @@ cddm_add_library(h3c C 11)
 target_include_directories(h3c PRIVATE src)
 target_sources(h3c PRIVATE
   src/error.c
-  src/frame/parse.c
-  src/frame/serialize.c
+  src/frame/decode.c
+  src/frame/encode.c
   src/settings.c
-  src/varint/parse.c
-  src/varint/serialize.c
+  src/varint/decode.c
+  src/varint/encode.c
 )
 
 if(H3C_TEST)

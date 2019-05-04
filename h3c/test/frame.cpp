@@ -5,8 +5,7 @@
 #include <array>
 #include <cstring>
 
-template <size_t N>
-static h3c_frame_t serialize_and_parse(const h3c_frame_t &src)
+template <size_t N> static h3c_frame_t encode_and_decode(const h3c_frame_t &src)
 {
   std::array<uint8_t, N> buffer = { {} };
 
@@ -16,15 +15,13 @@ static h3c_frame_t serialize_and_parse(const h3c_frame_t &src)
   size_t frame_size = 0;
   CAPTURE(frame_size);
 
-  error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                              &frame_size);
+  error = h3c_frame_encode(buffer.data(), buffer.size(), &src, &frame_size);
 
   REQUIRE(!error);
   REQUIRE(frame_size == N);
 
   h3c_frame_t dest;
-  error = h3c_frame_parse(buffer.data(), buffer.size(), &dest,
-                          &frame_size);
+  error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &frame_size);
 
   REQUIRE(!error);
   REQUIRE(frame_size == N);
@@ -42,7 +39,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_DATA;
     src.data.payload.size = 64; // frame length varint size = 2
 
-    h3c_frame_t dest = serialize_and_parse<3>(src);
+    h3c_frame_t dest = encode_and_decode<3>(src);
 
     REQUIRE(dest.data.payload.size == src.data.payload.size);
   }
@@ -53,7 +50,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_HEADERS;
     src.headers.header_block.size = 16384; // frame length varint size = 4
 
-    h3c_frame_t dest = serialize_and_parse<5>(src);
+    h3c_frame_t dest = encode_and_decode<5>(src);
 
     REQUIRE(dest.headers.header_block.size == src.headers.header_block.size);
   }
@@ -68,7 +65,7 @@ TEST_CASE("frame")
     src.priority.element_dependency_id = 1073781823; // varint size = 8
     src.priority.weight = 43;
 
-    h3c_frame_t dest = serialize_and_parse<16>(src);
+    h3c_frame_t dest = encode_and_decode<16>(src);
 
     REQUIRE(dest.priority.prioritized_element_type ==
             src.priority.prioritized_element_type);
@@ -85,7 +82,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_CANCEL_PUSH;
     src.cancel_push.push_id = 64; // varint size = 2
 
-    h3c_frame_t dest = serialize_and_parse<4>(src);
+    h3c_frame_t dest = encode_and_decode<4>(src);
 
     REQUIRE(dest.cancel_push.push_id == src.cancel_push.push_id);
   }
@@ -96,7 +93,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_SETTINGS;
     src.settings = h3c_settings_default;
 
-    h3c_frame_t dest = serialize_and_parse<17>(src);
+    h3c_frame_t dest = encode_and_decode<17>(src);
 
     REQUIRE(dest.settings.max_header_list_size ==
             src.settings.max_header_list_size);
@@ -111,7 +108,7 @@ TEST_CASE("frame")
     // frame length varint size = 8
     src.push_promise.header_block.size = 1073741824;
 
-    h3c_frame_t dest = serialize_and_parse<13>(src);
+    h3c_frame_t dest = encode_and_decode<13>(src);
 
     REQUIRE(dest.push_promise.push_id == src.push_promise.push_id);
     REQUIRE(dest.push_promise.header_block.size ==
@@ -124,7 +121,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_GOAWAY;
     src.goaway.stream_id = 1073741823; // varint size = 4
 
-    h3c_frame_t dest = serialize_and_parse<6>(src);
+    h3c_frame_t dest = encode_and_decode<6>(src);
 
     REQUIRE(dest.goaway.stream_id == src.goaway.stream_id);
   }
@@ -135,7 +132,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_MAX_PUSH_ID;
     src.max_push_id.push_id = 1073741824; // varint size = 8;
 
-    h3c_frame_t dest = serialize_and_parse<10>(src);
+    h3c_frame_t dest = encode_and_decode<10>(src);
 
     REQUIRE(dest.max_push_id.push_id == src.max_push_id.push_id);
   }
@@ -146,25 +143,25 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_DUPLICATE_PUSH;
     src.duplicate_push.push_id = 4611686018427387903; // varint size = 8
 
-    h3c_frame_t dest = serialize_and_parse<10>(src);
+    h3c_frame_t dest = encode_and_decode<10>(src);
 
     REQUIRE(dest.duplicate_push.push_id == src.duplicate_push.push_id);
   }
 
-  SUBCASE("serialize: frame size")
+  SUBCASE("encode: frame size")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_DATA;
     src.data.payload.size = 1000;
 
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_serialize(nullptr, 0, &src, &frame_size);
+    H3C_ERROR error = h3c_frame_encode(nullptr, 0, &src, &frame_size);
 
     REQUIRE(!error);
     REQUIRE(frame_size == 3);
   }
 
-  SUBCASE("serialize: buffer too small")
+  SUBCASE("encode: buffer too small")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_SETTINGS;
@@ -172,15 +169,15 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                          &frame_size);
+    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+                                       &frame_size);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
-    // Only type and length and the first setting id will be serialized.
+    // Only type and length and the first setting id will be encoded.
     REQUIRE(frame_size == buffer.size());
   }
 
-  SUBCASE("serialize: varint overflow")
+  SUBCASE("encode: varint overflow")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_DATA;
@@ -188,14 +185,14 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                          &frame_size);
+    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+                                       &frame_size);
 
     REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
     REQUIRE(frame_size == 0);
   }
 
-  SUBCASE("serialize: setting overflow")
+  SUBCASE("encode: setting overflow")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_SETTINGS;
@@ -204,14 +201,14 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 30> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                          &frame_size);
+    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+                                       &frame_size);
 
     REQUIRE(error == H3C_ERROR_SETTING_OVERFLOW);
     REQUIRE(frame_size == 0);
   }
 
-  SUBCASE("parse: incomplete")
+  SUBCASE("decode: incomplete")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_DUPLICATE_PUSH;
@@ -219,26 +216,26 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                          &frame_size);
+    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+                                       &frame_size);
 
     REQUIRE(!error);
     REQUIRE(frame_size == buffer.size());
 
     h3c_frame_t dest;
-    error = h3c_frame_parse(buffer.data(), buffer.size() - 1, &dest,
-                            &frame_size);
+    error = h3c_frame_decode(buffer.data(), buffer.size() - 1, &dest,
+                             &frame_size);
 
     REQUIRE(error == H3C_ERROR_INCOMPLETE);
-    REQUIRE(frame_size == 2); // Only frame type and length can be parsed.
+    REQUIRE(frame_size == 2); // Only frame type and length can be decoded.
 
-    error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &frame_size);
+    error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &frame_size);
 
     REQUIRE(!error);
     REQUIRE(frame_size == buffer.size());
   }
 
-  SUBCASE("parse: frame malformed")
+  SUBCASE("decode: frame malformed")
   {
     h3c_frame_t src;
     src.type = H3C_FRAME_CANCEL_PUSH;
@@ -246,8 +243,8 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_serialize(buffer.data(), buffer.size(), &src,
-                                          &frame_size);
+    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+                                       &frame_size);
 
     REQUIRE(!error);
     REQUIRE(frame_size == 6);
@@ -255,9 +252,9 @@ TEST_CASE("frame")
     buffer[1] = 16; // mangle the frame length
 
     h3c_frame_t dest;
-    error = h3c_frame_parse(buffer.data(), buffer.size(), &dest, &frame_size);
+    error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &frame_size);
 
     REQUIRE(error == H3C_ERROR_MALFORMED_FRAME);
-    REQUIRE(frame_size == 6); // Only frame type and length can be parsed.
+    REQUIRE(frame_size == 6); // Only frame type and length can be decoded.
   }
 }
