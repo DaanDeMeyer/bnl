@@ -35,8 +35,6 @@ static size_t varint_size_(uint64_t varint)
 
 static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 {
-  assert(dest);
-
   dest[0] = (uint8_t)(number >> 0);
 
   dest[0] |= VARINT_UINT8_HEADER;
@@ -44,8 +42,6 @@ static void varint_uint8_serialize(uint8_t *dest, uint8_t number)
 
 static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
 {
-  assert(dest);
-
   dest[0] = (uint8_t)(number >> 8);
   dest[1] = (uint8_t)(number >> 0);
 
@@ -54,8 +50,6 @@ static void varint_uint16_serialize(uint8_t *dest, uint16_t number)
 
 static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
 {
-  assert(dest);
-
   dest[0] = (uint8_t)(number >> 24);
   dest[1] = (uint8_t)(number >> 16);
   dest[2] = (uint8_t)(number >> 8);
@@ -66,8 +60,6 @@ static void varint_uint32_serialize(uint8_t *dest, uint32_t number)
 
 static void varint_uint64_serialize(uint8_t *dest, uint64_t number)
 {
-  assert(dest);
-
   dest[0] = (uint8_t)(number >> 56);
   dest[1] = (uint8_t)(number >> 48);
   dest[2] = (uint8_t)(number >> 40);

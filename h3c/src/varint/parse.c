@@ -7,23 +7,17 @@
 
 static uint8_t varint_uint8_parse(const uint8_t *src)
 {
-  assert(src);
-
   return src[0] & 0x3f;
 }
 
 static uint16_t varint_uint16_parse(const uint8_t *src)
 {
-  assert(src);
-
   uint16_t result = (uint16_t)((uint16_t) src[0] << 8 | (uint16_t) src[1] << 0);
   return result & 0x3fff;
 }
 
 static uint32_t varint_uint32_parse(const uint8_t *src)
 {
-  assert(src);
-
   // clang-format off
   uint32_t result = (uint32_t) src[0] << 24 | (uint32_t) src[1] << 16 |
                     (uint32_t) src[2] << 8  | (uint32_t) src[3] << 0;
@@ -33,8 +27,6 @@ static uint32_t varint_uint32_parse(const uint8_t *src)
 
 static uint64_t varint_uint64_parse(const uint8_t *src)
 {
-  assert(src);
-
   // clang-format off
   uint64_t result = (uint64_t) src[0] << 56 | (uint64_t) src[1] << 48 |
                     (uint64_t) src[2] << 40 | (uint64_t) src[3] << 32 |
