@@ -17,7 +17,7 @@ include(${cddm_SOURCE_DIR}/cddm.cmake)
 FetchContent_Declare(
   doctest
   GIT_REPOSITORY https://github.com/onqtam/doctest
-  GIT_TAG e1181956453d0044f6c0ba547e9a3d131ba85b42
+  GIT_TAG 25392da0955d77bf26b405fb4064de192df57a41
 )
 
 option(DOCTEST_WITH_TESTS "" OFF)
