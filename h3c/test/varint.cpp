@@ -17,8 +17,7 @@ TEST_CASE("varint")
     uint64_t n = 0;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
-                                        &varint_size);
+    int error = h3c_varint_encode(dest.data(), dest.size(), n, &varint_size);
 
     REQUIRE(!error);
     REQUIRE(varint_size == H3C_VARINT_UINT8_SIZE);
@@ -37,8 +36,7 @@ TEST_CASE("varint")
     uint64_t n = 62;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
-                                        &varint_size);
+    int error = h3c_varint_encode(dest.data(), dest.size(), n, &varint_size);
 
     REQUIRE(!error);
     REQUIRE(varint_size == H3C_VARINT_UINT8_SIZE);
@@ -57,8 +55,7 @@ TEST_CASE("varint")
     uint64_t n = 15248;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
-                                        &varint_size);
+    int error = h3c_varint_encode(dest.data(), dest.size(), n, &varint_size);
 
     REQUIRE(!error);
     REQUIRE(varint_size == H3C_VARINT_UINT16_SIZE);
@@ -78,8 +75,7 @@ TEST_CASE("varint")
     uint64_t n = 1073721823;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
-                                        &varint_size);
+    int error = h3c_varint_encode(dest.data(), dest.size(), n, &varint_size);
 
     REQUIRE(!error);
     REQUIRE(varint_size == H3C_VARINT_UINT32_SIZE);
@@ -101,7 +97,7 @@ TEST_CASE("varint")
     uint64_t n = 4611386010427387203;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
+    int error = h3c_varint_encode(dest.data(), dest.size(), n,
                                         &varint_size);
 
     REQUIRE(!error);
@@ -128,7 +124,7 @@ TEST_CASE("varint")
     uint64_t n = 4611686018427387903;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
+    int error = h3c_varint_encode(dest.data(), dest.size(), n,
                                         &varint_size);
 
     REQUIRE(!error);
@@ -154,7 +150,7 @@ TEST_CASE("varint")
     uint64_t n = 159;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(nullptr, 0, n, &varint_size);
+    int error = h3c_varint_encode(nullptr, 0, n, &varint_size);
 
     REQUIRE(!error);
     REQUIRE(varint_size == H3C_VARINT_UINT16_SIZE);
@@ -165,7 +161,7 @@ TEST_CASE("varint")
     uint64_t n = 159;
 
     size_t varint_size = H3C_VARINT_UINT32_SIZE;
-    H3C_ERROR error = h3c_varint_encode(nullptr, 0, n, &varint_size);
+    int error = h3c_varint_encode(nullptr, 0, n, &varint_size);
 
     REQUIRE(!error);
     REQUIRE(varint_size == H3C_VARINT_UINT32_SIZE);
@@ -177,7 +173,7 @@ TEST_CASE("varint")
     uint64_t n = UINT64_MAX;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
+    int error = h3c_varint_encode(dest.data(), dest.size(), n,
                                         &varint_size);
 
     REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
@@ -190,7 +186,7 @@ TEST_CASE("varint")
     uint64_t n = 169;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
+    int error = h3c_varint_encode(dest.data(), dest.size(), n,
                                         &varint_size);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
@@ -203,7 +199,7 @@ TEST_CASE("varint")
     uint64_t n = 169;
 
     size_t varint_size = 0;
-    H3C_ERROR error = h3c_varint_encode(dest.data(), dest.size(), n,
+    int error = h3c_varint_encode(dest.data(), dest.size(), n,
                                         &varint_size);
 
     REQUIRE(!error);

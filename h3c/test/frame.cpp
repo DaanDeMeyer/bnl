@@ -9,11 +9,8 @@ template <size_t N> static h3c_frame_t encode_and_decode(const h3c_frame_t &src)
 {
   std::array<uint8_t, N> buffer = { {} };
 
-  H3C_ERROR error = H3C_SUCCESS;
-  CAPTURE(error);
-
+  int error = H3C_SUCCESS;
   size_t frame_size = 0;
-  CAPTURE(frame_size);
 
   error = h3c_frame_encode(buffer.data(), buffer.size(), &src, &frame_size);
 
@@ -155,7 +152,7 @@ TEST_CASE("frame")
     src.data.payload.size = 1000;
 
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_encode(nullptr, 0, &src, &frame_size);
+    int error = h3c_frame_encode(nullptr, 0, &src, &frame_size);
 
     REQUIRE(!error);
     REQUIRE(frame_size == 3);
@@ -169,7 +166,7 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+    int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                        &frame_size);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
@@ -185,7 +182,7 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+    int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                        &frame_size);
 
     REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
@@ -201,7 +198,7 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 30> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+    int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                        &frame_size);
 
     REQUIRE(error == H3C_ERROR_SETTING_OVERFLOW);
@@ -216,7 +213,7 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 3> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+    int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                        &frame_size);
 
     REQUIRE(!error);
@@ -243,7 +240,7 @@ TEST_CASE("frame")
 
     std::array<uint8_t, 20> buffer = { {} };
     size_t frame_size = 0;
-    H3C_ERROR error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
+    int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                        &frame_size);
 
     REQUIRE(!error);
