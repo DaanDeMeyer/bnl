@@ -97,7 +97,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
       size -= varint_size;                                                     \
     }                                                                          \
                                                                                \
-    *frame_size += varint_size;                                                \
+    *encoded_size += varint_size;                                                \
   }                                                                            \
   (void) 0
 
@@ -112,7 +112,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
     size--;                                                                    \
   }                                                                            \
                                                                                \
-  (*frame_size)++;                                                             \
+  (*encoded_size)++;                                                             \
   (void) 0
 
 #define TRY_SETTING_ENCODE(id, value)                                          \
@@ -123,12 +123,12 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
 H3C_ERROR h3c_frame_encode(uint8_t *dest,
                            size_t size,
                            const h3c_frame_t *frame,
-                           size_t *frame_size)
+                           size_t *encoded_size)
 {
   assert(frame);
-  assert(frame_size);
+  assert(encoded_size);
 
-  *frame_size = 0;
+  *encoded_size = 0;
 
   uint64_t payload_size = 0;
   H3C_ERROR error = frame_payload_size(frame, &payload_size);

@@ -22,12 +22,12 @@ extern "C" {
 H3C_EXPORT H3C_ERROR h3c_varint_encode(uint8_t *dest,
                                        size_t size,
                                        uint64_t varint,
-                                       size_t *varint_size);
+                                       size_t *encoded_size);
 
 H3C_EXPORT H3C_ERROR h3c_varint_decode(const uint8_t *src,
                                        size_t size,
                                        uint64_t *varint,
-                                       size_t *varint_size);
+                                       size_t *encoded_size);
 
 #ifdef __cplusplus
 }

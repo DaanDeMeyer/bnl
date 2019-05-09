@@ -4,7 +4,7 @@
 
 #include <assert.h>
 
-static size_t varint_size_(uint64_t varint)
+static size_t varint_size(uint64_t varint)
 {
   if (varint < 0x40) {
     return H3C_VARINT_UINT8_SIZE;
@@ -75,33 +75,33 @@ static void varint_uint64_encode(uint8_t *dest, uint64_t number)
 H3C_ERROR h3c_varint_encode(uint8_t *dest,
                             size_t size,
                             uint64_t varint,
-                            size_t *varint_size)
+                            size_t *encoded_size)
 {
-  assert(varint_size);
+  assert(encoded_size);
 
-  size_t actual_varint_size = varint_size_(varint);
+  size_t actual_encoded_size = varint_size(varint);
 
-  if (actual_varint_size == 0) {
+  if (actual_encoded_size == 0) {
     return H3C_ERROR_VARINT_OVERFLOW;
   }
 
   // If the varint's actual size is larger than the user's wanted (fixed) varint
   // size, return overflow as well.
-  if (*varint_size != 0 && actual_varint_size > *varint_size) {
+  if (*encoded_size != 0 && actual_encoded_size > *encoded_size) {
     return H3C_ERROR_VARINT_OVERFLOW;
   }
 
-  *varint_size = MAX(actual_varint_size, *varint_size);
+  *encoded_size = MAX(actual_encoded_size, *encoded_size);
 
   if (dest == NULL) {
     return H3C_SUCCESS;
   }
 
-  if (*varint_size > size) {
+  if (*encoded_size > size) {
     return H3C_ERROR_BUFFER_TOO_SMALL;
   }
 
-  switch (*varint_size) {
+  switch (*encoded_size) {
     case H3C_VARINT_UINT8_SIZE:
       varint_uint8_encode(dest, (uint8_t) varint);
       break;

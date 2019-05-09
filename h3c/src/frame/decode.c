@@ -12,7 +12,7 @@
                                                                                \
     src += varint_size;                                                        \
     size -= varint_size;                                                       \
-    *frame_size += varint_size;                                                \
+    *encoded_size += varint_size;                                                \
   }                                                                            \
   (void) 0
 
@@ -32,7 +32,7 @@
                                                                                \
     src += varint_size;                                                        \
     size -= varint_size;                                                       \
-    *frame_size += varint_size;                                                \
+    *encoded_size += varint_size;                                                \
     payload_size -= varint_size;                                               \
   }                                                                            \
   (void) 0
@@ -55,7 +55,7 @@
                                                                                \
   src++;                                                                       \
   size--;                                                                      \
-  (*frame_size)++;                                                             \
+  (*encoded_size)++;                                                             \
   payload_size--;                                                              \
   (void) 0
 
@@ -75,13 +75,13 @@
 H3C_ERROR h3c_frame_decode(const uint8_t *src,
                            size_t size,
                            h3c_frame_t *frame,
-                           size_t *frame_size)
+                           size_t *encoded_size)
 {
   assert(src);
   assert(frame);
-  assert(frame_size);
+  assert(encoded_size);
 
-  *frame_size = 0;
+  *encoded_size = 0;
 
   TRY_VARINT_DECODE_1(frame->type);
 

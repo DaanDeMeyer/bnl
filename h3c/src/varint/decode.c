@@ -39,29 +39,29 @@ static uint64_t varint_uint64_decode(const uint8_t *src)
 H3C_ERROR h3c_varint_decode(const uint8_t *src,
                             size_t size,
                             uint64_t *varint,
-                            size_t *varint_size)
+                            size_t *encoded_size)
 {
   assert(src);
   assert(varint);
-  assert(varint_size);
+  assert(encoded_size);
 
-  *varint_size = 0;
+  *encoded_size = 0;
 
   if (size == 0) {
     return H3C_ERROR_INCOMPLETE;
   }
 
-  *varint_size = 1;
+  *encoded_size = 1;
   uint8_t header = *src >> 6;
 
   // varint size = 2^header
-  *varint_size <<= header; // shift left => x2
+  *encoded_size <<= header; // shift left => x2
 
-  if (*varint_size > size) {
+  if (*encoded_size > size) {
     return H3C_ERROR_INCOMPLETE;
   }
 
-  switch (*varint_size) {
+  switch (*encoded_size) {
     case H3C_VARINT_UINT8_SIZE:
       *varint = varint_uint8_decode(src);
       break;

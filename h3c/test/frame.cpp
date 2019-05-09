@@ -10,18 +10,18 @@ template <size_t N> static h3c_frame_t encode_and_decode(const h3c_frame_t &src)
   std::array<uint8_t, N> buffer = { {} };
 
   int error = H3C_SUCCESS;
-  size_t frame_size = 0;
+  size_t encoded_size = 0;
 
-  error = h3c_frame_encode(buffer.data(), buffer.size(), &src, &frame_size);
+  error = h3c_frame_encode(buffer.data(), buffer.size(), &src, &encoded_size);
 
   REQUIRE(!error);
-  REQUIRE(frame_size == N);
+  REQUIRE(encoded_size == N);
 
   h3c_frame_t dest;
-  error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &frame_size);
+  error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &encoded_size);
 
   REQUIRE(!error);
-  REQUIRE(frame_size == N);
+  REQUIRE(encoded_size == N);
 
   REQUIRE(dest.type == src.type);
 
@@ -151,11 +151,11 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_DATA;
     src.data.payload.size = 1000;
 
-    size_t frame_size = 0;
-    int error = h3c_frame_encode(nullptr, 0, &src, &frame_size);
+    size_t encoded_size = 0;
+    int error = h3c_frame_encode(nullptr, 0, &src, &encoded_size);
 
     REQUIRE(!error);
-    REQUIRE(frame_size == 3);
+    REQUIRE(encoded_size == 3);
   }
 
   SUBCASE("encode: buffer too small")
@@ -165,13 +165,13 @@ TEST_CASE("frame")
     src.settings = h3c_settings_default;
 
     std::array<uint8_t, 3> buffer = { {} };
-    size_t frame_size = 0;
+    size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
-                                       &frame_size);
+                                       &encoded_size);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
     // Only type and length and the first setting id will be encoded.
-    REQUIRE(frame_size == buffer.size());
+    REQUIRE(encoded_size == buffer.size());
   }
 
   SUBCASE("encode: varint overflow")
@@ -181,12 +181,12 @@ TEST_CASE("frame")
     src.data.payload.size = 4611686018427387904; // overflows
 
     std::array<uint8_t, 20> buffer = { {} };
-    size_t frame_size = 0;
+    size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
-                                       &frame_size);
+                                       &encoded_size);
 
     REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
-    REQUIRE(frame_size == 0);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("encode: setting overflow")
@@ -197,12 +197,12 @@ TEST_CASE("frame")
     src.settings.qpack_max_table_capacity = 1U << 30; // overflows
 
     std::array<uint8_t, 30> buffer = { {} };
-    size_t frame_size = 0;
+    size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
-                                       &frame_size);
+                                       &encoded_size);
 
     REQUIRE(error == H3C_ERROR_SETTING_OVERFLOW);
-    REQUIRE(frame_size == 0);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("decode: incomplete")
@@ -212,24 +212,24 @@ TEST_CASE("frame")
     src.duplicate_push.push_id = 50;
 
     std::array<uint8_t, 3> buffer = { {} };
-    size_t frame_size = 0;
+    size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
-                                       &frame_size);
+                                       &encoded_size);
 
     REQUIRE(!error);
-    REQUIRE(frame_size == buffer.size());
+    REQUIRE(encoded_size == buffer.size());
 
     h3c_frame_t dest;
     error = h3c_frame_decode(buffer.data(), buffer.size() - 1, &dest,
-                             &frame_size);
+                             &encoded_size);
 
     REQUIRE(error == H3C_ERROR_INCOMPLETE);
-    REQUIRE(frame_size == 2); // Only frame type and length can be decoded.
+    REQUIRE(encoded_size == 2); // Only frame type and length can be decoded.
 
-    error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &frame_size);
+    error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &encoded_size);
 
     REQUIRE(!error);
-    REQUIRE(frame_size == buffer.size());
+    REQUIRE(encoded_size == buffer.size());
   }
 
   SUBCASE("decode: frame malformed")
@@ -239,19 +239,19 @@ TEST_CASE("frame")
     src.cancel_push.push_id = 16384; // varint size = 4
 
     std::array<uint8_t, 20> buffer = { {} };
-    size_t frame_size = 0;
+    size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
-                                       &frame_size);
+                                       &encoded_size);
 
     REQUIRE(!error);
-    REQUIRE(frame_size == 6);
+    REQUIRE(encoded_size == 6);
 
     buffer[1] = 16; // mangle the frame length
 
     h3c_frame_t dest;
-    error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &frame_size);
+    error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &encoded_size);
 
     REQUIRE(error == H3C_ERROR_MALFORMED_FRAME);
-    REQUIRE(frame_size == 6); // Only frame type and length can be decoded.
+    REQUIRE(encoded_size == 6); // Only frame type and length can be decoded.
   }
 }
