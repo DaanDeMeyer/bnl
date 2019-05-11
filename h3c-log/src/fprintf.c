@@ -51,8 +51,8 @@ void h3c_log_fprintf(void *context,
       return;
   }
 
-  fprintf(output, "%s %s%-5s\x1b[0m \x1b[90m%s:%s:%d:\x1b[0m ", buffer,
-          level_colors[level], level_names[level], file, function, line);
+  fprintf(output, "%s %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m ", buffer,
+          level_colors[level], level_names[level], file, line);
 
   va_list args;
   va_start(args, format);
