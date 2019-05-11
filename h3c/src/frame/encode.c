@@ -1,11 +1,13 @@
 #include <h3c/frame.h>
 
+#include <util.h>
+
 #include <assert.h>
 
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
     size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_encode(NULL, 0, (value), &varint_size);       \
+    H3C_ERROR error = h3c_varint_encode(NULL, 0, (value), &varint_size, log);  \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
@@ -16,14 +18,15 @@
 
 #define TRY_SETTING_SIZE(id, value)                                            \
   if ((value) > id##_MAX) {                                                    \
-    return H3C_ERROR_SETTING_OVERFLOW;                                         \
+    H3C_ERROR(H3C_ERROR_SETTING_OVERFLOW);                                     \
   }                                                                            \
                                                                                \
   TRY_VARINT_SIZE((id));                                                       \
   TRY_VARINT_SIZE((value));                                                    \
   (void) 0
 
-static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
+static H3C_ERROR
+frame_payload_size(const h3c_frame_t *frame, uint64_t *size, h3c_log_t *log)
 {
   assert(frame);
 
@@ -78,7 +81,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
   }
 
   if (*size > H3C_VARINT_MAX) {
-    return H3C_ERROR_VARINT_OVERFLOW;
+    H3C_ERROR(H3C_ERROR_VARINT_OVERFLOW);
   }
 
   return H3C_SUCCESS;
@@ -87,7 +90,8 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
 #define TRY_VARINT_ENCODE(value)                                               \
   {                                                                            \
     size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_encode(dest, size, (value), &varint_size);    \
+    H3C_ERROR error = h3c_varint_encode(dest, size, (value), &varint_size,     \
+                                        log);                                  \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
@@ -97,14 +101,14 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
       size -= varint_size;                                                     \
     }                                                                          \
                                                                                \
-    *encoded_size += varint_size;                                                \
+    *encoded_size += varint_size;                                              \
   }                                                                            \
   (void) 0
 
 #define TRY_UINT8_ENCODE(value)                                                \
   if (dest) {                                                                  \
     if (size == 0) {                                                           \
-      return H3C_ERROR_BUFFER_TOO_SMALL;                                       \
+      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);                                   \
     }                                                                          \
                                                                                \
     *dest = (value);                                                           \
@@ -112,7 +116,7 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
     size--;                                                                    \
   }                                                                            \
                                                                                \
-  (*encoded_size)++;                                                             \
+  (*encoded_size)++;                                                           \
   (void) 0
 
 #define TRY_SETTING_ENCODE(id, value)                                          \
@@ -123,7 +127,8 @@ static H3C_ERROR frame_payload_size(const h3c_frame_t *frame, uint64_t *size)
 H3C_ERROR h3c_frame_encode(uint8_t *dest,
                            size_t size,
                            const h3c_frame_t *frame,
-                           size_t *encoded_size)
+                           size_t *encoded_size,
+                           h3c_log_t *log)
 {
   assert(frame);
   assert(encoded_size);
@@ -131,7 +136,7 @@ H3C_ERROR h3c_frame_encode(uint8_t *dest,
   *encoded_size = 0;
 
   uint64_t payload_size = 0;
-  H3C_ERROR error = frame_payload_size(frame, &payload_size);
+  H3C_ERROR error = frame_payload_size(frame, &payload_size, log);
   if (error) {
     return error;
   }

@@ -1,18 +1,21 @@
 #include <h3c/frame.h>
 
+#include <util.h>
+
 #include <assert.h>
 
 #define TRY_VARINT_DECODE_1(value)                                             \
   {                                                                            \
     size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_decode(src, size, &(value), &varint_size);    \
+    H3C_ERROR error = h3c_varint_decode(src, size, &(value), &varint_size,     \
+                                        log);                                  \
     if (error) {                                                               \
-      return H3C_ERROR_INCOMPLETE;                                             \
+      H3C_ERROR(H3C_ERROR_INCOMPLETE);                                         \
     }                                                                          \
                                                                                \
     src += varint_size;                                                        \
     size -= varint_size;                                                       \
-    *encoded_size += varint_size;                                                \
+    *encoded_size += varint_size;                                              \
   }                                                                            \
   (void) 0
 
@@ -21,18 +24,19 @@
 #define TRY_VARINT_DECODE_2(value)                                             \
   {                                                                            \
     size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_decode(src, size, &(value), &varint_size);    \
+    H3C_ERROR error = h3c_varint_decode(src, size, &(value), &varint_size,     \
+                                        log);                                  \
     if (error) {                                                               \
-      return H3C_ERROR_INCOMPLETE;                                             \
+      H3C_ERROR(H3C_ERROR_INCOMPLETE);                                         \
     }                                                                          \
                                                                                \
     if (varint_size > payload_size) {                                          \
-      return H3C_ERROR_MALFORMED_FRAME;                                        \
+      H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                    \
     }                                                                          \
                                                                                \
     src += varint_size;                                                        \
     size -= varint_size;                                                       \
-    *encoded_size += varint_size;                                                \
+    *encoded_size += varint_size;                                              \
     payload_size -= varint_size;                                               \
   }                                                                            \
   (void) 0
@@ -44,18 +48,18 @@
 
 #define TRY_UINT8_DECODE(value)                                                \
   if (size == 0) {                                                             \
-    return H3C_ERROR_INCOMPLETE;                                               \
+    H3C_ERROR(H3C_ERROR_INCOMPLETE);                                           \
   }                                                                            \
                                                                                \
   if (payload_size == 0) {                                                     \
-    return H3C_ERROR_MALFORMED_FRAME;                                          \
+    H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                      \
   }                                                                            \
                                                                                \
   (value) = *src;                                                              \
                                                                                \
   src++;                                                                       \
   size--;                                                                      \
-  (*encoded_size)++;                                                             \
+  (*encoded_size)++;                                                           \
   payload_size--;                                                              \
   (void) 0
 
@@ -65,7 +69,7 @@
     TRY_VARINT_DECODE_2(varint);                                               \
                                                                                \
     if (varint > id##_MAX) {                                                   \
-      return H3C_ERROR_MALFORMED_FRAME;                                        \
+      H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                    \
     }                                                                          \
                                                                                \
     (value) = (type) varint;                                                   \
@@ -75,7 +79,7 @@
 H3C_ERROR h3c_frame_decode(const uint8_t *src,
                            size_t size,
                            h3c_frame_t *frame,
-                           size_t *encoded_size)
+                           size_t *encoded_size, h3c_log_t *log)
 {
   assert(src);
   assert(frame);
@@ -157,7 +161,7 @@ H3C_ERROR h3c_frame_decode(const uint8_t *src,
   }
 
   if (payload_size > 0) {
-    return H3C_ERROR_MALFORMED_FRAME;
+    H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);
   }
 
   return H3C_SUCCESS;

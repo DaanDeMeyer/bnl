@@ -1,5 +1,7 @@
 #include <h3c/varint.h>
 
+#include <util.h>
+
 #include <assert.h>
 
 // All decode functions convert from network to host byte order and remove the
@@ -39,7 +41,8 @@ static uint64_t varint_uint64_decode(const uint8_t *src)
 H3C_ERROR h3c_varint_decode(const uint8_t *src,
                             size_t size,
                             uint64_t *varint,
-                            size_t *encoded_size)
+                            size_t *encoded_size,
+                            h3c_log_t *log)
 {
   assert(src);
   assert(varint);
@@ -48,7 +51,7 @@ H3C_ERROR h3c_varint_decode(const uint8_t *src,
   *encoded_size = 0;
 
   if (size == 0) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_ERROR(H3C_ERROR_INCOMPLETE);
   }
 
   *encoded_size = 1;
@@ -58,7 +61,7 @@ H3C_ERROR h3c_varint_decode(const uint8_t *src,
   *encoded_size <<= header; // shift left => x2
 
   if (*encoded_size > size) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_ERROR(H3C_ERROR_INCOMPLETE);
   }
 
   switch (*encoded_size) {

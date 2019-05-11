@@ -75,20 +75,21 @@ static void varint_uint64_encode(uint8_t *dest, uint64_t number)
 H3C_ERROR h3c_varint_encode(uint8_t *dest,
                             size_t size,
                             uint64_t varint,
-                            size_t *encoded_size)
+                            size_t *encoded_size,
+                            h3c_log_t *log)
 {
   assert(encoded_size);
 
   size_t actual_encoded_size = varint_size(varint);
 
   if (actual_encoded_size == 0) {
-    return H3C_ERROR_VARINT_OVERFLOW;
+    H3C_ERROR(H3C_ERROR_VARINT_OVERFLOW);
   }
 
   // If the varint's actual size is larger than the user's wanted (fixed) varint
   // size, return overflow as well.
   if (*encoded_size != 0 && actual_encoded_size > *encoded_size) {
-    return H3C_ERROR_VARINT_OVERFLOW;
+    H3C_ERROR(H3C_ERROR_VARINT_OVERFLOW);
   }
 
   *encoded_size = MAX(actual_encoded_size, *encoded_size);
@@ -98,7 +99,7 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
   }
 
   if (*encoded_size > size) {
-    return H3C_ERROR_BUFFER_TOO_SMALL;
+    H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
   switch (*encoded_size) {
