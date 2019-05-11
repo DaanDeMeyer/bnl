@@ -29,6 +29,3 @@ if(H3C_TEST)
 endif()
 
 add_subdirectory(h3c)
-
-
-
