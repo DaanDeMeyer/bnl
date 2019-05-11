@@ -5,7 +5,7 @@ include(FetchContent)
 FetchContent_Declare(
   cddm
   GIT_REPOSITORY https://github.com/DaanDeMeyer/cddm
-  GIT_TAG 09d16f48ab53e3e4a8f2bdea5d39288b4206fb3f
+  GIT_TAG 22024ea82a6b7cc9dcf938f408d08703fc81980c
 )
 
 FetchContent_MakeAvailable(cddm)
