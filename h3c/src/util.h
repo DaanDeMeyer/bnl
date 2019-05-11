@@ -3,8 +3,13 @@
 #include <h3c/error.h>
 #include <h3c/log.h>
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+bool is_lowercase(const char *string, size_t length);
 
 #define H3C_LOG(level, format, ...)                                            \
   if (log && log->log) {                                                       \

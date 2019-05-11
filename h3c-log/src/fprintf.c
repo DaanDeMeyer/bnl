@@ -17,6 +17,7 @@ void h3c_log_fprintf(void *context,
                      const char *format,
                      ...)
 {
+  (void) function;
   h3c_log_fprintf_t *ctx = context;
 
   if (level < ctx->level) {

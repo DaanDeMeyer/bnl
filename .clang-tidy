@@ -2,13 +2,17 @@
 Checks:
 '
 *,
+-bugprone-exception-escape,
 -cppcoreguidelines-avoid-magic-numbers,
+-cppcoreguidelines-pro-bounds-pointer-arithmetic,
 -cppcoreguidelines-pro-type-union-access,
 -fuchsia-default-arguments,
 -google-readability-todo,
+-google-runtime-references,
 -hicpp-multiway-paths-covered,
 -hicpp-signed-bitwise,
 -llvm-header-guard,
+-readability-implicit-bool-conversion,
 -readability-magic-numbers
 '
 ...
