@@ -9,23 +9,11 @@ sudo: true
 notifications:
   email: false
 
-matrix:
-  fast_finish: true
-
 env: H3C_TIDY=ON
 
 matrix:
   fast_finish: true
   include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: CC=gcc-5 CXX=g++-5
-
     - os: linux
       addons:
         apt:

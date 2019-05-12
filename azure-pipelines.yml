@@ -54,15 +54,6 @@ jobs:
 
 - template: ci/linux.yml
   parameters:
-    name: linux_gcc_5
-    variables:
-      PACKAGE: g++-5
-      REPOSITORY: ppa:ubuntu-toolchain-r/test
-      CC: gcc-5
-      CXX: g++-5
-
-- template: ci/linux.yml
-  parameters:
     name: linux_clang_6_0
     variables:
       PACKAGE: clang-6.0
