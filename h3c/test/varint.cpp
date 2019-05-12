@@ -13,7 +13,7 @@ TEST_CASE("varint")
 {
   SUBCASE("zero")
   {
-    std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = {};
     uint64_t n = 0;
 
     size_t encoded_size = 0;
@@ -34,7 +34,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint8")
   {
-    std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = {};
     uint64_t n = 62;
 
     size_t encoded_size = 0;
@@ -55,7 +55,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint16")
   {
-    std::array<uint8_t, H3C_VARINT_UINT16_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT16_SIZE> dest = {};
     uint64_t n = 15248;
 
     size_t encoded_size = 0;
@@ -77,7 +77,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint32")
   {
-    std::array<uint8_t, H3C_VARINT_UINT32_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT32_SIZE> dest = {};
     uint64_t n = 1073721823;
 
     size_t encoded_size = 0;
@@ -101,7 +101,7 @@ TEST_CASE("varint")
 
   SUBCASE("uint64")
   {
-    std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};
     uint64_t n = 4611386010427387203;
 
     size_t encoded_size = 0;
@@ -129,7 +129,7 @@ TEST_CASE("varint")
 
   SUBCASE("max")
   {
-    std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};
     uint64_t n = 4611686018427387903;
 
     size_t encoded_size = 0;
@@ -179,7 +179,7 @@ TEST_CASE("varint")
 
   SUBCASE("encode: overflow")
   {
-    std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};
     uint64_t n = UINT64_MAX;
 
     size_t encoded_size = 0;
@@ -192,7 +192,7 @@ TEST_CASE("varint")
 
   SUBCASE("encode: buffer too small")
   {
-    std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = {};
     uint64_t n = 169;
 
     size_t encoded_size = 0;
@@ -205,7 +205,7 @@ TEST_CASE("varint")
 
   SUBCASE("decode: incomplete")
   {
-    std::array<uint8_t, H3C_VARINT_UINT16_SIZE> dest = { {} };
+    std::array<uint8_t, H3C_VARINT_UINT16_SIZE> dest = {};
     uint64_t n = 169;
 
     size_t encoded_size = 0;

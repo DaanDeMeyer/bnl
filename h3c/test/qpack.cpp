@@ -15,7 +15,7 @@
 
 template <size_t N> static void encode_and_decode(const h3c_header_t &src)
 {
-  std::array<uint8_t, N> buffer = { {} };
+  std::array<uint8_t, N> buffer = {};
 
   int error = H3C_SUCCESS;
   size_t encoded_size = 0;
@@ -82,7 +82,7 @@ TEST_CASE("qpack")
   {
     MAKE_HEADER(last_modified, "link", "</feed>; rel=\"alternate\"");
 
-    std::array<uint8_t, 21> buffer = { {} };
+    std::array<uint8_t, 21> buffer = {};
     size_t encoded_size = 0;
 
     int error = h3c_qpack_encode(nullptr, 0, &last_modified, &encoded_size,
@@ -112,7 +112,7 @@ TEST_CASE("qpack")
   {
     MAKE_HEADER(location, "location", "/pub/WWW/People.html");
 
-    std::array<uint8_t, 17> buffer = { {} };
+    std::array<uint8_t, 17> buffer = {};
     size_t encoded_size = 0;
     int error = h3c_qpack_encode(buffer.data(), buffer.size(), &location,
                                  &encoded_size, nullptr);

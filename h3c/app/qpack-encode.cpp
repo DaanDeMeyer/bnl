@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
   uint64_t stream_id = 1;
   std::vector<std::pair<std::string, std::string>> headers;
 
-  std::array<uint8_t, 64000> buffer = { {} };
+  std::array<uint8_t, 64000> buffer = {};
 
   h3c_log_fprintf_t fprintf_context = {};
   h3c_log_t log = { h3c_log_fprintf, &fprintf_context };

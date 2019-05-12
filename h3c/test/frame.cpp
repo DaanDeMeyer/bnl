@@ -7,7 +7,7 @@
 
 template <size_t N> static h3c_frame_t encode_and_decode(const h3c_frame_t &src)
 {
-  std::array<uint8_t, N> buffer = { {} };
+  std::array<uint8_t, N> buffer = {};
 
   int error = H3C_SUCCESS;
   size_t encoded_size = 0;
@@ -166,7 +166,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_SETTINGS;
     src.settings = h3c_settings_default;
 
-    std::array<uint8_t, 3> buffer = { {} };
+    std::array<uint8_t, 3> buffer = {};
     size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                  &encoded_size, nullptr);
@@ -182,7 +182,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_DATA;
     src.data.payload.size = 4611686018427387904; // overflows
 
-    std::array<uint8_t, 20> buffer = { {} };
+    std::array<uint8_t, 20> buffer = {};
     size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                  &encoded_size, nullptr);
@@ -198,7 +198,7 @@ TEST_CASE("frame")
     src.settings = h3c_settings_default;
     src.settings.qpack_max_table_capacity = 1U << 30; // overflows
 
-    std::array<uint8_t, 30> buffer = { {} };
+    std::array<uint8_t, 30> buffer = {};
     size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                  &encoded_size, nullptr);
@@ -213,7 +213,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_DUPLICATE_PUSH;
     src.duplicate_push.push_id = 50;
 
-    std::array<uint8_t, 3> buffer = { {} };
+    std::array<uint8_t, 3> buffer = {};
     size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                  &encoded_size, nullptr);
@@ -241,7 +241,7 @@ TEST_CASE("frame")
     src.type = H3C_FRAME_CANCEL_PUSH;
     src.cancel_push.push_id = 16384; // varint size = 4
 
-    std::array<uint8_t, 20> buffer = { {} };
+    std::array<uint8_t, 20> buffer = {};
     size_t encoded_size = 0;
     int error = h3c_frame_encode(buffer.data(), buffer.size(), &src,
                                  &encoded_size, nullptr);
