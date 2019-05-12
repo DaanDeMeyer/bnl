@@ -42,7 +42,7 @@ typedef struct h3c_log_t {
 #define H3C_LOG_ERROR(log, format, ...)   H3C_LOG(log, H3C_LOG_LEVEL_ERROR,   (format), __VA_ARGS__)
 // clang-format on
 
-#define H3C_ERROR(log, error)                                                  \
+#define H3C_THROW(log, error)                                                  \
   switch ((error)) {                                                           \
     case H3C_SUCCESS:                                                          \
       break;                                                                   \
