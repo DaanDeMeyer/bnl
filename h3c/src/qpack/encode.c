@@ -109,7 +109,7 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
                                                                                \
     if (huffman_encoded_size < (buffer).length) {                              \
       literal_encoded_size = huffman_encoded_size;                             \
-      TRY_PREFIX_INT_ENCODE((initial) | (uint8_t)(1 << (prefix)),                \
+      TRY_PREFIX_INT_ENCODE((initial) | (uint8_t)(1 << (prefix)),              \
                             literal_encoded_size, (prefix));                   \
                                                                                \
       if (dest) {                                                              \
@@ -193,6 +193,8 @@ H3C_ERROR h3c_qpack_encode(uint8_t *dest,
   assert(encoded_size);
 
   if (!is_lowercase(header->name.data, header->name.length)) {
+    H3C_LOG_ERROR("Header (%.*s) is not lowercase", header->name.length,
+                  header->name.data);
     H3C_ERROR(H3C_ERROR_MALFORMED_HEADER);
   }
 

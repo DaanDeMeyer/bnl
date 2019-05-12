@@ -158,6 +158,7 @@ static H3C_ERROR indexed_header_field_decode(const uint8_t *src,
 {
   // Ensure the 'S' bit is set which indicates the index is in the static table.
   if (!(*src & 0x40)) {
+    H3C_LOG_ERROR("'S' bit not set in indexed header field");
     H3C_ERROR(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
   }
 
@@ -165,6 +166,7 @@ static H3C_ERROR indexed_header_field_decode(const uint8_t *src,
   TRY_PREFIX_INT_DECODE(index, uint8_t, 6);
 
   if (!static_table_find_header_value(index, header)) {
+    H3C_LOG_ERROR("Indexed header field (%i) not found in static table", index);
     H3C_ERROR(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
   }
 
@@ -181,6 +183,7 @@ literal_with_name_reference_decode(h3c_qpack_decode_context_t *context,
 {
   // Ensure the 'S' bit is set which indicates the index is in the static table.
   if (!(*src & 0x10)) {
+    H3C_LOG_ERROR("'S' bit not set in literal with name reference");
     H3C_ERROR(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
   }
 
@@ -188,7 +191,8 @@ literal_with_name_reference_decode(h3c_qpack_decode_context_t *context,
   TRY_PREFIX_INT_DECODE(index, uint8_t, 4);
 
   if (!static_table_find_header_only(index, header)) {
-    H3C_LOG_ERROR("Header only index (%i) not found in static table", index);
+    H3C_LOG_ERROR("Header name reference (%i) not found in static table",
+                  index);
     H3C_ERROR(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
   }
 
@@ -208,7 +212,7 @@ literal_without_name_reference_decode(h3c_qpack_decode_context_t *context,
   TRY_LITERAL_DECODE(header->name, 3, context->huffman_decoded.name);
 
   if (!is_lowercase(header->name.data, header->name.length)) {
-    H3C_LOG_ERROR("Received upper-case header (%.*s)", header->name.length,
+    H3C_LOG_ERROR("Header (%.*s) is not lowercase", header->name.length,
                   header->name.data);
     H3C_ERROR(H3C_ERROR_MALFORMED_HEADER);
   }
@@ -255,5 +259,6 @@ H3C_ERROR h3c_qpack_decode(h3c_qpack_decode_context_t *context,
                                                  encoded_size, log);
   }
 
+  H3C_LOG_ERROR("Unexpected header block instruction prefix (%i)", *src);
   H3C_ERROR(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
 }

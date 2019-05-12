@@ -18,6 +18,8 @@
 
 #define TRY_SETTING_SIZE(id, value)                                            \
   if ((value) > id##_MAX) {                                                    \
+    H3C_LOG_ERROR("Value of %s (%lu) exceeds maximum (%lu)", #id, value,       \
+                  id##_MAX);                                                   \
     H3C_ERROR(H3C_ERROR_SETTING_OVERFLOW);                                     \
   }                                                                            \
                                                                                \

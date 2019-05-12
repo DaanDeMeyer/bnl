@@ -31,6 +31,8 @@
     }                                                                          \
                                                                                \
     if (varint_size > payload_size) {                                          \
+      H3C_LOG_ERROR(                                                           \
+          "Frame payload's actual length exceeds its advertised length");      \
       H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                    \
     }                                                                          \
                                                                                \
@@ -52,6 +54,8 @@
   }                                                                            \
                                                                                \
   if (payload_size == 0) {                                                     \
+    H3C_LOG_ERROR(                                                             \
+        "Frame payload's actual length exceeds its advertised length");        \
     H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                      \
   }                                                                            \
                                                                                \
@@ -69,6 +73,8 @@
     TRY_VARINT_DECODE_2(varint);                                               \
                                                                                \
     if (varint > id##_MAX) {                                                   \
+      H3C_LOG_ERROR("Value of %s (%lu) exceeds maximum (%lu)", #id, value,     \
+                    id##_MAX);                                                 \
       H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                    \
     }                                                                          \
                                                                                \
@@ -79,7 +85,8 @@
 H3C_ERROR h3c_frame_decode(const uint8_t *src,
                            size_t size,
                            h3c_frame_t *frame,
-                           size_t *encoded_size, h3c_log_t *log)
+                           size_t *encoded_size,
+                           h3c_log_t *log)
 {
   assert(src);
   assert(frame);
@@ -161,6 +168,8 @@ H3C_ERROR h3c_frame_decode(const uint8_t *src,
   }
 
   if (payload_size > 0) {
+    H3C_LOG_ERROR(
+        "Frame payload's advertised length exceeds its actual length");
     H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);
   }
 
