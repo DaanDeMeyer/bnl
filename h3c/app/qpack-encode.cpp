@@ -21,7 +21,7 @@ encode(uint8_t *dest,
   *encoded_size = 0;
 
   if (size < sizeof(uint64_t)) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
   }
 
   dest[0] = static_cast<uint8_t>(stream_id >> 56);
@@ -38,7 +38,7 @@ encode(uint8_t *dest,
   *encoded_size += sizeof(uint64_t);
 
   if (size < sizeof(uint32_t)) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
   }
 
   // We don't know the exact header block size yet so we store the offset where
@@ -105,9 +105,6 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::ifstream input(argv[1], std::ios::binary);
-  std::ofstream output(argv[2], std::ios::trunc | std::ios::binary);
-
   std::string line;
   uint64_t stream_id = 1;
   std::vector<std::pair<std::string, std::string>> headers;
@@ -117,11 +114,42 @@ int main(int argc, char *argv[])
   h3c_log_fprintf_t fprintf_context = {};
   h3c_log_t log = { h3c_log_fprintf, &fprintf_context };
 
+  std::ifstream input;
+  input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+  // Open input file
+
+  try {
+    input.open(argv[1], std::ios::binary);
+  } catch (const std::ios_base::failure &e) {
+    H3C_LOG_ERROR(&log, "Error opening input file: %s", e.what());
+    return 1;
+  }
+
+  // `std::getline` sets `failbit` when it doesn't read any characters.
+  input.exceptions(std::ifstream::badbit);
+
+  std::ofstream output;
+  output.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+
+  // Open output file
+
+  try {
+    output.open(argv[2], std::ios::trunc | std::ios::binary);
+  } catch (const std::ios_base::failure &e) {
+    H3C_LOG_ERROR(&log, "Error opening output file: %s", e.what());
+    return 1;
+  }
+
+  // Read input
+
   while (std::getline(input, line)) {
     if (line.empty()) {
       if (headers.empty()) {
         continue;
       }
+
+      // Encode header block
 
       size_t encoded_size = 0;
       H3C_ERROR error = encode(buffer.data(), buffer.size(), stream_id, headers,
@@ -130,7 +158,14 @@ int main(int argc, char *argv[])
         return error;
       }
 
-      write(output, buffer.data(), encoded_size);
+      // Write output
+
+      try {
+        write(output, buffer.data(), encoded_size);
+      } catch (const std::ios_base::failure &e) {
+        H3C_LOG_ERROR(&log, "Error writing to output file: %s", e.what());
+        return 1;
+      }
 
       stream_id++;
       headers.clear();

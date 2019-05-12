@@ -19,7 +19,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size = 0;
 
   if (sizeof(uint64_t) > size) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
   }
 
   *stream_id = static_cast<uint64_t>(src[0]) << 56 |
@@ -35,7 +35,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size += sizeof(uint64_t);
 
   if (sizeof(uint32_t) > size) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
   }
 
   size_t header_block_encoded_size = static_cast<uint32_t>(src[0]) << 24 |
@@ -47,7 +47,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size += sizeof(uint32_t);
 
   if (header_block_encoded_size > size) {
-    return H3C_ERROR_INCOMPLETE;
+    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
   }
 
   size_t prefix_encoded_size = 0;
@@ -110,20 +110,50 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::ifstream input(argv[1], std::ios::binary | std::ios::ate);
-  std::streamsize size = input.tellg();
-  input.seekg(0, std::ios::beg);
+  h3c_log_fprintf_t fprintf_context = {};
+  h3c_log_t log = { h3c_log_fprintf, &fprintf_context };
 
-  std::vector<uint8_t> encoded(static_cast<size_t>(size));
-  if (!input.read(reinterpret_cast<char *>(encoded.data()), // NOLINT
-                  size)) {
+  std::vector<uint8_t> encoded;
+
+  std::ifstream input;
+  input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+  // Open input file
+
+  try {
+    input.open(argv[1], std::ios::binary);
+  } catch (const std::ios_base::failure &e) {
+    H3C_LOG_ERROR(&log, "Error opening input file: %s", e.what());
     return 1;
   }
 
-  std::ofstream output(argv[2], std::ios::trunc | std::ios::binary);
+  // Read input
 
-  h3c_log_fprintf_t fprintf_context = {};
-  h3c_log_t log = { h3c_log_fprintf, &fprintf_context };
+  try {
+    input.seekg(0, std::ios::end);
+    std::streamsize size = input.tellg();
+    input.seekg(0, std::ios::beg);
+
+    encoded = std::vector<uint8_t>(static_cast<size_t>(size));
+    input.read(reinterpret_cast<char *>(encoded.data()), size); // NOLINT
+  } catch (const std::ios_base::failure &e) {
+    H3C_LOG_ERROR(&log, "Error reading input: %s", e.what());
+    return 1;
+  }
+
+  std::ofstream output;
+  output.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+  // Open output file
+
+  try {
+    output.open(argv[2], std::ios::trunc | std::ios::binary);
+  } catch (const std::ios_base::failure &e) {
+    H3C_LOG_ERROR(&log, "Error opening output file: %s", e.what());
+    return 1;
+  }
+
+  // Decode input
 
   while (!encoded.empty()) {
     uint64_t stream_id = 0;
@@ -136,7 +166,14 @@ int main(int argc, char *argv[])
       return error;
     }
 
-    write(output, headers);
+    // Write output
+
+    try {
+      write(output, headers);
+    } catch (std::ios_base::failure &e) {
+      H3C_LOG_ERROR(&log, "Error writing output: ", e.what());
+      return 1;
+    }
 
     encoded.erase(encoded.begin(),
                   encoded.begin() + static_cast<int32_t>(encoded_size));
