@@ -17,20 +17,20 @@ typedef enum {
 } H3C_LOG_LEVEL;
 
 typedef struct h3c_log_t {
-  void (*log)(void *context,
-              H3C_LOG_LEVEL level,
-              const char *file,
-              const char *function,
-              int line,
-              const char *format,
-              ...);
+  void (*write)(void *context,
+                H3C_LOG_LEVEL level,
+                const char *file,
+                const char *function,
+                int line,
+                const char *format,
+                ...);
   void *context;
 } h3c_log_t;
 
 #define H3C_LOG(log, level, format, ...)                                       \
-  if ((log) && (log)->log) {                                                   \
-    (log)->log((log)->context, (level), __FILE__, __func__, __LINE__,          \
-               (format), __VA_ARGS__);                                         \
+  if ((log) && (log)->write) {                                                 \
+    (log)->write((log)->context, (level), __FILE__, __func__, __LINE__,        \
+                 (format), __VA_ARGS__);                                       \
   }                                                                            \
   (void) 0
 
@@ -49,7 +49,7 @@ typedef struct h3c_log_t {
     case H3C_ERROR_INTERNAL:                                                   \
       assert(0);                                                               \
     default:                                                                   \
-      H3C_LOG_ERROR(log, "%s", h3c_strerror((error)));                       \
+      H3C_LOG_ERROR(log, "%s", h3c_strerror((error)));                         \
       break;                                                                   \
   }                                                                            \
                                                                                \
