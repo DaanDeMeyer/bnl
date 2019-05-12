@@ -3,6 +3,7 @@
 #include <h3c/error.h>
 #include <h3c/log.h>
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -30,6 +31,8 @@ bool is_lowercase(const char *string, size_t length);
   switch ((error)) {                                                           \
     case H3C_SUCCESS:                                                          \
       break;                                                                   \
+    case H3C_ERROR_INTERNAL:                                                   \
+      assert(0);                                                               \
     default:                                                                   \
       H3C_LOG_ERROR("%s", h3c_strerror((error)));                              \
       break;                                                                   \

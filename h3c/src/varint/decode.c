@@ -78,8 +78,7 @@ H3C_ERROR h3c_varint_decode(const uint8_t *src,
       *varint = varint_uint64_decode(src);
       break;
     default:
-      assert(0);
-      return 0;
+      H3C_ERROR(H3C_ERROR_INTERNAL);
   }
 
   return H3C_SUCCESS;
