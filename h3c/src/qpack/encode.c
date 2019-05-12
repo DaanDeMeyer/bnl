@@ -1,6 +1,7 @@
 #include <h3c/qpack.h>
 
 #include <h3c/huffman.h>
+#include <h3c/log.h>
 
 #include <util.h>
 
@@ -19,7 +20,7 @@ H3C_ERROR h3c_qpack_encode_prefix(uint8_t *dest,
   *encoded_size = 0;
 
   if (size < 2) {
-    H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+    H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
   if (dest) {
@@ -34,7 +35,7 @@ H3C_ERROR h3c_qpack_encode_prefix(uint8_t *dest,
 #define TRY_UINT8_ENCODE(value)                                                \
   if (dest) {                                                                  \
     if (size == 0) {                                                           \
-      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);                                   \
+      H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);                                   \
     }                                                                          \
                                                                                \
     *dest = (value);                                                           \
@@ -79,7 +80,7 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
   {                                                                            \
     if (dest) {                                                                \
       if (size == 0) {                                                         \
-        H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);                                 \
+        H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);                                 \
       }                                                                        \
                                                                                \
       *dest = (initial);                                                       \
@@ -125,7 +126,7 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
                                                                                \
       if (dest) {                                                              \
         if (literal_encoded_size > size) {                                     \
-          H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);                               \
+          H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);                               \
         }                                                                      \
                                                                                \
         memcpy(dest, (buffer).data, (buffer).length);                          \
@@ -193,9 +194,9 @@ H3C_ERROR h3c_qpack_encode(uint8_t *dest,
   assert(encoded_size);
 
   if (!is_lowercase(header->name.data, header->name.length)) {
-    H3C_LOG_ERROR("Header (%.*s) is not lowercase", header->name.length,
+    H3C_LOG_ERROR(log, "Header (%.*s) is not lowercase", header->name.length,
                   header->name.data);
-    H3C_ERROR(H3C_ERROR_MALFORMED_HEADER);
+    H3C_ERROR(log, H3C_ERROR_MALFORMED_HEADER);
   }
 
   *encoded_size = 0;
@@ -214,5 +215,5 @@ H3C_ERROR h3c_qpack_encode(uint8_t *dest,
                                                    encoded_size, log);
   }
 
-  H3C_ERROR(H3C_ERROR_INTERNAL);
+  H3C_ERROR(log, H3C_ERROR_INTERNAL);
 }

@@ -26,9 +26,9 @@
 
 #include <h3c/huffman.h>
 
-#include <assert.h>
+#include <h3c/log.h>
 
-#include <util.h>
+#include <assert.h>
 
 #include "encode_generated.c"
 
@@ -57,7 +57,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
   size_t num_bits = symbol->num_bits;
 
   if (size == 0) {
-    H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+    H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
   if (*rem_bits == 8) {
@@ -94,7 +94,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
   // Fast path since most codes are less than 8.
   if (num_bits < 8) {
     if (size == 0) {
-      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+      H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
     }
 
     *dest = (uint8_t) code;
@@ -106,7 +106,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
   // Handle longer code path.
   if (num_bits > 24) {
     if (size == 0) {
-      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+      H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
     }
 
     *dest++ = (uint8_t)(code >> 24);
@@ -117,7 +117,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
 
   if (num_bits > 16) {
     if (size == 0) {
-      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+      H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
     }
 
     *dest++ = (uint8_t)(code >> 16);
@@ -128,7 +128,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
 
   if (num_bits > 8) {
     if (size == 0) {
-      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+      H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
     }
 
     *dest++ = (uint8_t)(code >> 8);
@@ -139,7 +139,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
 
   if (num_bits == 8) {
     if (size == 0) {
-      H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+      H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
     }
 
     *dest++ = (uint8_t) code;
@@ -150,7 +150,7 @@ static H3C_ERROR huffman_symbol_encode(uint8_t *dest,
   }
 
   if (size == 0) {
-    H3C_ERROR(H3C_ERROR_BUFFER_TOO_SMALL);
+    H3C_ERROR(log, H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
   *dest = (uint8_t) code;
