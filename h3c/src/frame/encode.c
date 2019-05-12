@@ -6,13 +6,14 @@
 
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
-    size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_encode(NULL, 0, (value), &varint_size, log);  \
+    size_t varint_encoded_size = 0;                                            \
+    H3C_ERROR error = h3c_varint_encode(NULL, 0, (value),                      \
+                                        &varint_encoded_size, log);            \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
                                                                                \
-    *size += varint_size;                                                      \
+    *encoded_size += varint_encoded_size;                                      \
   }                                                                            \
   (void) 0
 
@@ -27,26 +28,27 @@
   TRY_VARINT_SIZE((value));                                                    \
   (void) 0
 
-static H3C_ERROR
-frame_payload_size(const h3c_frame_t *frame, uint64_t *size, h3c_log_t *log)
+static H3C_ERROR frame_payload_encoded_size(const h3c_frame_t *frame,
+                                            uint64_t *encoded_size,
+                                            h3c_log_t *log)
 {
   assert(frame);
 
-  *size = 0;
+  *encoded_size = 0;
 
   switch (frame->type) {
     case H3C_FRAME_DATA:
-      *size += frame->data.payload.size;
+      *encoded_size += frame->data.payload.size;
       break;
     case H3C_FRAME_HEADERS:
-      *size += frame->headers.header_block.size;
+      *encoded_size += frame->headers.header_block.size;
       break;
     case H3C_FRAME_PRIORITY:
-      (*size)++; // PT size + DT size + Empty size = 1 byte. See
-                 // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
+      (*encoded_size)++; // PT size + DT size + Empty size = 1 byte. See
+                         // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
       TRY_VARINT_SIZE(frame->priority.prioritized_element_id);
       TRY_VARINT_SIZE(frame->priority.element_dependency_id);
-      (*size)++; // Weight
+      (*encoded_size)++; // Weight
       break;
     case H3C_FRAME_CANCEL_PUSH:
       TRY_VARINT_SIZE(frame->cancel_push.push_id);
@@ -69,7 +71,7 @@ frame_payload_size(const h3c_frame_t *frame, uint64_t *size, h3c_log_t *log)
       break;
     case H3C_FRAME_PUSH_PROMISE:
       TRY_VARINT_SIZE(frame->push_promise.push_id);
-      *size += frame->push_promise.header_block.size;
+      *encoded_size += frame->push_promise.header_block.size;
       break;
     case H3C_FRAME_GOAWAY:
       TRY_VARINT_SIZE(frame->goaway.stream_id);
@@ -82,7 +84,7 @@ frame_payload_size(const h3c_frame_t *frame, uint64_t *size, h3c_log_t *log)
       break;
   }
 
-  if (*size > H3C_VARINT_MAX) {
+  if (*encoded_size > H3C_VARINT_MAX) {
     H3C_ERROR(H3C_ERROR_VARINT_OVERFLOW);
   }
 
@@ -91,19 +93,19 @@ frame_payload_size(const h3c_frame_t *frame, uint64_t *size, h3c_log_t *log)
 
 #define TRY_VARINT_ENCODE(value)                                               \
   {                                                                            \
-    size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_encode(dest, size, (value), &varint_size,     \
-                                        log);                                  \
+    size_t varint_encoded_size = 0;                                            \
+    H3C_ERROR error = h3c_varint_encode(dest, size, (value),                   \
+                                        &varint_encoded_size, log);            \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
                                                                                \
     if (dest) {                                                                \
-      dest += varint_size;                                                     \
-      size -= varint_size;                                                     \
+      dest += varint_encoded_size;                                             \
+      size -= varint_encoded_size;                                             \
     }                                                                          \
                                                                                \
-    *encoded_size += varint_size;                                              \
+    *encoded_size += varint_encoded_size;                                      \
   }                                                                            \
   (void) 0
 
@@ -137,14 +139,15 @@ H3C_ERROR h3c_frame_encode(uint8_t *dest,
 
   *encoded_size = 0;
 
-  uint64_t payload_size = 0;
-  H3C_ERROR error = frame_payload_size(frame, &payload_size, log);
+  uint64_t payload_encoded_size = 0;
+  H3C_ERROR error = frame_payload_encoded_size(frame, &payload_encoded_size,
+                                               log);
   if (error) {
     return error;
   }
 
   TRY_VARINT_ENCODE(frame->type);
-  TRY_VARINT_ENCODE(payload_size);
+  TRY_VARINT_ENCODE(payload_encoded_size);
 
   switch (frame->type) {
     case H3C_FRAME_DATA:

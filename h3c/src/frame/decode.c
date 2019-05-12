@@ -6,16 +6,16 @@
 
 #define TRY_VARINT_DECODE_1(value)                                             \
   {                                                                            \
-    size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_decode(src, size, &(value), &varint_size,     \
-                                        log);                                  \
+    size_t varint_encoded_size = 0;                                            \
+    H3C_ERROR error = h3c_varint_decode(src, size, &(value),                   \
+                                        &varint_encoded_size, log);            \
     if (error) {                                                               \
       H3C_ERROR(H3C_ERROR_INCOMPLETE);                                         \
     }                                                                          \
                                                                                \
-    src += varint_size;                                                        \
-    size -= varint_size;                                                       \
-    *encoded_size += varint_size;                                              \
+    src += varint_encoded_size;                                                \
+    size -= varint_encoded_size;                                               \
+    *encoded_size += varint_encoded_size;                                      \
   }                                                                            \
   (void) 0
 
@@ -23,29 +23,29 @@
 // `TRY_VARINT_DECODE_1`.
 #define TRY_VARINT_DECODE_2(value)                                             \
   {                                                                            \
-    size_t varint_size = 0;                                                    \
-    H3C_ERROR error = h3c_varint_decode(src, size, &(value), &varint_size,     \
-                                        log);                                  \
+    size_t varint_encoded_size = 0;                                            \
+    H3C_ERROR error = h3c_varint_decode(src, size, &(value),                   \
+                                        &varint_encoded_size, log);            \
     if (error) {                                                               \
       H3C_ERROR(H3C_ERROR_INCOMPLETE);                                         \
     }                                                                          \
                                                                                \
-    if (varint_size > payload_size) {                                          \
+    if (varint_encoded_size > payload_encoded_size) {                          \
       H3C_LOG_ERROR(                                                           \
           "Frame payload's actual length exceeds its advertised length");      \
       H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                    \
     }                                                                          \
                                                                                \
-    src += varint_size;                                                        \
-    size -= varint_size;                                                       \
-    *encoded_size += varint_size;                                              \
-    payload_size -= varint_size;                                               \
+    src += varint_encoded_size;                                                \
+    size -= varint_encoded_size;                                               \
+    *encoded_size += varint_encoded_size;                                      \
+    payload_encoded_size -= varint_encoded_size;                               \
   }                                                                            \
   (void) 0
 
 #define BUFFER_DECODE(buffer)                                                  \
-  (buffer).size = payload_size;                                                \
-  payload_size -= payload_size;                                                \
+  (buffer).size = payload_encoded_size;                                        \
+  payload_encoded_size -= payload_encoded_size;                                \
   (void) 0
 
 #define TRY_UINT8_DECODE(value)                                                \
@@ -53,7 +53,7 @@
     H3C_ERROR(H3C_ERROR_INCOMPLETE);                                           \
   }                                                                            \
                                                                                \
-  if (payload_size == 0) {                                                     \
+  if (payload_encoded_size == 0) {                                             \
     H3C_LOG_ERROR(                                                             \
         "Frame payload's actual length exceeds its advertised length");        \
     H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);                                      \
@@ -64,7 +64,7 @@
   src++;                                                                       \
   size--;                                                                      \
   (*encoded_size)++;                                                           \
-  payload_size--;                                                              \
+  payload_encoded_size--;                                                      \
   (void) 0
 
 #define TRY_SETTING_DECODE(id, value, type)                                    \
@@ -96,8 +96,8 @@ H3C_ERROR h3c_frame_decode(const uint8_t *src,
 
   TRY_VARINT_DECODE_1(frame->type);
 
-  uint64_t payload_size = 0;
-  TRY_VARINT_DECODE_1(payload_size);
+  uint64_t payload_encoded_size = 0;
+  TRY_VARINT_DECODE_1(payload_encoded_size);
 
   switch (frame->type) {
     case H3C_FRAME_DATA:
@@ -123,7 +123,7 @@ H3C_ERROR h3c_frame_decode(const uint8_t *src,
     case H3C_FRAME_SETTINGS:
       frame->settings = h3c_settings_default;
 
-      while (payload_size > 0) {
+      while (payload_encoded_size > 0) {
         uint64_t id = 0;
         TRY_VARINT_DECODE_2(id);
 
@@ -167,7 +167,7 @@ H3C_ERROR h3c_frame_decode(const uint8_t *src,
       break;
   }
 
-  if (payload_size > 0) {
+  if (payload_encoded_size > 0) {
     H3C_LOG_ERROR(
         "Frame payload's advertised length exceeds its actual length");
     H3C_ERROR(H3C_ERROR_MALFORMED_FRAME);
