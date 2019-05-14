@@ -1,7 +1,5 @@
 #include <h3c/frame.h>
 
-#include <h3c/log.h>
-
 #include <assert.h>
 
 #define TRY_VARINT_SIZE(value)                                                 \
@@ -21,7 +19,7 @@
   if ((value) > id##_MAX) {                                                    \
     H3C_LOG_ERROR(log, "Value of %s (%lu) exceeds maximum (%lu)", #id, value,  \
                   id##_MAX);                                                   \
-    H3C_THROW(log, H3C_ERROR_SETTING_OVERFLOW);                                \
+    H3C_THROW(H3C_ERROR_SETTING_OVERFLOW, log);                                \
   }                                                                            \
                                                                                \
   TRY_VARINT_SIZE((id));                                                       \
@@ -85,7 +83,7 @@ static H3C_ERROR frame_payload_encoded_size(const h3c_frame_t *frame,
   }
 
   if (*encoded_size > H3C_VARINT_MAX) {
-    H3C_THROW(log, H3C_ERROR_VARINT_OVERFLOW);
+    H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
   }
 
   return H3C_SUCCESS;
@@ -112,7 +110,7 @@ static H3C_ERROR frame_payload_encoded_size(const h3c_frame_t *frame,
 #define TRY_UINT8_ENCODE(value)                                                \
   if (dest) {                                                                  \
     if (size == 0) {                                                           \
-      H3C_THROW(log, H3C_ERROR_BUFFER_TOO_SMALL);                              \
+      H3C_THROW(H3C_ERROR_BUFFER_TOO_SMALL, log);                              \
     }                                                                          \
                                                                                \
     *dest = (value);                                                           \

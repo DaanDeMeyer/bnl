@@ -21,7 +21,7 @@ encode(uint8_t *dest,
   *encoded_size = 0;
 
   if (size < sizeof(uint64_t)) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   dest[0] = static_cast<uint8_t>(stream_id >> 56);
@@ -38,7 +38,7 @@ encode(uint8_t *dest,
   *encoded_size += sizeof(uint64_t);
 
   if (size < sizeof(uint32_t)) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   // We don't know the exact header block size yet so we store the offset where

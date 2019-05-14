@@ -19,7 +19,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size = 0;
 
   if (sizeof(uint64_t) > size) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   *stream_id = static_cast<uint64_t>(src[0]) << 56 |
@@ -35,7 +35,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size += sizeof(uint64_t);
 
   if (sizeof(uint32_t) > size) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   size_t header_block_encoded_size = static_cast<uint32_t>(src[0]) << 24 |
@@ -47,7 +47,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size += sizeof(uint32_t);
 
   if (header_block_encoded_size > size) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   size_t prefix_encoded_size = 0;

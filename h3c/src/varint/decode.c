@@ -51,7 +51,7 @@ H3C_ERROR h3c_varint_decode(const uint8_t *src,
   *encoded_size = 0;
 
   if (size == 0) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   *encoded_size = 1;
@@ -61,7 +61,7 @@ H3C_ERROR h3c_varint_decode(const uint8_t *src,
   *encoded_size <<= header; // shift left => x2
 
   if (*encoded_size > size) {
-    H3C_THROW(log, H3C_ERROR_INCOMPLETE);
+    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
   }
 
   switch (*encoded_size) {
@@ -78,7 +78,7 @@ H3C_ERROR h3c_varint_decode(const uint8_t *src,
       *varint = varint_uint64_decode(src);
       break;
     default:
-      H3C_THROW(log, H3C_ERROR_INTERNAL);
+      H3C_THROW(H3C_ERROR_INTERNAL, log);
   }
 
   return H3C_SUCCESS;

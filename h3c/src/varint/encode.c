@@ -85,13 +85,13 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
   size_t actual_encoded_size = varint_size(varint);
 
   if (actual_encoded_size == 0) {
-    H3C_THROW(log, H3C_ERROR_VARINT_OVERFLOW);
+    H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
   }
 
   // If the varint's actual size is larger than the user's wanted (fixed) varint
   // size, return overflow as well.
   if (*encoded_size != 0 && actual_encoded_size > *encoded_size) {
-    H3C_THROW(log, H3C_ERROR_VARINT_OVERFLOW);
+    H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
   }
 
   *encoded_size = MAX(actual_encoded_size, *encoded_size);
@@ -101,7 +101,7 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
   }
 
   if (*encoded_size > size) {
-    H3C_THROW(log, H3C_ERROR_BUFFER_TOO_SMALL);
+    H3C_THROW(H3C_ERROR_BUFFER_TOO_SMALL, log);
   }
 
   switch (*encoded_size) {
@@ -118,7 +118,7 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
       varint_uint64_encode(dest, varint);
       break;
     default:
-      H3C_THROW(log, H3C_ERROR_INTERNAL);
+      H3C_THROW(H3C_ERROR_INTERNAL, log);
   }
 
   return H3C_SUCCESS;

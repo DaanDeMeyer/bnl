@@ -45,7 +45,7 @@ typedef enum {
 
 H3C_EXPORT H3C_ERROR_TYPE h3c_error_type(H3C_ERROR error);
 
-#define H3C_THROW(log, error)                                                  \
+#define H3C_THROW(error, log)                                                  \
   switch ((error)) {                                                           \
     case H3C_SUCCESS:                                                          \
       break;                                                                   \
