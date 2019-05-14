@@ -1,7 +1,9 @@
 #pragma once
 
 #include <h3c/export.h>
+#include <h3c/log.h>
 
+#include <assert.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -32,7 +34,7 @@ typedef enum {
   H3C_ERROR_MALFORMED_HEADER
 } H3C_ERROR;
 
-H3C_EXPORT const char *h3c_strerror(H3C_ERROR error);
+H3C_EXPORT const char *h3c_error_string(H3C_ERROR error);
 
 typedef enum {
   H3C_ERROR_TYPE_SUCCESS,
@@ -42,6 +44,20 @@ typedef enum {
 } H3C_ERROR_TYPE;
 
 H3C_EXPORT H3C_ERROR_TYPE h3c_error_type(H3C_ERROR error);
+
+#define H3C_THROW(log, error)                                                  \
+  switch ((error)) {                                                           \
+    case H3C_SUCCESS:                                                          \
+      break;                                                                   \
+    case H3C_ERROR_INTERNAL:                                                   \
+      assert(0);                                                               \
+    default:                                                                   \
+      H3C_LOG_ERROR(log, "%s", h3c_error_string((error)));                     \
+      break;                                                                   \
+  }                                                                            \
+                                                                               \
+  return (error);                                                              \
+  (void) 0
 
 #ifdef __cplusplus
 }

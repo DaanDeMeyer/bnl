@@ -1,6 +1,6 @@
 #include <h3c/error.h>
 
-const char *h3c_strerror(H3C_ERROR error)
+const char *h3c_error_string(H3C_ERROR error)
 {
   switch (error) {
     case H3C_SUCCESS:

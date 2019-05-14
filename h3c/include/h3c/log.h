@@ -1,9 +1,5 @@
 #pragma once
 
-#include <h3c/error.h>
-
-#include <assert.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,20 +52,6 @@ typedef struct h3c_log_t {
 
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
-
-#define H3C_THROW(log, error)                                                  \
-  switch ((error)) {                                                           \
-    case H3C_SUCCESS:                                                          \
-      break;                                                                   \
-    case H3C_ERROR_INTERNAL:                                                   \
-      assert(0);                                                               \
-    default:                                                                   \
-      H3C_LOG_ERROR(log, "%s", h3c_strerror((error)));                         \
-      break;                                                                   \
-  }                                                                            \
-                                                                               \
-  return (error);                                                              \
-  (void) 0
 
 #ifdef __cplusplus
 }
