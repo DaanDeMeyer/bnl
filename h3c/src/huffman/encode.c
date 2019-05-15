@@ -34,6 +34,8 @@
 
 size_t h3c_huffman_encoded_size(const char *string, size_t size)
 {
+  assert(string);
+
   size_t num_bits = 0;
 
   for (size_t i = 0; i < size; i++) {
@@ -165,6 +167,7 @@ H3C_ERROR h3c_huffman_encode(uint8_t *dest,
                              size_t string_size,
                              h3c_log_t *log)
 {
+  assert(dest);
   assert(string);
 
   size_t rem_bits = 8;

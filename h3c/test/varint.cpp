@@ -16,7 +16,9 @@ TEST_CASE("varint")
     std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = {};
     uint64_t n = 0;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == H3C_VARINT_UINT8_SIZE);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 
@@ -37,7 +39,9 @@ TEST_CASE("varint")
     std::array<uint8_t, H3C_VARINT_UINT8_SIZE> dest = {};
     uint64_t n = 62;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == H3C_VARINT_UINT8_SIZE);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 
@@ -58,7 +62,9 @@ TEST_CASE("varint")
     std::array<uint8_t, H3C_VARINT_UINT16_SIZE> dest = {};
     uint64_t n = 15248;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == H3C_VARINT_UINT16_SIZE);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 
@@ -80,7 +86,9 @@ TEST_CASE("varint")
     std::array<uint8_t, H3C_VARINT_UINT32_SIZE> dest = {};
     uint64_t n = 1073721823;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == H3C_VARINT_UINT32_SIZE);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 
@@ -104,7 +112,9 @@ TEST_CASE("varint")
     std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};
     uint64_t n = 4611386010427387203;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == H3C_VARINT_UINT64_SIZE);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 
@@ -132,7 +142,9 @@ TEST_CASE("varint")
     std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};
     uint64_t n = 4611686018427387903;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == H3C_VARINT_UINT64_SIZE);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 
@@ -155,23 +167,14 @@ TEST_CASE("varint")
     REQUIRE(n == 4611686018427387903);
   }
 
-  SUBCASE("encode: varint size")
-  {
-    uint64_t n = 159;
-
-    size_t encoded_size = 0;
-    int error = h3c_varint_encode(nullptr, 0, n, &encoded_size, nullptr);
-
-    REQUIRE(!error);
-    REQUIRE(encoded_size == H3C_VARINT_UINT16_SIZE);
-  }
-
   SUBCASE("encode: overflow")
   {
     std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};
     uint64_t n = UINT64_MAX;
 
-    size_t encoded_size = 0;
+    size_t encoded_size = h3c_varint_encoded_size(n);
+    REQUIRE(encoded_size == 0);
+
     int error = h3c_varint_encode(dest.data(), dest.size(), n, &encoded_size,
                                   nullptr);
 

@@ -102,6 +102,8 @@ typedef struct {
   };
 } h3c_frame_t;
 
+H3C_EXPORT size_t h3c_frame_encoded_size(const h3c_frame_t *frame);
+
 H3C_EXPORT H3C_ERROR h3c_frame_encode(uint8_t *dest,
                                       size_t size,
                                       const h3c_frame_t *frame,

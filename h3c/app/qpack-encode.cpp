@@ -52,7 +52,7 @@ encode(uint8_t *dest,
   size_t header_block_encoded_size = 0;
 
   size_t prefix_encoded_size = 0;
-  H3C_ERROR error = h3c_qpack_encode_prefix(dest, size, &prefix_encoded_size,
+  H3C_ERROR error = h3c_qpack_prefix_encode(dest, size, &prefix_encoded_size,
                                             log);
   if (error) {
     return error;

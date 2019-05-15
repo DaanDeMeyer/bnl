@@ -34,7 +34,7 @@ void h3c_qpack_decode_context_destroy(h3c_qpack_decode_context_t *context)
   free((char *) context->huffman_decoded.value.data);
 }
 
-H3C_ERROR h3c_qpack_decode_prefix(const uint8_t *src,
+H3C_ERROR h3c_qpack_prefix_decode(const uint8_t *src,
                                   size_t size,
                                   size_t *encoded_size,
                                   h3c_log_t *log)

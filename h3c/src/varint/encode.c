@@ -4,7 +4,7 @@
 
 #include <assert.h>
 
-static size_t varint_size(uint64_t varint)
+size_t h3c_varint_encoded_size(uint64_t varint)
 {
   if (varint < 0x40) {
     return H3C_VARINT_UINT8_SIZE;
@@ -78,15 +78,12 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
                             size_t *encoded_size,
                             h3c_log_t *log)
 {
+  assert(dest);
   assert(encoded_size);
 
-  *encoded_size = varint_size(varint);
+  *encoded_size = h3c_varint_encoded_size(varint);
   if (*encoded_size == 0) {
     H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
-  }
-
-  if (dest == NULL) {
-    return H3C_SUCCESS;
   }
 
   if (*encoded_size > size) {

@@ -18,7 +18,9 @@ template <size_t N> static void encode_and_decode(const h3c_header_t &src)
   std::array<uint8_t, N> buffer = {};
 
   int error = H3C_SUCCESS;
-  size_t encoded_size = 0;
+
+  size_t encoded_size = h3c_qpack_encoded_size(&src);
+  REQUIRE(encoded_size == N);
 
   error = h3c_qpack_encode(buffer.data(), buffer.size(), &src, &encoded_size,
                            nullptr);
@@ -67,32 +69,17 @@ TEST_CASE("qpack")
     encode_and_decode<11>(via);
   }
 
-  SUBCASE("encode: header size")
-  {
-    MAKE_HEADER(status, ":status", "200");
-
-    size_t encoded_size = 0;
-    int error = h3c_qpack_encode(nullptr, 0, &status, &encoded_size, nullptr);
-
-    REQUIRE(!error);
-    REQUIRE(encoded_size == 1);
-  }
-
   SUBCASE("encode: buffer too small")
   {
     MAKE_HEADER(last_modified, "link", "</feed>; rel=\"alternate\"");
 
     std::array<uint8_t, 21> buffer = {};
-    size_t encoded_size = 0;
 
-    int error = h3c_qpack_encode(nullptr, 0, &last_modified, &encoded_size,
-                                 nullptr);
-
-    REQUIRE(!error);
+    size_t encoded_size = h3c_qpack_encoded_size(&last_modified);
     REQUIRE(encoded_size == buffer.size() + 1);
 
-    error = h3c_qpack_encode(buffer.data(), buffer.size(), &last_modified,
-                             &encoded_size, nullptr);
+    H3C_ERROR error = h3c_qpack_encode(buffer.data(), buffer.size(),
+                                       &last_modified, &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
   }

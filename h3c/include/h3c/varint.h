@@ -21,6 +21,8 @@ extern "C" {
 
 typedef struct h3c_log_t h3c_log_t;
 
+H3C_EXPORT size_t h3c_varint_encoded_size(uint64_t varint);
+
 H3C_EXPORT H3C_ERROR h3c_varint_encode(uint8_t *dest,
                                        size_t size,
                                        uint64_t varint,

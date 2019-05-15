@@ -15,10 +15,19 @@ extern "C" {
 
 typedef struct h3c_log_t h3c_log_t;
 
-H3C_EXPORT H3C_ERROR h3c_qpack_encode_prefix(uint8_t *dest,
+H3C_EXPORT size_t h3c_qpack_prefix_encoded_size();
+
+H3C_EXPORT H3C_ERROR h3c_qpack_prefix_encode(uint8_t *dest,
                                              size_t size,
                                              size_t *encoded_size,
                                              h3c_log_t *log);
+
+H3C_EXPORT H3C_ERROR h3c_qpack_prefix_decode(const uint8_t *src,
+                                             size_t size,
+                                             size_t *encoded_size,
+                                             h3c_log_t *log);
+
+H3C_EXPORT size_t h3c_qpack_encoded_size(const h3c_header_t *header);
 
 H3C_EXPORT H3C_ERROR h3c_qpack_encode(uint8_t *dest,
                                       size_t size,
@@ -36,11 +45,6 @@ h3c_qpack_decode_context_init(h3c_qpack_decode_context_t *context,
 
 H3C_EXPORT void
 h3c_qpack_decode_context_destroy(h3c_qpack_decode_context_t *context);
-
-H3C_EXPORT H3C_ERROR h3c_qpack_decode_prefix(const uint8_t *src,
-                                             size_t size,
-                                             size_t *encoded_size,
-                                             h3c_log_t *log);
 
 H3C_EXPORT H3C_ERROR h3c_qpack_decode(h3c_qpack_decode_context_t *context,
                                       const uint8_t *src,

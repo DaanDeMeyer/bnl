@@ -51,7 +51,7 @@ H3C_ERROR decode(uint8_t *src,
   }
 
   size_t prefix_encoded_size = 0;
-  H3C_ERROR error = h3c_qpack_decode_prefix(src, size, &prefix_encoded_size,
+  H3C_ERROR error = h3c_qpack_prefix_decode(src, size, &prefix_encoded_size,
                                             log);
   if (error) {
     return error;

@@ -10,7 +10,9 @@ template <size_t N> static h3c_frame_t encode_and_decode(const h3c_frame_t &src)
   std::array<uint8_t, N> buffer = {};
 
   int error = H3C_SUCCESS;
-  size_t encoded_size = 0;
+
+  size_t encoded_size = h3c_frame_encoded_size(&src);
+  REQUIRE(encoded_size == N);
 
   error = h3c_frame_encode(buffer.data(), buffer.size(), &src, &encoded_size,
                            nullptr);
@@ -147,19 +149,6 @@ TEST_CASE("frame")
     REQUIRE(dest.duplicate_push.push_id == src.duplicate_push.push_id);
   }
 
-  SUBCASE("encode: frame size")
-  {
-    h3c_frame_t src;
-    src.type = H3C_FRAME_DATA;
-    src.data.payload.size = 1000;
-
-    size_t encoded_size = 0;
-    int error = h3c_frame_encode(nullptr, 0, &src, &encoded_size, nullptr);
-
-    REQUIRE(!error);
-    REQUIRE(encoded_size == 3);
-  }
-
   SUBCASE("encode: buffer too small")
   {
     h3c_frame_t src;
@@ -188,7 +177,6 @@ TEST_CASE("frame")
                                  &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
-    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("encode: setting overflow")
@@ -204,7 +192,6 @@ TEST_CASE("frame")
                                  &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_SETTING_OVERFLOW);
-    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("decode: incomplete")
