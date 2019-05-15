@@ -166,17 +166,6 @@ TEST_CASE("varint")
     REQUIRE(encoded_size == H3C_VARINT_UINT16_SIZE);
   }
 
-  SUBCASE("encoded: fixed size")
-  {
-    uint64_t n = 159;
-
-    size_t encoded_size = H3C_VARINT_UINT32_SIZE;
-    int error = h3c_varint_encode(nullptr, 0, n, &encoded_size, nullptr);
-
-    REQUIRE(!error);
-    REQUIRE(encoded_size == H3C_VARINT_UINT32_SIZE);
-  }
-
   SUBCASE("encode: overflow")
   {
     std::array<uint8_t, H3C_VARINT_UINT64_SIZE> dest = {};

@@ -2,8 +2,6 @@
 
 #include <h3c/log.h>
 
-#include <util.h>
-
 #include <assert.h>
 
 static size_t varint_size(uint64_t varint)
@@ -82,19 +80,10 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
 {
   assert(encoded_size);
 
-  size_t actual_encoded_size = varint_size(varint);
-
-  if (actual_encoded_size == 0) {
+  *encoded_size = varint_size(varint);
+  if (*encoded_size == 0) {
     H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
   }
-
-  // If the varint's actual size is larger than the user's wanted (fixed) varint
-  // size, return overflow as well.
-  if (*encoded_size != 0 && actual_encoded_size > *encoded_size) {
-    H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
-  }
-
-  *encoded_size = MAX(actual_encoded_size, *encoded_size);
 
   if (dest == NULL) {
     return H3C_SUCCESS;
