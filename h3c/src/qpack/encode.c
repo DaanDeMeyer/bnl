@@ -296,5 +296,5 @@ H3C_ERROR h3c_qpack_encode(uint8_t *dest,
                                                    encoded_size, log);
   }
 
-  H3C_THROW(H3C_ERROR_INTERNAL, log);
+  H3C_THROW(H3C_ERROR_INTERNAL_ERROR, log);
 }

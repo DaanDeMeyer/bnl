@@ -8,6 +8,8 @@ const char *h3c_error_string(H3C_ERROR error)
 
     // HTTP/3 connection errors
 
+    case H3C_ERROR_INTERNAL_ERROR:
+      return "internal error";
     case H3C_ERROR_MALFORMED_FRAME:
       return "malformed frame";
     case H3C_ERROR_QPACK_DECOMPRESSION_FAILED:
@@ -15,8 +17,6 @@ const char *h3c_error_string(H3C_ERROR error)
 
     // h3c library errors
 
-    case H3C_ERROR_INTERNAL:
-      return "internal error";
     case H3C_ERROR_OUT_OF_MEMORY:
       return "out of memory";
     case H3C_ERROR_BUFFER_TOO_SMALL:

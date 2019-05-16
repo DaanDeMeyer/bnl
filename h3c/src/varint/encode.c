@@ -104,7 +104,7 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
       varint_uint64_encode(dest, varint);
       break;
     default:
-      H3C_THROW(H3C_ERROR_INTERNAL, log);
+      H3C_THROW(H3C_ERROR_INTERNAL_ERROR, log);
   }
 
   return H3C_SUCCESS;

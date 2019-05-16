@@ -15,6 +15,7 @@ typedef enum {
 
   // HTTP/3 connection errors
 
+  H3C_ERROR_INTERNAL_ERROR = 0x03,
   H3C_ERROR_MALFORMED_FRAME = 0x0100,
   H3C_ERROR_QPACK_DECOMPRESSION_FAILED = 0x200,
 
@@ -25,8 +26,7 @@ typedef enum {
   // QUIC's error codes are limited to 16 bytes which leaves all numbers larger
   // than 16 bytes for library error codes.
 
-  H3C_ERROR_INTERNAL = UINT16_MAX + 1,
-  H3C_ERROR_OUT_OF_MEMORY,
+  H3C_ERROR_OUT_OF_MEMORY = UINT16_MAX + 1,
   H3C_ERROR_BUFFER_TOO_SMALL,
   H3C_ERROR_INCOMPLETE,
   H3C_ERROR_VARINT_OVERFLOW,
@@ -49,7 +49,7 @@ H3C_EXPORT H3C_ERROR_TYPE h3c_error_type(H3C_ERROR error);
   switch ((error)) {                                                           \
     case H3C_SUCCESS:                                                          \
       break;                                                                   \
-    case H3C_ERROR_INTERNAL:                                                   \
+    case H3C_ERROR_INTERNAL_ERROR:                                             \
       assert(0);                                                               \
     default:                                                                   \
       H3C_LOG_ERROR(log, "%s", h3c_error_string((error)));                     \
