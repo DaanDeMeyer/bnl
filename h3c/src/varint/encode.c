@@ -1,6 +1,6 @@
 #include <h3c/varint.h>
 
-#include <h3c/log.h>
+#include <util/error.h>
 
 #include <assert.h>
 
@@ -83,11 +83,11 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
 
   *encoded_size = h3c_varint_encoded_size(varint);
   if (*encoded_size == 0) {
-    H3C_THROW(H3C_ERROR_VARINT_OVERFLOW, log);
+    THROW(H3C_ERROR_VARINT_OVERFLOW);
   }
 
   if (*encoded_size > size) {
-    H3C_THROW(H3C_ERROR_BUFFER_TOO_SMALL, log);
+    THROW(H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
   switch (*encoded_size) {
@@ -104,7 +104,7 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
       varint_uint64_encode(dest, varint);
       break;
     default:
-      H3C_THROW(H3C_ERROR_INTERNAL_ERROR, log);
+      THROW(H3C_ERROR_INTERNAL_ERROR);
   }
 
   return H3C_SUCCESS;

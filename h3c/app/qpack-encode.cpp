@@ -10,6 +10,8 @@
 #include <h3c/log/fprintf.h>
 #include <h3c/qpack.h>
 
+#include "util.h"
+
 static H3C_ERROR
 encode(uint8_t *dest,
        size_t size,
@@ -21,7 +23,7 @@ encode(uint8_t *dest,
   *encoded_size = 0;
 
   if (size < sizeof(uint64_t)) {
-    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
+    THROW(H3C_ERROR_INCOMPLETE);
   }
 
   dest[0] = static_cast<uint8_t>(stream_id >> 56);
@@ -38,7 +40,7 @@ encode(uint8_t *dest,
   *encoded_size += sizeof(uint64_t);
 
   if (size < sizeof(uint32_t)) {
-    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
+    THROW(H3C_ERROR_INCOMPLETE);
   }
 
   // We don't know the exact header block size yet so we store the offset where

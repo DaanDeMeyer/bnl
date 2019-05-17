@@ -26,7 +26,7 @@
 
 #include <h3c/huffman.h>
 
-#include <h3c/log.h>
+#include <util/error.h>
 
 #include <stdbool.h>
 
@@ -47,12 +47,12 @@ h3c_huffman_decode(const uint8_t *src,
     const huffman_node_t *node = &decode_table[state][src[i] >> 4];
 
     if (node->flags & HUFFMAN_DECODE_FAILED) {
-      H3C_THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED, log);
+      THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
     }
 
     if (node->flags & HUFFMAN_DECODE_SYMBOL) {
       if (*string_size == 0) {
-        H3C_THROW(H3C_ERROR_BUFFER_TOO_SMALL, log);
+        THROW(H3C_ERROR_BUFFER_TOO_SMALL);
       }
 
       *string++ = (char) node->symbol;
@@ -63,12 +63,12 @@ h3c_huffman_decode(const uint8_t *src,
     node = &decode_table[node->state][src[i] & 0xf];
 
     if (node->flags & HUFFMAN_DECODE_FAILED) {
-      H3C_THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED, log);
+      THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
     }
 
     if (node->flags & HUFFMAN_DECODE_SYMBOL) {
       if (*string_size == 0) {
-        H3C_THROW(H3C_ERROR_BUFFER_TOO_SMALL, log);
+        THROW(H3C_ERROR_BUFFER_TOO_SMALL);
       }
 
       *string++ = (char) node->symbol;
@@ -81,7 +81,7 @@ h3c_huffman_decode(const uint8_t *src,
   }
 
   if (!accept) {
-    H3C_THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED, log);
+    THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
   }
 
   *string_size = string_length;

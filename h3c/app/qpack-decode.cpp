@@ -9,6 +9,8 @@
 #include <h3c/log/fprintf.h>
 #include <h3c/qpack.h>
 
+#include "util.h"
+
 H3C_ERROR decode(uint8_t *src,
                  size_t size,
                  uint64_t *stream_id,
@@ -19,7 +21,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size = 0;
 
   if (sizeof(uint64_t) > size) {
-    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
+    THROW(H3C_ERROR_INCOMPLETE);
   }
 
   *stream_id = static_cast<uint64_t>(src[0]) << 56 |
@@ -35,7 +37,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size += sizeof(uint64_t);
 
   if (sizeof(uint32_t) > size) {
-    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
+    THROW(H3C_ERROR_INCOMPLETE);
   }
 
   size_t header_block_encoded_size = static_cast<uint32_t>(src[0]) << 24 |
@@ -47,7 +49,7 @@ H3C_ERROR decode(uint8_t *src,
   *encoded_size += sizeof(uint32_t);
 
   if (header_block_encoded_size > size) {
-    H3C_THROW(H3C_ERROR_INCOMPLETE, log);
+    THROW(H3C_ERROR_INCOMPLETE);
   }
 
   size_t prefix_encoded_size = 0;
