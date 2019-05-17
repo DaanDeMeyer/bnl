@@ -1,7 +1,7 @@
 #pragma once
 
 #include <h3c/error.h>
-#include <h3c/header.h>
+#include <h3c/http.h>
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-qpack.html
 

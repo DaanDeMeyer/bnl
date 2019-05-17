@@ -116,7 +116,7 @@ static_table_raw = """\
 98 	x-frame-options 	sameorigin
 """
 
-find_index_template = """
+find_index_template = """\
 STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header, uint8_t *index)
 {{
   uint64_t name_hash = XXH64(header->name.data, header->name.length, 0);
@@ -178,7 +178,7 @@ for header, entry in itertools.groupby(static_table, lambda x: x[1]):
 find_index = find_index_template.format(cases)
 
 encode_generated_template = """\
-#include <h3c/header.h>
+#include <h3c/http.h>
 
 #include <xxhash.h>
 
@@ -264,7 +264,7 @@ for entry in static_table:
 find_header_only = find_header_only_template.format(cases)
 
 decode_generated_template = """\
-#include <h3c/header.h>
+#include <h3c/http.h>
 
 #include <stdint.h>
 #include <stdbool.h>
