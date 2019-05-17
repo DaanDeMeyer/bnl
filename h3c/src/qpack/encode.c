@@ -2,8 +2,8 @@
 
 #include <h3c/huffman.h>
 
-#include <util.h>
 #include <util/error.h>
+#include <util/string.h>
 
 #include <assert.h>
 #include <string.h>

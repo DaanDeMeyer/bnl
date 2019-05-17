@@ -13,7 +13,7 @@ target_sources(h3c PRIVATE
   src/settings.c
   src/varint/decode.c
   src/varint/encode.c
-  src/util.c
+  src/util/string.c
 )
 
 # Make h3c-log available so we can use it in the tests.

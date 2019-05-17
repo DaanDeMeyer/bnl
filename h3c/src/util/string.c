@@ -1,4 +1,4 @@
-#include <util.h>
+#include <util/string.h>
 
 bool is_lowercase(const char *string, size_t length)
 {
