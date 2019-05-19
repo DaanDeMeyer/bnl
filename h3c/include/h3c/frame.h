@@ -18,7 +18,7 @@ typedef struct h3c_log_t h3c_log_t;
 // Enums are always integers, we need unsigned types so we make do with typedefs
 // and defines.
 
-typedef uint64_t H3C_FRAME_TYPE;
+typedef uint64_t H3C_FRAME;
 #define H3C_FRAME_DATA 0x0U
 #define H3C_FRAME_HEADERS 0x1U
 #define H3C_FRAME_PRIORITY 0x2U
@@ -84,7 +84,7 @@ typedef struct {
 } h3c_frame_duplicate_push_t;
 
 typedef struct {
-  H3C_FRAME_TYPE type;
+  H3C_FRAME type;
 
   // We don't store the frame length since (for now) it's easier to calculate it
   // when needed. This also prevents it from getting stale.
