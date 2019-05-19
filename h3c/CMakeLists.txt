@@ -3,17 +3,17 @@ cddm_add_library(h3c C 11)
 target_link_libraries(h3c PRIVATE xxhash)
 target_include_directories(h3c PRIVATE src)
 target_sources(h3c PRIVATE
-  src/error.c
   src/frame/decode.c
   src/frame/encode.c
   src/huffman/encode.c
   src/huffman/decode.c
   src/qpack/encode.c
   src/qpack/decode.c
-  src/settings.c
+  src/util/string.c
   src/varint/decode.c
   src/varint/encode.c
-  src/util/string.c
+  src/error.c
+  src/settings.c
 )
 
 # Make h3c-log available so we can use it in the tests.
