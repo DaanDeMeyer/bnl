@@ -192,7 +192,7 @@ TEST_CASE("varint")
                                   nullptr);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
-    REQUIRE(encoded_size == H3C_VARINT_UINT16_SIZE);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("decode: incomplete")
@@ -211,6 +211,6 @@ TEST_CASE("varint")
                               nullptr);
 
     REQUIRE(error == H3C_ERROR_INCOMPLETE);
-    REQUIRE(encoded_size == H3C_VARINT_UINT16_SIZE);
+    REQUIRE(encoded_size == 0);
   }
 }

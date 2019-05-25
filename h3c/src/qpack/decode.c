@@ -64,7 +64,6 @@ H3C_ERROR h3c_qpack_prefix_decode(const uint8_t *src,
                                                                                \
   src++;                                                                       \
   size--;                                                                      \
-  (*encoded_size)++;                                                           \
   (void) 0
 
 static H3C_ERROR prefix_int_decode(const uint8_t *src,
@@ -75,23 +74,24 @@ static H3C_ERROR prefix_int_decode(const uint8_t *src,
                                    h3c_log_t *log)
 {
   *encoded_size = 0;
+  const uint8_t *begin = src;
 
   uint8_t prefix_max = (uint8_t)((1U << prefix) - 1);
 
   TRY_UINT8_DECODE(*value);
   *value &= prefix_max;
 
-  if (*value < prefix_max) {
-    return H3C_SUCCESS;
+  if (*value >= prefix_max) {
+    uint64_t offset = 0;
+    uint8_t byte = 0;
+    do {
+      TRY_UINT8_DECODE(byte);
+      *value += (byte & 127) * (1U << offset);
+      offset += 7;
+    } while ((byte & 128) == 128);
   }
 
-  uint64_t offset = 0;
-  uint8_t byte = 0;
-  do {
-    TRY_UINT8_DECODE(byte);
-    *value += (byte & 127) * (1U << offset);
-    offset += 7;
-  } while ((byte & 128) == 128);
+  *encoded_size = (size_t)(src - begin);
 
   return H3C_SUCCESS;
 }
@@ -111,7 +111,6 @@ static H3C_ERROR prefix_int_decode(const uint8_t *src,
                                                                                \
     src += pi_encoded_size;                                                    \
     size -= pi_encoded_size;                                                   \
-    *encoded_size += pi_encoded_size;                                          \
   }                                                                            \
   (void) 0
 
@@ -149,7 +148,6 @@ static H3C_ERROR prefix_int_decode(const uint8_t *src,
                                                                                \
     src += buffer_encoded_size;                                                \
     size -= buffer_encoded_size;                                               \
-    *encoded_size += buffer_encoded_size;                                      \
   }                                                                            \
   (void) 0
 
@@ -159,6 +157,9 @@ static H3C_ERROR indexed_header_field_decode(const uint8_t *src,
                                              size_t *encoded_size,
                                              h3c_log_t *log)
 {
+  *encoded_size = 0;
+  const uint8_t *begin = src;
+
   // Ensure the 'S' bit is set which indicates the index is in the static table.
   if (!(*src & 0x40)) {
     H3C_LOG_ERROR(log, "'S' bit not set in indexed header field");
@@ -174,6 +175,8 @@ static H3C_ERROR indexed_header_field_decode(const uint8_t *src,
     THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
   }
 
+  *encoded_size = (size_t)(src - begin);
+
   return H3C_SUCCESS;
 }
 
@@ -185,6 +188,9 @@ literal_with_name_reference_decode(h3c_qpack_decode_context_t *context,
                                    size_t *encoded_size,
                                    h3c_log_t *log)
 {
+  *encoded_size = 0;
+  const uint8_t *begin = src;
+
   // Ensure the 'S' bit is set which indicates the index is in the static table.
   if (!(*src & 0x10)) {
     H3C_LOG_ERROR(log, "'S' bit not set in literal with name reference");
@@ -202,6 +208,8 @@ literal_with_name_reference_decode(h3c_qpack_decode_context_t *context,
 
   TRY_LITERAL_DECODE(header->value, 7, context->huffman_decoded.value);
 
+  *encoded_size = (size_t)(src - begin);
+
   return H3C_SUCCESS;
 }
 
@@ -213,6 +221,9 @@ literal_without_name_reference_decode(h3c_qpack_decode_context_t *context,
                                       size_t *encoded_size,
                                       h3c_log_t *log)
 {
+  *encoded_size = 0;
+  const uint8_t *begin = src;
+
   TRY_LITERAL_DECODE(header->name, 3, context->huffman_decoded.name);
 
   if (!is_lowercase(header->name.data, header->name.size)) {
@@ -222,6 +233,8 @@ literal_without_name_reference_decode(h3c_qpack_decode_context_t *context,
   }
 
   TRY_LITERAL_DECODE(header->value, 7, context->huffman_decoded.value);
+
+  *encoded_size = (size_t)(src - begin);
 
   return H3C_SUCCESS;
 }
@@ -240,8 +253,6 @@ H3C_ERROR h3c_qpack_decode(h3c_qpack_decode_context_t *context,
   assert(src);
   assert(header);
   assert(encoded_size);
-
-  *encoded_size = 0;
 
   if (size == 0) {
     THROW(H3C_ERROR_INCOMPLETE);

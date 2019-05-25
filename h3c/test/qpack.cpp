@@ -79,6 +79,7 @@ TEST_CASE("qpack")
                                        &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("encode: malformed header")
@@ -89,6 +90,7 @@ TEST_CASE("qpack")
     int error = h3c_qpack_encode(nullptr, 0, &link, &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_MALFORMED_HEADER);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("decode: incomplete")
@@ -110,6 +112,7 @@ TEST_CASE("qpack")
                              &location, &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_INCOMPLETE);
+    REQUIRE(encoded_size == 0);
 
     h3c_qpack_decode_context_destroy(&context);
   }
@@ -129,6 +132,7 @@ TEST_CASE("qpack")
                                  &header, &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
+    REQUIRE(encoded_size == 0);
 
     // 0x5f = literal with name reference, 100 = unassigned index
     buffer = { { 0x5f, 100 } };
@@ -137,6 +141,7 @@ TEST_CASE("qpack")
                              &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
+    REQUIRE(encoded_size == 0);
 
     h3c_qpack_decode_context_destroy(&context);
   }

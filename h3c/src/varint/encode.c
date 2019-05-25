@@ -81,16 +81,18 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
   assert(dest);
   assert(encoded_size);
 
-  *encoded_size = h3c_varint_encoded_size(varint);
-  if (*encoded_size == 0) {
+  *encoded_size = 0;
+
+  size_t varint_size = h3c_varint_encoded_size(varint);
+  if (varint_size == 0) {
     THROW(H3C_ERROR_VARINT_OVERFLOW);
   }
 
-  if (*encoded_size > size) {
+  if (varint_size > size) {
     THROW(H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
-  switch (*encoded_size) {
+  switch (varint_size) {
     case H3C_VARINT_UINT8_SIZE:
       varint_uint8_encode(dest, (uint8_t) varint);
       break;
@@ -106,6 +108,8 @@ H3C_ERROR h3c_varint_encode(uint8_t *dest,
     default:
       THROW(H3C_ERROR_INTERNAL_ERROR);
   }
+
+  *encoded_size = varint_size;
 
   return H3C_SUCCESS;
 }

@@ -46,18 +46,17 @@ static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix)
 
   if (value < prefix_max) {
     encoded_size++;
-    return encoded_size;
-  }
+  } else {
+    encoded_size++;
+    value -= prefix_max;
 
-  encoded_size++;
-  value -= prefix_max;
+    while (value >= 128) {
+      value /= 128;
+      encoded_size++;
+    }
 
-  while (value >= 128) {
-    value /= 128;
     encoded_size++;
   }
-
-  encoded_size++;
 
   return encoded_size;
 }
@@ -71,7 +70,6 @@ static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix)
                                                                                \
   dest++;                                                                      \
   size--;                                                                      \
-  (*encoded_size)++;                                                           \
   (void) 0
 
 static H3C_ERROR prefix_int_encode(uint8_t *dest,
@@ -82,23 +80,25 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
                                    h3c_log_t *log)
 {
   *encoded_size = 0;
+  uint8_t *begin = dest;
 
   uint8_t prefix_max = (uint8_t)((1U << prefix) - 1);
 
   if (value < prefix_max) {
     TRY_UINT8_ENCODE((uint8_t)(*dest & ~prefix_max) | (uint8_t) value);
-    return H3C_SUCCESS;
+  } else {
+    TRY_UINT8_ENCODE(*dest | prefix_max);
+    value -= prefix_max;
+
+    while (value >= 128) {
+      TRY_UINT8_ENCODE((uint8_t)((value % 128) + 128));
+      value /= 128;
+    }
+
+    TRY_UINT8_ENCODE((uint8_t) value);
   }
 
-  TRY_UINT8_ENCODE(*dest | prefix_max);
-  value -= prefix_max;
-
-  while (value >= 128) {
-    TRY_UINT8_ENCODE((uint8_t)((value % 128) + 128));
-    value /= 128;
-  }
-
-  TRY_UINT8_ENCODE((uint8_t) value);
+  *encoded_size = (size_t)(dest - begin);
 
   return H3C_SUCCESS;
 }
@@ -120,7 +120,6 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
                                                                                \
     dest += pi_encoded_size;                                                   \
     size -= pi_encoded_size;                                                   \
-    *encoded_size += pi_encoded_size;                                          \
   }                                                                            \
   (void) 0
 
@@ -159,7 +158,6 @@ static size_t literal_encoded_size(const char *data, size_t size)
                                                                                \
     dest += literal_encoded_size;                                              \
     size -= literal_encoded_size;                                              \
-    *encoded_size += literal_encoded_size;                                     \
   }                                                                            \
   (void) 0
 
@@ -179,7 +177,12 @@ static H3C_ERROR indexed_header_field_encode(uint8_t *dest,
                                              size_t *encoded_size,
                                              h3c_log_t *log)
 {
+  *encoded_size = 0;
+  uint8_t *begin = dest;
+
   TRY_PREFIX_INT_ENCODE(INDEXED_HEADER_FIELD_PREFIX, index, 6);
+
+  *encoded_size = (size_t)(dest - begin);
 
   return H3C_SUCCESS;
 }
@@ -207,8 +210,13 @@ static H3C_ERROR literal_with_name_reference_encode(uint8_t *dest,
                                                     size_t *encoded_size,
                                                     h3c_log_t *log)
 {
+  *encoded_size = 0;
+  uint8_t *begin = dest;
+
   TRY_PREFIX_INT_ENCODE(LITERAL_WITH_NAME_REFERENCE_PREFIX, index, 4);
   TRY_LITERAL_ENCODE(LITERAL_NO_PREFIX, header->value, 7);
+
+  *encoded_size = (size_t)(dest - begin);
 
   return H3C_SUCCESS;
 }
@@ -238,8 +246,13 @@ literal_without_name_reference_encode(uint8_t *dest,
                                       size_t *encoded_size,
                                       h3c_log_t *log)
 {
+  *encoded_size = 0;
+  uint8_t *begin = dest;
+
   TRY_LITERAL_ENCODE(LITERAL_WITHOUT_NAME_REFERENCE_PREFIX, header->name, 3);
   TRY_LITERAL_ENCODE(LITERAL_NO_PREFIX, header->value, 7);
+
+  *encoded_size = (size_t)(dest - begin);
 
   return H3C_SUCCESS;
 }
@@ -279,8 +292,6 @@ H3C_ERROR h3c_qpack_encode(uint8_t *dest,
                   header->name.data);
     THROW(H3C_ERROR_MALFORMED_HEADER);
   }
-
-  *encoded_size = 0;
 
   uint8_t index = 0;
   STATIC_TABLE_INDEX_TYPE result = static_table_find_index(header, &index);

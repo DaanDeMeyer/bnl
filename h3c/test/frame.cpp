@@ -161,8 +161,7 @@ TEST_CASE("frame")
                                  &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
-    // Only type and length and the first setting id will be encoded.
-    REQUIRE(encoded_size == buffer.size());
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("encode: varint overflow")
@@ -177,6 +176,7 @@ TEST_CASE("frame")
                                  &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_VARINT_OVERFLOW);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("encode: setting overflow")
@@ -192,6 +192,7 @@ TEST_CASE("frame")
                                  &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_SETTING_OVERFLOW);
+    REQUIRE(encoded_size == 0);
   }
 
   SUBCASE("decode: incomplete")
@@ -213,7 +214,7 @@ TEST_CASE("frame")
                              &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_INCOMPLETE);
-    REQUIRE(encoded_size == 2); // Only frame type and length can be decoded.
+    REQUIRE(encoded_size == 0);
 
     error = h3c_frame_decode(buffer.data(), buffer.size(), &dest, &encoded_size,
                              nullptr);
@@ -243,6 +244,6 @@ TEST_CASE("frame")
                              nullptr);
 
     REQUIRE(error == H3C_ERROR_MALFORMED_FRAME);
-    REQUIRE(encoded_size == 6); // Only frame type and length can be decoded.
+    REQUIRE(encoded_size == 0);
   }
 }
