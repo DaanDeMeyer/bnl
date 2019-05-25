@@ -5,13 +5,10 @@
 #include <array>
 #include <cstring>
 
-#define MAKE_HEADER(header, header_name, header_value) /* NOLINT */            \
-  h3c_header_t header;                                                         \
-  (header).name.data = (header_name);                                          \
-  (header).name.length = sizeof(header_name) - 1;                              \
-  (header).value.data = (header_value);                                        \
-  (header).value.length = sizeof(header_value) - 1;                            \
-  (void) 0
+// clang-format off
+#define MAKE_HEADER(name, value) \
+  { { name, sizeof(name) - 1 }, { value, sizeof(value) - 1 } }
+// clang-format on
 
 template <size_t N> static void encode_and_decode(const h3c_header_t &src)
 {
@@ -53,51 +50,50 @@ TEST_CASE("qpack")
 {
   SUBCASE("indexed header field")
   {
-    MAKE_HEADER(path, ":path", "/");
+    h3c_header_t path = MAKE_HEADER(":path", "/");
     encode_and_decode<1>(path);
   }
 
   SUBCASE("literal with name reference")
   {
-    MAKE_HEADER(authority, ":authority", "www.example.com");
+    h3c_header_t authority = MAKE_HEADER(":authority", "www.example.com");
     encode_and_decode<14>(authority);
   }
 
   SUBCASE("literal without name reference")
   {
-    MAKE_HEADER(via, "via", "1.0 fred");
+    h3c_header_t via = MAKE_HEADER("via", "1.0 fred");
     encode_and_decode<11>(via);
   }
 
   SUBCASE("encode: buffer too small")
   {
-    MAKE_HEADER(last_modified, "link", "</feed>; rel=\"alternate\"");
+    h3c_header_t link = MAKE_HEADER("link", "</feed>; rel=\"alternate\"");
 
     std::array<uint8_t, 21> buffer = {};
 
-    size_t encoded_size = h3c_qpack_encoded_size(&last_modified);
+    size_t encoded_size = h3c_qpack_encoded_size(&link);
     REQUIRE(encoded_size == buffer.size() + 1);
 
-    H3C_ERROR error = h3c_qpack_encode(buffer.data(), buffer.size(),
-                                       &last_modified, &encoded_size, nullptr);
+    H3C_ERROR error = h3c_qpack_encode(buffer.data(), buffer.size(), &link,
+                                       &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_BUFFER_TOO_SMALL);
   }
 
   SUBCASE("encode: malformed header")
   {
-    MAKE_HEADER(last_modified, "Link", "</feed>; rel=\"alternate\"");
+    h3c_header_t link = MAKE_HEADER("Link", "</feed>; rel=\"alternate\"");
 
     size_t encoded_size = 0;
-    int error = h3c_qpack_encode(nullptr, 0, &last_modified, &encoded_size,
-                                 nullptr);
+    int error = h3c_qpack_encode(nullptr, 0, &link, &encoded_size, nullptr);
 
     REQUIRE(error == H3C_ERROR_MALFORMED_HEADER);
   }
 
   SUBCASE("decode: incomplete")
   {
-    MAKE_HEADER(location, "location", "/pub/WWW/People.html");
+    h3c_header_t location = MAKE_HEADER("location", "/pub/WWW/People.html");
 
     std::array<uint8_t, 17> buffer = {};
     size_t encoded_size = 0;
