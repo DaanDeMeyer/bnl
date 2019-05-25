@@ -80,8 +80,8 @@ H3C_ERROR decode(uint8_t *src,
       return error;
     }
 
-    std::string name(header.name.data, header.name.length);
-    std::string value(header.value.data, header.value.length);
+    std::string name(header.name.data, header.name.size);
+    std::string value(header.value.data, header.value.size);
 
     headers.emplace_back(std::pair<std::string, std::string>{ name, value });
 

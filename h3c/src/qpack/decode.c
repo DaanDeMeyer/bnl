@@ -15,9 +15,9 @@ H3C_ERROR h3c_qpack_decode_context_init(h3c_qpack_decode_context_t *context,
 {
   // TODO: Find out what is best for max header and max value size.
   context->huffman_decoded.name.data = malloc(1000);
-  context->huffman_decoded.name.length = 1000;
+  context->huffman_decoded.name.size = 1000;
   context->huffman_decoded.value.data = malloc(64000);
-  context->huffman_decoded.value.length = 64000;
+  context->huffman_decoded.value.size = 64000;
 
   if (context->huffman_decoded.name.data == NULL ||
       context->huffman_decoded.value.data == NULL) {
@@ -131,10 +131,10 @@ static H3C_ERROR prefix_int_decode(const uint8_t *src,
     }                                                                          \
                                                                                \
     if (is_huffman_encoded) {                                                  \
-      (buffer).length = (huffman_buffer).length;                               \
+      (buffer).size = (huffman_buffer).size;                                   \
       H3C_ERROR error = h3c_huffman_decode(src, buffer_encoded_size,           \
                                            (char *) (huffman_buffer).data,     \
-                                           &(buffer).length, log);             \
+                                           &(buffer).size, log);               \
       if (error) {                                                             \
         return error;                                                          \
       }                                                                        \
@@ -142,7 +142,7 @@ static H3C_ERROR prefix_int_decode(const uint8_t *src,
       (buffer).data = (huffman_buffer).data;                                   \
     } else {                                                                   \
       (buffer).data = (const char *) src;                                      \
-      (buffer).length = buffer_encoded_size;                                   \
+      (buffer).size = buffer_encoded_size;                                     \
     }                                                                          \
                                                                                \
     src += buffer_encoded_size;                                                \
@@ -213,8 +213,8 @@ literal_without_name_reference_decode(h3c_qpack_decode_context_t *context,
 {
   TRY_LITERAL_DECODE(header->name, 3, context->huffman_decoded.name);
 
-  if (!is_lowercase(header->name.data, header->name.length)) {
-    H3C_LOG_ERROR(log, "Header (%.*s) is not lowercase", header->name.length,
+  if (!is_lowercase(header->name.data, header->name.size)) {
+    H3C_LOG_ERROR(log, "Header (%.*s) is not lowercase", header->name.size,
                   header->name.data);
     THROW(H3C_ERROR_MALFORMED_HEADER);
   }

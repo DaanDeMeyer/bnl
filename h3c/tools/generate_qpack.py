@@ -119,7 +119,7 @@ static_table_raw = """\
 find_index_template = """\
 STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header, uint8_t *index)
 {{
-  uint64_t name_hash = XXH64(header->name.data, header->name.length, 0);
+  uint64_t name_hash = XXH64(header->name.data, header->name.size, 0);
   uint64_t value_hash;
 
   switch (name_hash) {{
@@ -138,7 +138,7 @@ case {}U: // {}
 
 values_template = """\
 case {}U: // {}
-  value_hash = XXH64(header->value.data, header->value.length, 0);
+  value_hash = XXH64(header->value.data, header->value.size, 0);
   switch(value_hash) {{
     {}
   }}
@@ -215,11 +215,11 @@ case {0}:
   *header = (h3c_header_t) {{
     .name = {{
       .data = "{1}",
-      .length = sizeof("{1}") - 1
+      .size = sizeof("{1}") - 1
     }},
     .value = {{
       .data = "{2}",
-      .length = sizeof("{2}") - 1
+      .size = sizeof("{2}") - 1
     }}
   }};
   return true;\
@@ -250,7 +250,7 @@ case {0}:
   *header = (h3c_header_t) {{
     .name = {{
       .data = "{1}",
-      .length = sizeof("{1}") - 1
+      .size = sizeof("{1}") - 1
     }}
   }};
   return true;\

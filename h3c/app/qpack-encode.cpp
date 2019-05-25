@@ -66,9 +66,9 @@ encode(uint8_t *dest,
   header_block_encoded_size += prefix_encoded_size;
 
   for (const auto &header : headers) {
-    h3c_header_t h3c_header = { { header.first.data(), header.first.length() },
+    h3c_header_t h3c_header = { { header.first.data(), header.first.size() },
                                 { header.second.data(),
-                                  header.second.length() } };
+                                  header.second.size() } };
 
     size_t header_encoded_size = 0;
     error = h3c_qpack_encode(dest, size, &h3c_header, &header_encoded_size,

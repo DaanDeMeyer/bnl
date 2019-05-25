@@ -37,11 +37,11 @@ template <size_t N> static void encode_and_decode(const h3c_header_t &src)
   REQUIRE(!error);
   REQUIRE(encoded_size == N);
 
-  REQUIRE(dest.name.length == src.name.length);
-  REQUIRE(dest.value.length == src.value.length);
+  REQUIRE(dest.name.size == src.name.size);
+  REQUIRE(dest.value.size == src.value.size);
 
-  REQUIRE(std::memcmp(dest.name.data, src.name.data, dest.name.length) == 0);
-  REQUIRE(std::memcmp(dest.value.data, src.value.data, dest.value.length) == 0);
+  REQUIRE(std::memcmp(dest.name.data, src.name.data, dest.name.size) == 0);
+  REQUIRE(std::memcmp(dest.value.data, src.value.data, dest.value.size) == 0);
 
   h3c_qpack_decode_context_destroy(&context);
 }

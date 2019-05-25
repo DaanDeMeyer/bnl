@@ -13,7 +13,7 @@ typedef enum {
 STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
                                                 uint8_t *index)
 {
-  uint64_t name_hash = XXH64(header->name.data, header->name.length, 0);
+  uint64_t name_hash = XXH64(header->name.data, header->name.size, 0);
   uint64_t value_hash;
 
   switch (name_hash) {
@@ -21,7 +21,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 0;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 11800921616074793521U: // :method
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 1969084168692057419U: // CONNECT
           *index = 15;
@@ -48,7 +48,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 15;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 1432527143127418564U: // :path
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 16761507700594825962U: // /
           *index = 1;
@@ -57,7 +57,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 1;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 16734001141632695329U: // :scheme
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 13730016396111666430U: // http
           *index = 22;
@@ -69,7 +69,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 22;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 11145724770861396798U: // :status
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 2891813017576360282U: // 103
           *index = 24;
@@ -117,7 +117,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 24;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 14776963886974432617U: // accept
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 285960807216420690U: // */*
           *index = 29;
@@ -129,7 +129,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 29;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 14455144075924042224U: // accept-encoding
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 9032900040511447184U: // gzip, deflate, br
           *index = 31;
@@ -141,7 +141,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 72;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 14590555536192441974U: // accept-ranges
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 3279652670845457604U: // bytes
           *index = 32;
@@ -150,7 +150,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 32;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 5881923794129529227U: // access-control-allow-credentials
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 13702020392090633634U: // FALSE
           *index = 73;
@@ -162,7 +162,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 73;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 3800686319607884068U: // access-control-allow-headers
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 6792126209451122079U: // cache-control
           *index = 33;
@@ -177,7 +177,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 33;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 10756748986426057606U: // access-control-allow-methods
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 2774841317834080824U: // get
           *index = 76;
@@ -192,7 +192,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 76;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 9436417403599124064U: // access-control-allow-origin
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 765293966243412708U: // *
           *index = 35;
@@ -201,7 +201,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 35;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 6796384088407939286U: // access-control-expose-headers
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 17031230962583399322U: // content-length
           *index = 79;
@@ -210,7 +210,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 79;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 4242818872217734295U: // access-control-request-headers
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 3910122139284074053U: // content-type
           *index = 80;
@@ -219,7 +219,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 80;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 14051338931492133901U: // access-control-request-method
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 2774841317834080824U: // get
           *index = 81;
@@ -231,7 +231,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 81;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 5092756294692198100U: // age
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 7148434200721666028U: // 0
           *index = 2;
@@ -240,7 +240,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 2;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 12092656254601729054U: // alt-svc
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 9623284816163994036U: // clear
           *index = 83;
@@ -252,7 +252,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 84;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 6792126209451122079U: // cache-control
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 10032073942971583664U: // max-age=0
           *index = 36;
@@ -279,7 +279,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 3;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 11860813331948357247U: // content-encoding
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 12202383188974104177U: // br
           *index = 42;
@@ -291,7 +291,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 42;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 17031230962583399322U: // content-length
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 7148434200721666028U: // 0
           *index = 4;
@@ -300,7 +300,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 4;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 18043880115709070015U: // content-security-policy
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 165232284275397264U: // script-src 'none'; object-src 'none';
                                   // base-uri 'none'
@@ -310,7 +310,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 85;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 3910122139284074053U: // content-type
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 6373961066247414572U: // application/dns-message
           *index = 44;
@@ -355,7 +355,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 6;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 12326157660028381149U: // early-data
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 13237225503670494420U: // 1
           *index = 86;
@@ -394,7 +394,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 90;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 4274379369960325767U: // purpose
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 15048569516378897441U: // prefetch
           *index = 91;
@@ -403,7 +403,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 91;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 12715602975004390753U: // range
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 6181996873389341388U: // bytes=0-
           *index = 55;
@@ -421,7 +421,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 14;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 4179674550753269761U: // strict-transport-security
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 13034728143243030830U: // max-age=31536000
           *index = 56;
@@ -437,7 +437,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 56;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 5374862646944647126U: // timing-allow-origin
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 765293966243412708U: // *
           *index = 93;
@@ -446,7 +446,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 93;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 18069291607417813553U: // upgrade-insecure-requests
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 13237225503670494420U: // 1
           *index = 94;
@@ -458,7 +458,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 95;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 8816542506507529547U: // vary
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 14455144075924042224U: // accept-encoding
           *index = 59;
@@ -470,7 +470,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 59;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 6196956168349306122U: // x-content-type-options
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 4306527442339074562U: // nosniff
           *index = 61;
@@ -482,7 +482,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 96;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 8598773544412918900U: // x-frame-options
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 6492545016868164575U: // deny
           *index = 97;
@@ -494,7 +494,7 @@ STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header,
       *index = 97;
       return STATIC_TABLE_INDEX_HEADER_ONLY;
     case 15732293358711069708U: // x-xss-protection
-      value_hash = XXH64(header->value.data, header->value.length, 0);
+      value_hash = XXH64(header->value.data, header->value.size, 0);
       switch (value_hash) {
         case 7412498726110841680U: // 1; mode=block
           *index = 62;

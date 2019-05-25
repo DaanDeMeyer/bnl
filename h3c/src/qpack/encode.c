@@ -124,37 +124,37 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
   }                                                                            \
   (void) 0
 
-static size_t literal_encoded_size(const char *data, size_t length)
+static size_t literal_encoded_size(const char *data, size_t size)
 {
-  size_t huffman_encoded_size = h3c_huffman_encoded_size(data, length);
-  return huffman_encoded_size < length ? huffman_encoded_size : length;
+  size_t huffman_encoded_size = h3c_huffman_encoded_size(data, size);
+  return huffman_encoded_size < size ? huffman_encoded_size : size;
 }
 
 #define TRY_LITERAL_ENCODE(initial, buffer, prefix)                            \
   {                                                                            \
     size_t literal_encoded_size = 0;                                           \
     size_t huffman_encoded_size = h3c_huffman_encoded_size((buffer).data,      \
-                                                           (buffer).length);   \
+                                                           (buffer).size);     \
                                                                                \
-    if (huffman_encoded_size < (buffer).length) {                              \
+    if (huffman_encoded_size < (buffer).size) {                                \
       literal_encoded_size = huffman_encoded_size;                             \
       TRY_PREFIX_INT_ENCODE((initial) | (uint8_t)(1 << (prefix)),              \
                             literal_encoded_size, (prefix));                   \
                                                                                \
       H3C_ERROR error = h3c_huffman_encode(dest, size, (buffer).data,          \
-                                           (buffer).length, log);              \
+                                           (buffer).size, log);                \
       if (error) {                                                             \
         return error;                                                          \
       }                                                                        \
     } else {                                                                   \
-      literal_encoded_size = (buffer).length;                                  \
+      literal_encoded_size = (buffer).size;                                    \
       TRY_PREFIX_INT_ENCODE(initial, literal_encoded_size, (prefix));          \
                                                                                \
       if (literal_encoded_size > size) {                                       \
         THROW(H3C_ERROR_BUFFER_TOO_SMALL);                                     \
       }                                                                        \
                                                                                \
-      memcpy(dest, (buffer).data, (buffer).length);                            \
+      memcpy(dest, (buffer).data, (buffer).size);                              \
     }                                                                          \
                                                                                \
     dest += literal_encoded_size;                                              \
@@ -193,7 +193,7 @@ literal_with_name_reference_encoded_size(uint8_t index,
   encoded_size += prefix_int_encoded_size(index, 4);
 
   size_t value_encoded_size = literal_encoded_size(header->value.data,
-                                                   header->value.length);
+                                                   header->value.size);
   encoded_size += prefix_int_encoded_size(value_encoded_size, 7);
   encoded_size += value_encoded_size;
 
@@ -219,12 +219,12 @@ literal_without_name_reference_encoded_size(const h3c_header_t *header)
   size_t encoded_size = 0;
 
   size_t name_encoded_size = literal_encoded_size(header->name.data,
-                                                  header->name.length);
+                                                  header->name.size);
   encoded_size += prefix_int_encoded_size(name_encoded_size, 3);
   encoded_size += name_encoded_size;
 
   size_t value_encoded_size = literal_encoded_size(header->value.data,
-                                                   header->value.length);
+                                                   header->value.size);
   encoded_size += prefix_int_encoded_size(value_encoded_size, 7);
   encoded_size += value_encoded_size;
 
@@ -274,8 +274,8 @@ H3C_ERROR h3c_qpack_encode(uint8_t *dest,
   assert(header);
   assert(encoded_size);
 
-  if (!is_lowercase(header->name.data, header->name.length)) {
-    H3C_LOG_ERROR(log, "Header (%.*s) is not lowercase", header->name.length,
+  if (!is_lowercase(header->name.data, header->name.size)) {
+    H3C_LOG_ERROR(log, "Header (%.*s) is not lowercase", header->name.size,
                   header->name.data);
     THROW(H3C_ERROR_MALFORMED_HEADER);
   }

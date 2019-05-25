@@ -9,12 +9,12 @@ extern "C" {
 typedef struct {
   struct {
     const char *data;
-    size_t length;
+    size_t size;
   } name;
 
   struct {
     const char *data;
-    size_t length;
+    size_t size;
   } value;
 } h3c_header_t;
 
