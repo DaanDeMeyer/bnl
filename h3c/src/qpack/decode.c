@@ -34,6 +34,8 @@ void h3c_qpack_decode_context_destroy(h3c_qpack_decode_context_t *context)
   free((char *) context->huffman_decoded.value.data);
 }
 
+#define QPACK_PREFIX_ENCODED_SIZE 2
+
 H3C_ERROR h3c_qpack_prefix_decode(const uint8_t *src,
                                   size_t size,
                                   size_t *encoded_size,
@@ -44,11 +46,11 @@ H3C_ERROR h3c_qpack_prefix_decode(const uint8_t *src,
 
   *encoded_size = 0;
 
-  if (size < 2) {
+  if (size < QPACK_PREFIX_ENCODED_SIZE) {
     THROW(H3C_ERROR_INCOMPLETE);
   }
 
-  *encoded_size = 2;
+  *encoded_size = QPACK_PREFIX_ENCODED_SIZE;
 
   return H3C_SUCCESS;
 }
