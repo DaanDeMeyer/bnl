@@ -413,14 +413,14 @@ def huffman_tree_print_transition_table(ctx):
 ### main ###
 
 encode_table_template = """\
-#include <stdint.h>
+#include <cstdint>
 
-typedef struct {{
+struct symbol {{
   uint32_t code;
   size_t num_bits;
-}} huffman_symbol_t;
+}};
 
-const huffman_symbol_t encode_table[] = {{
+const symbol encode_table[] = {{
     {}
 }};
 """
@@ -456,26 +456,26 @@ for i, symbol in enumerate(symbol_table):
 
 encode_table = encode_table_template.format(symbols)
 
-file = open("encode_generated.c", "w+")
+file = open("encode_generated.cpp", "w+")
 file.write(encode_table)
 file.close()
 
 decode_table_template = """\
-#include <stdint.h>
+#include <cstdint>
 
-enum {{
-  HUFFMAN_DECODE_ACCEPTED = {},
-  HUFFMAN_DECODE_SYMBOL = {},
-  HUFFMAN_DECODE_FAILED = {},
-}} HUFFMAN_DECODE_FLAG;
+enum class decode_flag {{
+  accepted = {},
+  symbol = {},
+  failed = {},
+}};
 
-typedef struct {{
+struct node {{
   uint8_t state;
   uint8_t flags;
   uint8_t symbol;
-}} huffman_node_t;
+}};
 
-const huffman_node_t decode_table[][16] = {{
+const node decode_table[][16] = {{
     {}
 }};
 """
@@ -484,6 +484,6 @@ transition_table = huffman_tree_print_transition_table(ctx)
 
 decode_table = decode_table_template.format(HUFFMAN_DECODE_ACCEPTED, HUFFMAN_DECODE_SYMBOL, HUFFMAN_DECODE_FAILED, transition_table)
 
-file = open("decode_generated.c", "w+")
+file = open("decode_generated.cpp", "w+")
 file.write(decode_table)
 file.close()

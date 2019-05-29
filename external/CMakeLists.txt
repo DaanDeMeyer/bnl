@@ -4,8 +4,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   cddm
-  GIT_REPOSITORY https://github.com/DaanDeMeyer/cddm
-  GIT_TAG efb190724d6f3e2f6a7d19f9b612a0b25afed44c
+  URL https://github.com/DaanDeMeyer/cddm/archive/master.tar.gz
 )
 
 FetchContent_MakeAvailable(cddm)
@@ -16,8 +15,7 @@ include(${cddm_SOURCE_DIR}/cddm.cmake)
 
 FetchContent_Declare(
   doctest
-  GIT_REPOSITORY https://github.com/onqtam/doctest
-  GIT_TAG 2.3.2
+  URL https://github.com/onqtam/doctest/archive/2.3.2.tar.gz
 )
 
 option(DOCTEST_WITH_TESTS "" OFF)
@@ -25,6 +23,18 @@ option(DOCTEST_WITH_MAIN_IN_STATIC_LIB "" ON)
 option(DOCTEST_NO_INSTALL "" ON)
 
 FetchContent_MakeAvailable(doctest)
+
+## fmt ##
+
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  # https://github.com/fmtlib/fmt/pull/1134
+  GIT_TAG 29c10fbf6e51d2a204f7c24c90d7ccec86cc659a
+)
+
+option(FMT_INSTALL "" ON)
+FetchContent_MakeAvailable(fmt)
 
 ## xxhash ##
 

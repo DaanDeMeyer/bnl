@@ -1,4 +1,6 @@
-#include <util/string.h>
+#include <util/string.hpp>
+
+namespace util {
 
 bool is_lowercase(const char *string, size_t length)
 {
@@ -10,3 +12,5 @@ bool is_lowercase(const char *string, size_t length)
 
   return true;
 }
+
+} // namespace util

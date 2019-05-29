@@ -6,55 +6,57 @@
 #include <utility>
 #include <vector>
 
-#include <h3c/log/fprintf.h>
-#include <h3c/qpack.h>
+#include <h3c/log/fprintf.hpp>
+#include <h3c/qpack.hpp>
 
-#include "util.h"
+#include <util.hpp>
 
-H3C_ERROR decode(uint8_t *src,
-                 size_t size,
-                 uint64_t *stream_id,
-                 std::vector<std::pair<std::string, std::string>> &headers,
-                 size_t *encoded_size,
-                 h3c_log_t *log)
+std::error_code
+decode(uint8_t *src,
+       size_t size,
+       uint64_t *stream_id,
+       std::vector<std::pair<std::string, std::string>> *headers,
+       size_t *encoded_size,
+       const h3c::logger *logger)
 {
   *encoded_size = 0;
 
   if (sizeof(uint64_t) > size) {
-    THROW(H3C_ERROR_INCOMPLETE);
+    THROW(h3c::error::incomplete);
   }
 
-  *stream_id = static_cast<uint64_t>(src[0]) << 56 |
-               static_cast<uint64_t>(src[1]) << 48 |
-               static_cast<uint64_t>(src[2]) << 40 |
-               static_cast<uint64_t>(src[3]) << 32 |
-               static_cast<uint64_t>(src[4]) << 24 |
-               static_cast<uint64_t>(src[5]) << 16 |
-               static_cast<uint64_t>(src[6]) << 8 |
-               static_cast<uint64_t>(src[7]) << 0;
+  *stream_id = static_cast<uint64_t>(src[0]) << 56U |
+               static_cast<uint64_t>(src[1]) << 48U |
+               static_cast<uint64_t>(src[2]) << 40U |
+               static_cast<uint64_t>(src[3]) << 32U |
+               static_cast<uint64_t>(src[4]) << 24U |
+               static_cast<uint64_t>(src[5]) << 16U |
+               static_cast<uint64_t>(src[6]) << 8U |
+               static_cast<uint64_t>(src[7]) << 0U;
   src += sizeof(uint64_t);
   size -= sizeof(uint64_t);
   *encoded_size += sizeof(uint64_t);
 
   if (sizeof(uint32_t) > size) {
-    THROW(H3C_ERROR_INCOMPLETE);
+    THROW(h3c::error::incomplete);
   }
 
-  size_t header_block_encoded_size = static_cast<uint32_t>(src[0]) << 24 |
-                                     static_cast<uint32_t>(src[1]) << 16 |
-                                     static_cast<uint32_t>(src[2]) << 8 |
-                                     static_cast<uint32_t>(src[3]) << 0;
+  size_t header_block_encoded_size = static_cast<uint32_t>(src[0]) << 24U |
+                                     static_cast<uint32_t>(src[1]) << 16U |
+                                     static_cast<uint32_t>(src[2]) << 8U |
+                                     static_cast<uint32_t>(src[3]) << 0U;
   src += sizeof(uint32_t);
   size -= sizeof(uint32_t);
   *encoded_size += sizeof(uint32_t);
 
   if (header_block_encoded_size > size) {
-    THROW(H3C_ERROR_INCOMPLETE);
+    THROW(h3c::error::incomplete);
   }
 
   size_t prefix_encoded_size = 0;
-  H3C_ERROR error = h3c_qpack_prefix_decode(src, size, &prefix_encoded_size,
-                                            log);
+  std::error_code error = h3c::qpack::prefix::decode(src, size,
+                                                     &prefix_encoded_size,
+                                                     logger);
   if (error) {
     return error;
   }
@@ -64,18 +66,17 @@ H3C_ERROR decode(uint8_t *src,
   header_block_encoded_size -= prefix_encoded_size;
   *encoded_size += prefix_encoded_size;
 
-  h3c_qpack_decode_context_t context;
-  error = h3c_qpack_decode_context_init(&context, log);
+  h3c::qpack::decoder qpack;
+  error = qpack.init(logger);
   if (error) {
     return error;
   }
 
   while (header_block_encoded_size > 0) {
     size_t header_encoded_size = 0;
-    h3c_header_t header = {};
+    h3c::header header = {};
 
-    error = h3c_qpack_decode(&context, src, size, &header, &header_encoded_size,
-                             log);
+    error = qpack.decode(src, size, &header, &header_encoded_size, logger);
     if (error) {
       return error;
     }
@@ -83,7 +84,7 @@ H3C_ERROR decode(uint8_t *src,
     std::string name(header.name.data, header.name.size);
     std::string value(header.value.data, header.value.size);
 
-    headers.emplace_back(std::pair<std::string, std::string>{ name, value });
+    headers->emplace_back(std::pair<std::string, std::string>{ name, value });
 
     src += header_encoded_size;
     size -= header_encoded_size;
@@ -91,9 +92,7 @@ H3C_ERROR decode(uint8_t *src,
     *encoded_size += header_encoded_size;
   }
 
-  h3c_qpack_decode_context_destroy(&context);
-
-  return H3C_SUCCESS;
+  return {};
 }
 
 void write(std::ostream &dest,
@@ -106,14 +105,16 @@ void write(std::ostream &dest,
   dest << '\n';
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
+
 int main(int argc, char *argv[])
 {
   if (argc < 3) {
     return 1;
   }
 
-  h3c_log_fprintf_t fprintf_context = {};
-  h3c_log_t log = { h3c_log_fprintf, &fprintf_context };
+  h3c::logger logger{ h3c::log::impl::fprintf() };
 
   std::vector<uint8_t> encoded;
 
@@ -125,7 +126,7 @@ int main(int argc, char *argv[])
   try {
     input.open(argv[1], std::ios::binary);
   } catch (const std::ios_base::failure &e) {
-    H3C_LOG_ERROR(&log, "Error opening input file: %s", e.what());
+    H3C_LOG_ERROR(&logger, "Error opening input file: {}", e.what());
     return 1;
   }
 
@@ -139,7 +140,7 @@ int main(int argc, char *argv[])
     encoded = std::vector<uint8_t>(static_cast<size_t>(size));
     input.read(reinterpret_cast<char *>(encoded.data()), size); // NOLINT
   } catch (const std::ios_base::failure &e) {
-    H3C_LOG_ERROR(&log, "Error reading input: %s", e.what());
+    H3C_LOG_ERROR(&logger, "Error reading input: {}", e.what());
     return 1;
   }
 
@@ -151,7 +152,7 @@ int main(int argc, char *argv[])
   try {
     output.open(argv[2], std::ios::trunc | std::ios::binary);
   } catch (const std::ios_base::failure &e) {
-    H3C_LOG_ERROR(&log, "Error opening output file: %s", e.what());
+    H3C_LOG_ERROR(&logger, "Error opening output file: {}", e.what());
     return 1;
   }
 
@@ -162,10 +163,10 @@ int main(int argc, char *argv[])
     std::vector<std::pair<std::string, std::string>> headers;
     size_t encoded_size = 0;
 
-    H3C_ERROR error = decode(encoded.data(), encoded.size(), &stream_id,
-                             headers, &encoded_size, &log);
+    std::error_code error = decode(encoded.data(), encoded.size(), &stream_id,
+                                   &headers, &encoded_size, &logger);
     if (error) {
-      return error;
+      return error.value();
     }
 
     // Write output
@@ -173,7 +174,7 @@ int main(int argc, char *argv[])
     try {
       write(output, headers);
     } catch (std::ios_base::failure &e) {
-      H3C_LOG_ERROR(&log, "Error writing output: ", e.what());
+      H3C_LOG_ERROR(&logger, "Error writing output: {}", e.what());
       return 1;
     }
 
@@ -183,3 +184,5 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+#pragma GCC diagnostic pop

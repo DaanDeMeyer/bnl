@@ -1,18 +1,18 @@
-#include <stdint.h>
+#include <cstdint>
 
-enum {
-  HUFFMAN_DECODE_ACCEPTED = 1,
-  HUFFMAN_DECODE_SYMBOL = 2,
-  HUFFMAN_DECODE_FAILED = 4,
-} HUFFMAN_DECODE_FLAG;
+enum class decode_flag : uint8_t {
+  accepted = 1,
+  symbol = 2,
+  failed = 4,
+};
 
-typedef struct {
+struct node {
   uint8_t state;
   uint8_t flags;
   uint8_t symbol;
-} huffman_node_t;
+};
 
-const huffman_node_t decode_table[][16] = {
+const node decode_table[][16] = {
   /* 0 */ {
       { 4, 0x00, 0 },
       { 5, 0x00, 0 },

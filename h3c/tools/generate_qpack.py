@@ -117,39 +117,39 @@ static_table_raw = """\
 """
 
 find_index_template = """\
-STATIC_TABLE_INDEX_TYPE static_table_find_index(const h3c_header_t *header, uint8_t *index)
+static static_table::index_type find_index(const header &header, uint8_t *index)
 {{
-  uint64_t name_hash = XXH64(header->name.data, header->name.size, 0);
+  uint64_t name_hash = XXH64(header.name.data, header.name.size, 0);
   uint64_t value_hash;
 
   switch (name_hash) {{
     {}
   }}
 
-  return STATIC_TABLE_INDEX_MISSING;
-}}
+  return index_type::missing;
+}}\
 """
 
 no_values_template = """\
 case {}U: // {}
   *index = {};
-  return STATIC_TABLE_INDEX_HEADER_ONLY;\
+  return index_type::header_only;\
 """
 
 values_template = """\
 case {}U: // {}
-  value_hash = XXH64(header->value.data, header->value.size, 0);
+  value_hash = XXH64(header.value.data, header.value.size, 0);
   switch(value_hash) {{
     {}
   }}
   *index = {};
-  return STATIC_TABLE_INDEX_HEADER_ONLY;\
+  return index_type::header_only;\
 """
 
 value_template = """\
 case {}U: // {}
   *index = {};
-  return STATIC_TABLE_INDEX_HEADER_VALUE;\
+  return index_type::header_value;\
 """
 
 static_table = [line.split() for line in static_table_raw.splitlines()]
@@ -178,29 +178,37 @@ for header, entry in itertools.groupby(static_table, lambda x: x[1]):
 find_index = find_index_template.format(cases)
 
 encode_generated_template = """\
-#include <h3c/http.h>
+#include <h3c/http.hpp>
 
 #include <xxhash.h>
 
-#include <stdint.h>
+#include <cstdint>
 
-typedef enum {{
-  STATIC_TABLE_INDEX_MISSING,
-  STATIC_TABLE_INDEX_HEADER_ONLY,
-  STATIC_TABLE_INDEX_HEADER_VALUE
-}} STATIC_TABLE_INDEX_TYPE;
+namespace h3c {{
+namespace qpack {{
+namespace static_table {{
+
+enum class index_type {{
+  missing,
+  header_only,
+  header_value
+}};
 
 {}
+
+}}
+}}
+}}
 """
 
 encode_generated = encode_generated_template.format(find_index)
 
-file = open("encode_generated.c", "w+")
+file = open("encode_generated.cpp", "w+")
 file.write(encode_generated)
 file.close()
 
 find_header_value_template = """\
-bool static_table_find_header_value(uint8_t index, h3c_header_t *header)
+bool find_header_value(uint8_t index, header *header)
 {{
   switch(index) {{
     {}
@@ -212,14 +220,14 @@ bool static_table_find_header_value(uint8_t index, h3c_header_t *header)
 
 header_value_case_template = """\
 case {0}:
-  *header = (h3c_header_t) {{
-    .name = {{
-      .data = "{1}",
-      .size = sizeof("{1}") - 1
+  *header = {{
+    {{
+      "{1}",
+      sizeof("{1}") - 1
     }},
-    .value = {{
-      .data = "{2}",
-      .size = sizeof("{2}") - 1
+    {{
+      "{2}",
+      sizeof("{2}") - 1
     }}
   }};
   return true;\
@@ -235,7 +243,7 @@ for entry in static_table:
 find_header_value = find_header_value_template.format(cases)
 
 find_header_only_template = """\
-bool static_table_find_header_only(uint8_t index, h3c_header_t *header)
+bool find_header_only(uint8_t index, header *header)
 {{
   switch(index) {{
     {}
@@ -247,10 +255,14 @@ bool static_table_find_header_only(uint8_t index, h3c_header_t *header)
 
 header_only_case_template = """\
 case {0}:
-  *header = (h3c_header_t) {{
-    .name = {{
-      .data = "{1}",
-      .size = sizeof("{1}") - 1
+  *header = {{
+    {{
+      "{1}",
+      sizeof("{1}") - 1
+    }},
+    {{
+      nullptr,
+      0
     }}
   }};
   return true;\
@@ -264,18 +276,25 @@ for entry in static_table:
 find_header_only = find_header_only_template.format(cases)
 
 decode_generated_template = """\
-#include <h3c/http.h>
+#include <h3c/http.hpp>
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdint>
+
+namespace h3c {{
+namespace qpack {{
+namespace static_table {{
 
 {}
 
 {}
+
+}}
+}}
+}}
 """
 
 decode_generated = decode_generated_template.format(find_header_value, find_header_only)
 
-file = open("decode_generated.c", "w+")
+file = open("decode_generated.cpp", "w+")
 file.write(decode_generated)
 file.close()

@@ -24,67 +24,68 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <h3c/huffman.h>
+#include <h3c/huffman.hpp>
 
-#include <util/error.h>
+#include <util/error.hpp>
 
-#include <stdbool.h>
+namespace h3c {
 
-#include "decode_generated.c"
+#include "decode_generated.cpp"
 
-H3C_ERROR
-h3c_huffman_decode(const uint8_t *src,
-                   size_t size,
-                   char *string,
-                   size_t *string_size,
-                   h3c_log_t *log)
+std::error_code huffman::decode(const uint8_t *src,
+                                size_t size,
+                                char *string,
+                                size_t *string_size,
+                                const logger *logger)
 {
   uint8_t state = 0;
-  bool accept = 0;
+  bool accept = false;
   size_t string_length = 0;
 
   for (size_t i = 0; i < size; ++i) {
-    const huffman_node_t *node = &decode_table[state][src[i] >> 4];
+    const node &first = decode_table[state][src[i] >> 4U];
 
-    if (node->flags & HUFFMAN_DECODE_FAILED) {
-      THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
+    if ((first.flags & static_cast<uint8_t>(decode_flag::failed)) != 0) {
+      THROW(error::qpack_decompression_failed);
     }
 
-    if (node->flags & HUFFMAN_DECODE_SYMBOL) {
+    if ((first.flags & static_cast<uint8_t>(decode_flag::symbol)) != 0) {
       if (*string_size == 0) {
-        THROW(H3C_ERROR_BUFFER_TOO_SMALL);
+        THROW(error::buffer_too_small);
       }
 
-      *string++ = (char) node->symbol;
+      *string++ = static_cast<char>(first.symbol);
       (*string_size)--;
       string_length++;
     }
 
-    node = &decode_table[node->state][src[i] & 0xf];
+    const node &second = decode_table[first.state][src[i] & 0xfU];
 
-    if (node->flags & HUFFMAN_DECODE_FAILED) {
-      THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
+    if ((second.flags & static_cast<uint8_t>(decode_flag::failed)) != 0) {
+      THROW(error::qpack_decompression_failed);
     }
 
-    if (node->flags & HUFFMAN_DECODE_SYMBOL) {
+    if ((second.flags & static_cast<uint8_t>(decode_flag::symbol)) != 0) {
       if (*string_size == 0) {
-        THROW(H3C_ERROR_BUFFER_TOO_SMALL);
+        THROW(error::buffer_too_small);
       }
 
-      *string++ = (char) node->symbol;
+      *string++ = static_cast<char>(second.symbol);
       (*string_size)--;
       string_length++;
     }
 
-    state = node->state;
-    accept = (node->flags & HUFFMAN_DECODE_ACCEPTED) != 0;
+    state = second.state;
+    accept = (second.flags & static_cast<uint8_t>(decode_flag::accepted)) != 0;
   }
 
   if (!accept) {
-    THROW(H3C_ERROR_QPACK_DECOMPRESSION_FAILED);
+    THROW(error::qpack_decompression_failed);
   }
 
   *string_size = string_length;
 
-  return H3C_SUCCESS;
+  return {};
 }
+
+} // namespace h3c

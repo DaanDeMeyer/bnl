@@ -1,26 +1,28 @@
-#include <h3c/qpack.h>
+#include <h3c/qpack.hpp>
 
-#include <h3c/huffman.h>
+#include <h3c/huffman.hpp>
 
-#include <util/error.h>
-#include <util/string.h>
+#include <util/error.hpp>
+#include <util/string.hpp>
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
-#include "encode_generated.c"
+#include "encode_generated.cpp"
 
-#define QPACK_PREFIX_ENCODED_SIZE 2
+static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
-size_t h3c_qpack_prefix_encoded_size()
+namespace h3c {
+
+size_t qpack::prefix::encoded_size()
 {
   return QPACK_PREFIX_ENCODED_SIZE;
 }
 
-H3C_ERROR h3c_qpack_prefix_encode(uint8_t *dest,
-                                  size_t size,
-                                  size_t *encoded_size,
-                                  h3c_log_t *log)
+std::error_code qpack::prefix::encode(uint8_t *dest,
+                                      size_t size,
+                                      size_t *encoded_size,
+                                      const logger *logger)
 {
   assert(dest);
   assert(encoded_size);
@@ -28,19 +30,19 @@ H3C_ERROR h3c_qpack_prefix_encode(uint8_t *dest,
   *encoded_size = 0;
 
   if (size < QPACK_PREFIX_ENCODED_SIZE) {
-    THROW(H3C_ERROR_BUFFER_TOO_SMALL);
+    THROW(error::buffer_too_small);
   }
 
   memset(dest, 0, QPACK_PREFIX_ENCODED_SIZE);
 
   *encoded_size = QPACK_PREFIX_ENCODED_SIZE;
 
-  return H3C_SUCCESS;
+  return {};
 }
 
 static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix)
 {
-  uint8_t prefix_max = (uint8_t)((1U << prefix) - 1);
+  uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
   size_t encoded_size = 0;
 
@@ -63,7 +65,7 @@ static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix)
 
 #define TRY_UINT8_ENCODE(value)                                                \
   if (size == 0) {                                                             \
-    THROW(H3C_ERROR_BUFFER_TOO_SMALL);                                         \
+    THROW(error::buffer_too_small);                                            \
   }                                                                            \
                                                                                \
   *dest = (value);                                                             \
@@ -72,20 +74,22 @@ static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix)
   size--;                                                                      \
   (void) 0
 
-static H3C_ERROR prefix_int_encode(uint8_t *dest,
-                                   size_t size,
-                                   uint64_t value,
-                                   uint8_t prefix,
-                                   size_t *encoded_size,
-                                   h3c_log_t *log)
+static std::error_code prefix_int_encode(uint8_t *dest,
+                                         size_t size,
+                                         uint64_t value,
+                                         uint8_t prefix,
+                                         size_t *encoded_size,
+                                         const logger *logger)
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
 
-  uint8_t prefix_max = (uint8_t)((1U << prefix) - 1);
+  uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
   if (value < prefix_max) {
-    TRY_UINT8_ENCODE((uint8_t)(*dest & ~prefix_max) | (uint8_t) value);
+    TRY_UINT8_ENCODE(
+        static_cast<uint8_t>(*dest & static_cast<uint8_t>(~prefix_max)) |
+        static_cast<uint8_t>(value));
   } else {
     TRY_UINT8_ENCODE(*dest | prefix_max);
     value -= prefix_max;
@@ -98,22 +102,22 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
     TRY_UINT8_ENCODE((uint8_t) value);
   }
 
-  *encoded_size = (size_t)(dest - begin);
+  *encoded_size = static_cast<size_t>(dest - begin);
 
-  return H3C_SUCCESS;
+  return {};
 }
 
 #define TRY_PREFIX_INT_ENCODE(initial, value, prefix)                          \
   {                                                                            \
     if (size == 0) {                                                           \
-      THROW(H3C_ERROR_BUFFER_TOO_SMALL);                                       \
+      THROW(error::buffer_too_small);                                          \
     }                                                                          \
                                                                                \
     *dest = (initial);                                                         \
                                                                                \
     size_t pi_encoded_size = 0;                                                \
-    H3C_ERROR error = prefix_int_encode(dest, size, (value), (prefix),         \
-                                        &pi_encoded_size, log);                \
+    std::error_code error = prefix_int_encode(dest, size, (value), (prefix),   \
+                                              &pi_encoded_size, logger);       \
     if (error) {                                                               \
       return error;                                                            \
     }                                                                          \
@@ -125,23 +129,23 @@ static H3C_ERROR prefix_int_encode(uint8_t *dest,
 
 static size_t literal_encoded_size(const char *data, size_t size)
 {
-  size_t huffman_encoded_size = h3c_huffman_encoded_size(data, size);
+  size_t huffman_encoded_size = huffman::encoded_size(data, size);
   return huffman_encoded_size < size ? huffman_encoded_size : size;
 }
 
 #define TRY_LITERAL_ENCODE(initial, buffer, prefix)                            \
   {                                                                            \
     size_t literal_encoded_size = 0;                                           \
-    size_t huffman_encoded_size = h3c_huffman_encoded_size((buffer).data,      \
-                                                           (buffer).size);     \
+    size_t huffman_encoded_size = huffman::encoded_size((buffer).data,         \
+                                                        (buffer).size);        \
                                                                                \
     if (huffman_encoded_size < (buffer).size) {                                \
       literal_encoded_size = huffman_encoded_size;                             \
-      TRY_PREFIX_INT_ENCODE((initial) | (uint8_t)(1 << (prefix)),              \
+      TRY_PREFIX_INT_ENCODE((initial) | static_cast<uint8_t>(1U << (prefix)),  \
                             literal_encoded_size, (prefix));                   \
                                                                                \
-      H3C_ERROR error = h3c_huffman_encode(dest, size, (buffer).data,          \
-                                           (buffer).size, log);                \
+      std::error_code error = huffman::encode(dest, size, (buffer).data,       \
+                                              (buffer).size, logger);          \
       if (error) {                                                             \
         return error;                                                          \
       }                                                                        \
@@ -150,7 +154,7 @@ static size_t literal_encoded_size(const char *data, size_t size)
       TRY_PREFIX_INT_ENCODE(initial, literal_encoded_size, (prefix));          \
                                                                                \
       if (literal_encoded_size > size) {                                       \
-        THROW(H3C_ERROR_BUFFER_TOO_SMALL);                                     \
+        THROW(error::buffer_too_small);                                        \
       }                                                                        \
                                                                                \
       memcpy(dest, (buffer).data, (buffer).size);                              \
@@ -161,115 +165,113 @@ static size_t literal_encoded_size(const char *data, size_t size)
   }                                                                            \
   (void) 0
 
-#define INDEXED_HEADER_FIELD_PREFIX 0xc0
-#define LITERAL_WITH_NAME_REFERENCE_PREFIX 0x50
-#define LITERAL_WITHOUT_NAME_REFERENCE_PREFIX 0x20
-#define LITERAL_NO_PREFIX 0x00
+static constexpr uint8_t INDEXED_HEADER_FIELD_PREFIX = 0xc0;
+static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x50;
+static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
+static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
 static size_t indexed_header_field_encoded_size(uint8_t index)
 {
   return prefix_int_encoded_size(index, 6);
 }
 
-static H3C_ERROR indexed_header_field_encode(uint8_t *dest,
-                                             size_t size,
-                                             uint8_t index,
-                                             size_t *encoded_size,
-                                             h3c_log_t *log)
+static std::error_code indexed_header_field_encode(uint8_t *dest,
+                                                   size_t size,
+                                                   uint8_t index,
+                                                   size_t *encoded_size,
+                                                   const logger *logger)
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
 
   TRY_PREFIX_INT_ENCODE(INDEXED_HEADER_FIELD_PREFIX, index, 6);
 
-  *encoded_size = (size_t)(dest - begin);
+  *encoded_size = static_cast<size_t>(dest - begin);
 
-  return H3C_SUCCESS;
+  return {};
 }
 
-static size_t
-literal_with_name_reference_encoded_size(uint8_t index,
-                                         const h3c_header_t *header)
+static size_t literal_with_name_reference_encoded_size(uint8_t index,
+                                                       const header &header)
 {
   size_t encoded_size = 0;
 
   encoded_size += prefix_int_encoded_size(index, 4);
 
-  size_t value_encoded_size = literal_encoded_size(header->value.data,
-                                                   header->value.size);
+  size_t value_encoded_size = literal_encoded_size(header.value.data,
+                                                   header.value.size);
   encoded_size += prefix_int_encoded_size(value_encoded_size, 7);
   encoded_size += value_encoded_size;
 
   return encoded_size;
 }
 
-static H3C_ERROR literal_with_name_reference_encode(uint8_t *dest,
-                                                    size_t size,
-                                                    uint8_t index,
-                                                    const h3c_header_t *header,
-                                                    size_t *encoded_size,
-                                                    h3c_log_t *log)
+static std::error_code literal_with_name_reference_encode(uint8_t *dest,
+                                                          size_t size,
+                                                          uint8_t index,
+                                                          const header &header,
+                                                          size_t *encoded_size,
+                                                          const logger *logger)
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
 
-  TRY_PREFIX_INT_ENCODE(LITERAL_WITH_NAME_REFERENCE_PREFIX, index, 4);
-  TRY_LITERAL_ENCODE(LITERAL_NO_PREFIX, header->value, 7);
+  TRY_PREFIX_INT_ENCODE(LITERAL_WITH_NAME_REFERENCE_PREFIX, index, 4U);
+  TRY_LITERAL_ENCODE(LITERAL_NO_PREFIX, header.value, 7U);
 
-  *encoded_size = (size_t)(dest - begin);
+  *encoded_size = static_cast<size_t>(dest - begin);
 
-  return H3C_SUCCESS;
+  return {};
 }
 
-static size_t
-literal_without_name_reference_encoded_size(const h3c_header_t *header)
+static size_t literal_without_name_reference_encoded_size(const header &header)
 {
   size_t encoded_size = 0;
 
-  size_t name_encoded_size = literal_encoded_size(header->name.data,
-                                                  header->name.size);
+  size_t name_encoded_size = literal_encoded_size(header.name.data,
+                                                  header.name.size);
   encoded_size += prefix_int_encoded_size(name_encoded_size, 3);
   encoded_size += name_encoded_size;
 
-  size_t value_encoded_size = literal_encoded_size(header->value.data,
-                                                   header->value.size);
+  size_t value_encoded_size = literal_encoded_size(header.value.data,
+                                                   header.value.size);
   encoded_size += prefix_int_encoded_size(value_encoded_size, 7);
   encoded_size += value_encoded_size;
 
   return encoded_size;
 }
 
-static H3C_ERROR
+static std::error_code
 literal_without_name_reference_encode(uint8_t *dest,
                                       size_t size,
-                                      const h3c_header_t *header,
+                                      const header &header,
                                       size_t *encoded_size,
-                                      h3c_log_t *log)
+                                      const logger *logger)
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
 
-  TRY_LITERAL_ENCODE(LITERAL_WITHOUT_NAME_REFERENCE_PREFIX, header->name, 3);
-  TRY_LITERAL_ENCODE(LITERAL_NO_PREFIX, header->value, 7);
+  TRY_LITERAL_ENCODE(LITERAL_WITHOUT_NAME_REFERENCE_PREFIX, header.name, 3U);
+  TRY_LITERAL_ENCODE(LITERAL_NO_PREFIX, header.value, 7U);
 
-  *encoded_size = (size_t)(dest - begin);
+  *encoded_size = static_cast<size_t>(dest - begin);
 
-  return H3C_SUCCESS;
+  return {};
 }
 
-size_t h3c_qpack_encoded_size(const h3c_header_t *header)
+size_t qpack::encoded_size(const header &header)
 {
   assert(header);
 
   uint8_t index = 0;
-  STATIC_TABLE_INDEX_TYPE result = static_table_find_index(header, &index);
+  static_table::index_type result = static_table::find_index(header, &index);
 
   switch (result) {
-    case STATIC_TABLE_INDEX_HEADER_VALUE:
+    case static_table::index_type::header_value:
       return indexed_header_field_encoded_size(index);
-    case STATIC_TABLE_INDEX_HEADER_ONLY:
+    case static_table::index_type::header_only:
       return literal_with_name_reference_encoded_size(index, header);
-    case STATIC_TABLE_INDEX_MISSING:
+    case static_table::index_type::missing:
       return literal_without_name_reference_encoded_size(header);
   }
 
@@ -277,35 +279,39 @@ size_t h3c_qpack_encoded_size(const h3c_header_t *header)
   return 0;
 }
 
-H3C_ERROR h3c_qpack_encode(uint8_t *dest,
-                           size_t size,
-                           const h3c_header_t *header,
-                           size_t *encoded_size,
-                           h3c_log_t *log)
+std::error_code qpack::encode(uint8_t *dest,
+                              size_t size,
+                              const header &header,
+                              size_t *encoded_size,
+                              const logger *logger)
 {
   assert(dest);
   assert(header);
   assert(encoded_size);
 
-  if (!is_lowercase(header->name.data, header->name.size)) {
-    H3C_LOG_ERROR(log, "Header (%.*s) is not lowercase", header->name.size,
-                  header->name.data);
-    THROW(H3C_ERROR_MALFORMED_HEADER);
+  if (!util::is_lowercase(header.name.data, header.name.size)) {
+    H3C_LOG_ERROR(logger, "Header ({}) is not lowercase",
+                  fmt::string_view(header.name.data, header.name.size));
+    THROW(error::malformed_header);
   }
 
   uint8_t index = 0;
-  STATIC_TABLE_INDEX_TYPE result = static_table_find_index(header, &index);
+  qpack::static_table::index_type result =
+      qpack::static_table::find_index(header, &index);
 
   switch (result) {
-    case STATIC_TABLE_INDEX_HEADER_VALUE:
-      return indexed_header_field_encode(dest, size, index, encoded_size, log);
-    case STATIC_TABLE_INDEX_HEADER_ONLY:
+    case qpack::static_table::index_type::header_value:
+      return indexed_header_field_encode(dest, size, index, encoded_size,
+                                         logger);
+    case qpack::static_table::index_type::header_only:
       return literal_with_name_reference_encode(dest, size, index, header,
-                                                encoded_size, log);
-    case STATIC_TABLE_INDEX_MISSING:
+                                                encoded_size, logger);
+    case qpack::static_table::index_type::missing:
       return literal_without_name_reference_encode(dest, size, header,
-                                                   encoded_size, log);
+                                                   encoded_size, logger);
   }
 
-  THROW(H3C_ERROR_INTERNAL_ERROR);
+  THROW(error::internal_error);
 }
+
+} // namespace h3c

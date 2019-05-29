@@ -1,11 +1,11 @@
-#include <stdint.h>
+#include <cstdint>
 
-typedef struct {
+struct symbol {
   uint32_t code;
   size_t num_bits;
-} huffman_symbol_t;
+};
 
-const huffman_symbol_t encode_table[] = {
+const symbol encode_table[] = {
   /*  */ { 0x1ff8u, 13 },     /*  */ { 0x7fffd8u, 23 },
   /*  */ { 0xfffffe2u, 28 },  /*  */ { 0xfffffe3u, 28 },
   /*  */ { 0xfffffe4u, 28 },  /*  */ { 0xfffffe5u, 28 },
