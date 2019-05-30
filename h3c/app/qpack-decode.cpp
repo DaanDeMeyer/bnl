@@ -54,12 +54,7 @@ decode(uint8_t *src,
   }
 
   size_t prefix_encoded_size = 0;
-  std::error_code error = h3c::qpack::prefix::decode(src, size,
-                                                     &prefix_encoded_size,
-                                                     logger);
-  if (error) {
-    return error;
-  }
+  TRY(h3c::qpack::prefix::decode(src, size, &prefix_encoded_size, logger));
 
   src += prefix_encoded_size;
   size -= prefix_encoded_size;
@@ -67,19 +62,13 @@ decode(uint8_t *src,
   *encoded_size += prefix_encoded_size;
 
   h3c::qpack::decoder qpack;
-  error = qpack.init(logger);
-  if (error) {
-    return error;
-  }
+  TRY(qpack.init(logger));
 
   while (header_block_encoded_size > 0) {
     size_t header_encoded_size = 0;
     h3c::header header = {};
 
-    error = qpack.decode(src, size, &header, &header_encoded_size, logger);
-    if (error) {
-      return error;
-    }
+    TRY(qpack.decode(src, size, &header, &header_encoded_size, logger));
 
     std::string name(header.name.data, header.name.size);
     std::string value(header.value.data, header.value.size);

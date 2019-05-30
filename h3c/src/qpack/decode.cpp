@@ -98,11 +98,8 @@ static std::error_code prefix_int_decode(const uint8_t *src,
   {                                                                            \
     uint64_t pi = 0;                                                           \
     size_t pi_encoded_size = 0;                                                \
-    std::error_code error = prefix_int_decode(src, size, &pi, (prefix),        \
-                                              &pi_encoded_size, logger);       \
-    if (error) {                                                               \
-      return error;                                                            \
-    }                                                                          \
+    TRY(prefix_int_decode(src, size, &pi, (prefix), &pi_encoded_size,          \
+                          logger));                                            \
                                                                                \
     /* TODO: Introduce max values */                                           \
     (value) = (type) pi;                                                       \
@@ -131,12 +128,9 @@ static std::error_code prefix_int_decode(const uint8_t *src,
                                                                                \
     if (is_huffman_encoded) {                                                  \
       (buffer).size = (huffman_buffer).size;                                   \
-      std::error_code error = huffman::decode(                                 \
-          src, buffer_encoded_size, (char *) (huffman_buffer).data.get(),      \
-          &(buffer).size, logger);                                             \
-      if (error) {                                                             \
-        return error;                                                          \
-      }                                                                        \
+      TRY(huffman::decode(src, buffer_encoded_size,                            \
+                          (huffman_buffer).data.get(), &(buffer).size,         \
+                          logger));                                            \
                                                                                \
       (buffer).data = (huffman_buffer).data.get();                             \
     } else {                                                                   \

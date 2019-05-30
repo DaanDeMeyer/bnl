@@ -82,11 +82,7 @@ static uint64_t frame_payload_size(const frame &frame)
 #define TRY_VARINT_ENCODE(value)                                               \
   {                                                                            \
     size_t varint_encoded_size = 0;                                            \
-    std::error_code error = varint::encode(dest, size, (value),                \
-                                           &varint_encoded_size, logger);      \
-    if (error) {                                                               \
-      return error;                                                            \
-    }                                                                          \
+    TRY(varint::encode(dest, size, (value), &varint_encoded_size, logger));    \
                                                                                \
     dest += varint_encoded_size;                                               \
     size -= varint_encoded_size;                                               \

@@ -20,3 +20,12 @@
     return code;                                                               \
   }                                                                            \
   (void) 0
+
+#define TRY(statement)                                                         \
+  {                                                                            \
+    std::error_code error = statement;                                         \
+    if (error) {                                                               \
+      return error;                                                            \
+    }                                                                          \
+  }                                                                            \
+  (void) 0

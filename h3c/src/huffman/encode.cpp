@@ -129,11 +129,7 @@ std::error_code huffman::encode(uint8_t *dest,
     const symbol &symbol = encode_table[static_cast<unsigned char>(string[i])];
 
     size_t encoded_size = 0;
-    std::error_code error = symbol_encode(dest, size, &rem_bits, symbol,
-                                          &encoded_size, logger);
-    if (error) {
-      return error;
-    }
+    TRY(symbol_encode(dest, size, &rem_bits, symbol, &encoded_size, logger));
 
     dest += encoded_size;
     size -= encoded_size;

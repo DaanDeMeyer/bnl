@@ -116,11 +116,8 @@ static std::error_code prefix_int_encode(uint8_t *dest,
     *dest = (initial);                                                         \
                                                                                \
     size_t pi_encoded_size = 0;                                                \
-    std::error_code error = prefix_int_encode(dest, size, (value), (prefix),   \
-                                              &pi_encoded_size, logger);       \
-    if (error) {                                                               \
-      return error;                                                            \
-    }                                                                          \
+    TRY(prefix_int_encode(dest, size, (value), (prefix), &pi_encoded_size,     \
+                          logger));                                            \
                                                                                \
     dest += pi_encoded_size;                                                   \
     size -= pi_encoded_size;                                                   \
@@ -144,11 +141,7 @@ static size_t literal_encoded_size(const char *data, size_t size)
       TRY_PREFIX_INT_ENCODE((initial) | static_cast<uint8_t>(1U << (prefix)),  \
                             literal_encoded_size, (prefix));                   \
                                                                                \
-      std::error_code error = huffman::encode(dest, size, (buffer).data,       \
-                                              (buffer).size, logger);          \
-      if (error) {                                                             \
-        return error;                                                          \
-      }                                                                        \
+      TRY(huffman::encode(dest, size, (buffer).data, (buffer).size, logger));  \
     } else {                                                                   \
       literal_encoded_size = (buffer).size;                                    \
       TRY_PREFIX_INT_ENCODE(initial, literal_encoded_size, (prefix));          \

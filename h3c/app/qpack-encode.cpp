@@ -55,12 +55,7 @@ encode(uint8_t *dest,
   size_t header_block_encoded_size = 0;
 
   size_t prefix_encoded_size = 0;
-  std::error_code error = h3c::qpack::prefix::encode(dest, size,
-                                                     &prefix_encoded_size,
-                                                     logger);
-  if (error) {
-    return error;
-  }
+  TRY(h3c::qpack::prefix::encode(dest, size, &prefix_encoded_size, logger));
 
   dest += prefix_encoded_size;
   size -= prefix_encoded_size;
@@ -72,11 +67,8 @@ encode(uint8_t *dest,
                                { header.second.data(), header.second.size() } };
 
     size_t header_encoded_size = 0;
-    error = h3c::qpack::encode(dest, size, h3c_header, &header_encoded_size,
-                               logger);
-    if (error) {
-      return error;
-    }
+    TRY(h3c::qpack::encode(dest, size, h3c_header, &header_encoded_size,
+                           logger));
 
     dest += header_encoded_size;
     size -= header_encoded_size;

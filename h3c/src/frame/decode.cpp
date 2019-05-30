@@ -12,11 +12,7 @@ namespace h3c {
 #define TRY_VARINT_DECODE_1(value)                                             \
   {                                                                            \
     size_t varint_encoded_size = 0;                                            \
-    std::error_code error = varint::decode(src, size, &(value),                \
-                                           &varint_encoded_size, logger);      \
-    if (error) {                                                               \
-      return error;                                                            \
-    }                                                                          \
+    TRY(varint::decode(src, size, &(value), &varint_encoded_size, logger));    \
                                                                                \
     src += varint_encoded_size;                                                \
     size -= varint_encoded_size;                                               \
@@ -28,11 +24,7 @@ namespace h3c {
 #define TRY_VARINT_DECODE_2(value)                                             \
   {                                                                            \
     size_t varint_encoded_size = 0;                                            \
-    std::error_code error = varint::decode(src, size, &(value),                \
-                                           &varint_encoded_size, logger);      \
-    if (error) {                                                               \
-      return error;                                                            \
-    }                                                                          \
+    TRY(varint::decode(src, size, &(value), &varint_encoded_size, logger));    \
                                                                                \
     if (varint_encoded_size > payload_encoded_size) {                          \
       H3C_LOG_ERROR(                                                           \
