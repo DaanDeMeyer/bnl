@@ -31,16 +31,15 @@ static std::string random_string(std::string::size_type length)
 }
 
 static void encode_and_decode(const std::string &string,
-                              const h3c::logger &logger)
+                              h3c::huffman::encoder *encoder,
+                              h3c::huffman::decoder *decoder)
 {
-  size_t encoded_size = h3c::huffman::encoded_size(string.data(),
-                                                   string.size());
+  size_t encoded_size = encoder->encoded_size(string.data(), string.size());
 
   std::vector<uint8_t> buffer(encoded_size);
 
-  std::error_code error = h3c::huffman::encode(buffer.data(), buffer.size(),
-                                               string.data(), string.size(),
-                                               &logger);
+  std::error_code error = encoder->encode(buffer.data(), buffer.size(),
+                                          string.data(), string.size());
 
   CAPTURE(error);
 
@@ -49,8 +48,8 @@ static void encode_and_decode(const std::string &string,
   std::vector<char> decode(string.size() + 20);
 
   size_t string_size = decode.size();
-  error = h3c::huffman::decode(buffer.data(), encoded_size, decode.data(),
-                               &string_size, &logger);
+  error = decoder->decode(buffer.data(), encoded_size, decode.data(),
+                          &string_size);
 
   CAPTURE(string);
 
@@ -65,5 +64,9 @@ static void encode_and_decode(const std::string &string,
 TEST_CASE("huffman")
 {
   h3c::logger logger;
-  encode_and_decode(random_string(20), logger);
+
+  h3c::huffman::encoder encoder(&logger);
+  h3c::huffman::decoder decoder(&logger);
+
+  encode_and_decode(random_string(20), &encoder, &decoder);
 }
