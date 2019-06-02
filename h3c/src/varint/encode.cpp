@@ -6,7 +6,10 @@
 
 namespace h3c {
 
-size_t varint::encoded_size(uint64_t varint)
+varint::encoder::encoder(const class logger *logger) noexcept : logger(logger)
+{}
+
+size_t varint::encoder::encoded_size(uint64_t varint) const noexcept
 {
   if (varint < 0x40U) {
     return sizeof(uint8_t);
@@ -74,18 +77,17 @@ static void uint64_encode(uint8_t *dest, uint64_t number)
   dest[0] |= UINT64_HEADER;
 }
 
-std::error_code varint::encode(uint8_t *dest,
-                               size_t size,
-                               uint64_t varint,
-                               size_t *encoded_size,
-                               const logger *logger)
+std::error_code varint::encoder::encode(uint8_t *dest,
+                                        size_t size,
+                                        uint64_t varint,
+                                        size_t *encoded_size) const noexcept
 {
   assert(dest);
   assert(encoded_size);
 
   *encoded_size = 0;
 
-  size_t varint_size = varint::encoded_size(varint);
+  size_t varint_size = this->encoded_size(varint);
   if (varint_size == 0) {
     THROW(error::varint_overflow);
   }

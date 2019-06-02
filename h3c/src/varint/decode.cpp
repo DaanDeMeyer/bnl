@@ -6,6 +6,9 @@
 
 namespace h3c {
 
+varint::decoder::decoder(const class logger *logger) noexcept : logger(logger)
+{}
+
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
 
@@ -47,11 +50,10 @@ static uint64_t uint64_decode(const uint8_t *src)
   return result & 0x3fffffffffffffffU;
 }
 
-std::error_code varint::decode(const uint8_t *src,
-                               size_t size,
-                               uint64_t *varint,
-                               size_t *encoded_size,
-                               const logger *logger)
+std::error_code varint::decoder::decode(const uint8_t *src,
+                                        size_t size,
+                                        uint64_t *varint,
+                                        size_t *encoded_size) const noexcept
 {
   assert(src);
   assert(varint);
