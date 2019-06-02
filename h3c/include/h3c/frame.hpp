@@ -130,7 +130,7 @@ private:
 
 class frame::encoder {
 public:
-  H3C_EXPORT explicit encoder(const logger *logger) noexcept;
+  H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
   encoder(const encoder &) = delete;
   encoder &operator=(const encoder &) = delete;
@@ -148,15 +148,16 @@ public:
                                     size_t *encoded_size) const noexcept;
 
 private:
-  varint::encoder varint;
-  const logger *logger;
+  logger *logger_;
+
+  varint::encoder varint_;
 
   uint64_t payload_size(const frame &frame) const noexcept;
 };
 
 class frame::decoder {
 public:
-  H3C_EXPORT explicit decoder(const logger *logger) noexcept;
+  H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
   decoder(const decoder &) = delete;
   decoder &operator=(const decoder &) = delete;
@@ -172,8 +173,9 @@ public:
                                     size_t *encoded_size) const noexcept;
 
 private:
-  varint::decoder varint;
-  const logger *logger;
+  logger *logger_;
+
+  varint::decoder varint_;
 };
 
 } // namespace h3c

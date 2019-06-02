@@ -14,8 +14,8 @@ static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 namespace h3c {
 
-qpack::encoder::encoder(const class logger *logger) noexcept
-    : logger(logger), huffman_(logger)
+qpack::encoder::encoder(logger *logger) noexcept
+    : logger_(logger), huffman_(logger)
 {}
 
 size_t qpack::encoder::prefix_encoded_size() const noexcept
@@ -83,7 +83,7 @@ static std::error_code prefix_int_encode(uint8_t *dest,
                                          uint64_t value,
                                          uint8_t prefix,
                                          size_t *encoded_size,
-                                         const logger *logger) noexcept
+                                         const logger *logger_) noexcept
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
@@ -121,7 +121,7 @@ static std::error_code prefix_int_encode(uint8_t *dest,
                                                                                \
     size_t pi_encoded_size = 0;                                                \
     TRY(prefix_int_encode(dest, size, (value), (prefix), &pi_encoded_size,     \
-                          logger));                                            \
+                          logger_));                                           \
                                                                                \
     dest += pi_encoded_size;                                                   \
     size -= pi_encoded_size;                                                   \
@@ -224,7 +224,7 @@ std::error_code qpack::encoder::encode(uint8_t *dest,
   assert(encoded_size);
 
   if (!util::is_lowercase(header.name.data, header.name.size)) {
-    H3C_LOG_ERROR(logger, "Header ({}) is not lowercase",
+    H3C_LOG_ERROR(logger_, "Header ({}) is not lowercase",
                   fmt::string_view(header.name.data, header.name.size));
     THROW(error::malformed_header);
   }

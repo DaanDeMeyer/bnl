@@ -6,7 +6,7 @@
 
 namespace h3c {
 
-varint::decoder::decoder(const class logger *logger) noexcept : logger(logger)
+varint::decoder::decoder(logger *logger) noexcept : logger_(logger)
 {}
 
 // All decode functions convert from network to host byte order and remove the

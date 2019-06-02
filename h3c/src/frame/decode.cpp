@@ -10,14 +10,14 @@
 
 namespace h3c {
 
-frame::decoder::decoder(const class logger *logger) noexcept
-    : varint(logger), logger(logger)
+frame::decoder::decoder(logger *logger) noexcept
+    : logger_(logger), varint_(logger)
 {}
 
 #define TRY_VARINT_DECODE_1(value)                                             \
   {                                                                            \
     size_t varint_encoded_size = 0;                                            \
-    TRY(varint.decode(src, size, &(value), &varint_encoded_size));             \
+    TRY(varint_.decode(src, size, &(value), &varint_encoded_size));            \
                                                                                \
     src += varint_encoded_size;                                                \
     size -= varint_encoded_size;                                               \
@@ -29,11 +29,11 @@ frame::decoder::decoder(const class logger *logger) noexcept
 #define TRY_VARINT_DECODE_2(value)                                             \
   {                                                                            \
     size_t varint_encoded_size = 0;                                            \
-    TRY(varint.decode(src, size, &(value), &varint_encoded_size));             \
+    TRY(varint_.decode(src, size, &(value), &varint_encoded_size));            \
                                                                                \
     if (varint_encoded_size > payload_encoded_size) {                          \
       H3C_LOG_ERROR(                                                           \
-          logger,                                                              \
+          logger_,                                                             \
           "Frame payload's actual length exceeds its advertised length");      \
       THROW(error::malformed_frame);                                           \
     }                                                                          \
@@ -51,7 +51,7 @@ frame::decoder::decoder(const class logger *logger) noexcept
                                                                                \
   if (payload_encoded_size == 0) {                                             \
     H3C_LOG_ERROR(                                                             \
-        logger,                                                                \
+        logger_,                                                               \
         "Frame payload's actual length exceeds its advertised length");        \
     THROW(error::malformed_frame);                                             \
   }                                                                            \
@@ -69,8 +69,8 @@ frame::decoder::decoder(const class logger *logger) noexcept
     TRY_VARINT_DECODE_2(encoded_value);                                        \
                                                                                \
     if (encoded_value > setting::max) {                                        \
-      H3C_LOG_ERROR(logger, "Value of {} ({}) exceeds maximum ({})", #setting, \
-                    encoded_value, setting::max);                              \
+      H3C_LOG_ERROR(logger_, "Value of {} ({}) exceeds maximum ({})",          \
+                    #setting, encoded_value, setting::max);                    \
       THROW(error::malformed_frame);                                           \
     }                                                                          \
                                                                                \
@@ -227,7 +227,7 @@ std::error_code frame::decoder::decode(const uint8_t *src,
 
   if (payload_encoded_size > 0) {
     H3C_LOG_ERROR(
-        logger, "Frame payload's advertised length exceeds its actual length");
+        logger_, "Frame payload's advertised length exceeds its actual length");
     THROW(error::malformed_frame);
   }
 

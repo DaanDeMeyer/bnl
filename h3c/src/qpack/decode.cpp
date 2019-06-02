@@ -13,8 +13,8 @@
 namespace h3c {
 
 // TODO: Find out what is best for max header and max value size.
-qpack::decoder::decoder(const class logger *logger)
-    : logger(logger),
+qpack::decoder::decoder(logger *logger)
+    : logger_(logger),
       huffman_(logger),
       huffman_decoded_name_(1000),
       huffman_decoded_value_(64000)
@@ -57,7 +57,7 @@ static std::error_code prefix_int_decode(const uint8_t *src,
                                          uint64_t *value,
                                          uint8_t prefix,
                                          size_t *encoded_size,
-                                         const logger *logger)
+                                         const logger *logger_)
 {
   *encoded_size = 0;
   const uint8_t *begin = src;
@@ -87,7 +87,7 @@ static std::error_code prefix_int_decode(const uint8_t *src,
     uint64_t pi = 0;                                                           \
     size_t pi_encoded_size = 0;                                                \
     TRY(prefix_int_decode(src, size, &pi, (prefix), &pi_encoded_size,          \
-                          logger));                                            \
+                          logger_));                                           \
                                                                                \
     /* TODO: Introduce max values */                                           \
     (value) = (type) pi;                                                       \
@@ -182,7 +182,7 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
       // Ensure the 'S' bit is set which indicates the index is in the static
       // table.
       if ((*src & 0x40U) == 0) {
-        H3C_LOG_ERROR(logger, "'S' bit not set in indexed header field");
+        H3C_LOG_ERROR(logger_, "'S' bit not set in indexed header field");
         THROW(error::qpack_decompression_failed);
       }
 
@@ -190,7 +190,7 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
       TRY_PREFIX_INT_DECODE(index, uint8_t, 6U);
 
       if (!qpack::static_table::find_header_value(index, header)) {
-        H3C_LOG_ERROR(logger,
+        H3C_LOG_ERROR(logger_,
                       "Indexed header field ({}) not found in static table",
                       index);
         THROW(error::qpack_decompression_failed);
@@ -202,7 +202,8 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
       // Ensure the 'S' bit is set which indicates the index is in the static
       // table.
       if ((*src & 0x10U) == 0) {
-        H3C_LOG_ERROR(logger, "'S' bit not set in literal with name reference");
+        H3C_LOG_ERROR(logger_,
+                      "'S' bit not set in literal with name reference");
         THROW(error::qpack_decompression_failed);
       }
 
@@ -210,7 +211,7 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
       TRY_PREFIX_INT_DECODE(index, uint8_t, 4U);
 
       if (!static_table::find_header_only(index, header)) {
-        H3C_LOG_ERROR(logger,
+        H3C_LOG_ERROR(logger_,
                       "Header name reference ({}) not found in static table",
                       index);
         THROW(error::qpack_decompression_failed);
@@ -224,7 +225,7 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
       TRY_LITERAL_DECODE(header->name, 3U, huffman_decoded_name_);
 
       if (!util::is_lowercase(header->name.data, header->name.size)) {
-        H3C_LOG_ERROR(logger, "Header ({}) is not lowercase",
+        H3C_LOG_ERROR(logger_, "Header ({}) is not lowercase",
                       fmt::string_view(header->name.data, header->name.size));
         THROW(error::malformed_header);
       }
@@ -234,7 +235,7 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
     }
 
     case instruction::unknown:
-      H3C_LOG_ERROR(logger, "Unexpected header block instruction prefix ({})",
+      H3C_LOG_ERROR(logger_, "Unexpected header block instruction prefix ({})",
                     *src);
       THROW(error::qpack_decompression_failed);
   }

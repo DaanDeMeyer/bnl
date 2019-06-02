@@ -14,7 +14,7 @@ namespace huffman {
 
 class encoder {
 public:
-  H3C_EXPORT explicit encoder(const logger *logger) noexcept;
+  H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
   encoder(const encoder &) = delete;
   encoder &operator=(const encoder &) = delete;
@@ -33,12 +33,12 @@ public:
                                     size_t string_size) const noexcept;
 
 private:
-  const logger *logger;
+  logger *logger_;
 };
 
 class decoder {
 public:
-  H3C_EXPORT explicit decoder(const logger *logger) noexcept;
+  H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
   decoder(const decoder &) = delete;
   decoder &operator=(const decoder &) = delete;
@@ -54,7 +54,7 @@ public:
                                     size_t *string_size) const noexcept;
 
 private:
-  const logger *logger;
+  logger *logger_;
 };
 
 } // namespace huffman

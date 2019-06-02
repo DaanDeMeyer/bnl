@@ -9,13 +9,13 @@
 
 namespace h3c {
 
-frame::encoder::encoder(const class logger *logger) noexcept
-    : varint(logger), logger(logger)
+frame::encoder::encoder(logger *logger) noexcept
+    : logger_(logger), varint_(logger)
 {}
 
 #define TRY_VARINT_SIZE(value)                                                 \
   {                                                                            \
-    size_t varint_encoded_size = varint.encoded_size((value));                 \
+    size_t varint_encoded_size = varint_.encoded_size((value));                \
     /* Use the maximum varint size if the varint overflows. We return an       \
      * overflow error later when the frame is actually encoded. */             \
     varint_encoded_size = varint_encoded_size != 0 ? varint_encoded_size       \
@@ -87,7 +87,7 @@ uint64_t frame::encoder::payload_size(const frame &frame) const noexcept
 #define TRY_VARINT_ENCODE(value)                                               \
   {                                                                            \
     size_t varint_encoded_size = 0;                                            \
-    TRY(varint.encode(dest, size, (value), &varint_encoded_size));             \
+    TRY(varint_.encode(dest, size, (value), &varint_encoded_size));            \
                                                                                \
     dest += varint_encoded_size;                                               \
     size -= varint_encoded_size;                                               \
@@ -107,7 +107,7 @@ uint64_t frame::encoder::payload_size(const frame &frame) const noexcept
 
 #define TRY_SETTING_ENCODE(setting, value)                                     \
   if ((value) > setting::max) {                                                \
-    H3C_LOG_ERROR(logger, "Value of {} ({}) exceeds maximum ({})", #setting,   \
+    H3C_LOG_ERROR(logger_, "Value of {} ({}) exceeds maximum ({})", #setting,  \
                   value, setting::max);                                        \
     THROW(error::setting_overflow);                                            \
   }                                                                            \
@@ -131,7 +131,7 @@ size_t frame::encoder::encoded_size(const frame &frame) const noexcept
     case frame::type::data:
       break;
     case frame::type::push_promise:
-      payload_encoded_size = varint.encoded_size(frame.push_promise().push_id);
+      payload_encoded_size = varint_.encoded_size(frame.push_promise().push_id);
       break;
     default:
       // HEADERS, DATA and PUSH_PROMISE frames are the only frames that might
@@ -143,8 +143,8 @@ size_t frame::encoder::encoded_size(const frame &frame) const noexcept
 
   size_t encoded_size = 0;
 
-  encoded_size += varint.encoded_size(util::to_underlying(frame.type_));
-  encoded_size += varint.encoded_size(payload_size);
+  encoded_size += varint_.encoded_size(util::to_underlying(frame.type_));
+  encoded_size += varint_.encoded_size(payload_size);
   encoded_size += payload_encoded_size;
 
   return encoded_size;

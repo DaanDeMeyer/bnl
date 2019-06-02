@@ -32,8 +32,7 @@ namespace h3c {
 
 #include "decode_generated.cpp"
 
-huffman::decoder::decoder(const class logger *logger) noexcept : logger(logger)
-{}
+huffman::decoder::decoder(logger *logger) noexcept : logger_(logger) {}
 
 std::error_code huffman::decoder::decode(const uint8_t *src,
                                          size_t size,

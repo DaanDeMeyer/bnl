@@ -34,8 +34,7 @@ namespace h3c {
 
 #include "encode_generated.cpp"
 
-huffman::encoder::encoder(const class logger *logger) noexcept : logger(logger)
-{}
+huffman::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
 
 size_t
 huffman::encoder::encoded_size(const char *string, size_t size) const noexcept
@@ -57,7 +56,7 @@ static std::error_code symbol_encode(uint8_t *dest,
                                      size_t *rem_bits,
                                      const symbol &symbol,
                                      size_t *encoded_size,
-                                     const logger *logger)
+                                     const logger *logger_)
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
@@ -132,7 +131,7 @@ std::error_code huffman::encoder::encode(uint8_t *dest,
     const symbol &symbol = encode_table[static_cast<unsigned char>(string[i])];
 
     size_t encoded_size = 0;
-    TRY(symbol_encode(dest, size, &rem_bits, symbol, &encoded_size, logger));
+    TRY(symbol_encode(dest, size, &rem_bits, symbol, &encoded_size, logger_));
 
     dest += encoded_size;
     size -= encoded_size;

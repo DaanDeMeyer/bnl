@@ -13,7 +13,7 @@
       case error::internal_error:                                              \
         assert(0);                                                             \
       default:                                                                 \
-        H3C_LOG_ERROR(logger, "{}", code.message());                           \
+        H3C_LOG_ERROR(logger_, "{}", code.message());                          \
         break;                                                                 \
     }                                                                          \
                                                                                \
