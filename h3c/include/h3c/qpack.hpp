@@ -18,62 +18,87 @@ class logger;
 
 namespace qpack {
 
-namespace prefix {
+class encoder {
+public:
+  H3C_EXPORT explicit encoder(const logger *logger) noexcept;
 
-H3C_EXPORT size_t encoded_size();
+  encoder(const encoder &) = delete;
+  encoder &operator=(const encoder &) = delete;
 
-H3C_EXPORT std::error_code
-encode(uint8_t *dest, size_t size, size_t *encoded_size, const logger *logger);
+  encoder(encoder &&) = default;
+  encoder &operator=(encoder &&) = default;
 
-H3C_EXPORT std::error_code decode(const uint8_t *src,
-                                  size_t size,
-                                  size_t *encoded_size,
-                                  const logger *logger);
+  ~encoder() = default;
 
-}; // namespace prefix
+  H3C_EXPORT size_t prefix_encoded_size() const noexcept;
 
-H3C_EXPORT size_t encoded_size(const header &header);
+  H3C_EXPORT std::error_code prefix_encode(uint8_t *dest,
+                                           size_t size,
+                                           size_t *encoded_size) const noexcept;
 
-H3C_EXPORT std::error_code encode(uint8_t *dest,
-                                  size_t size,
-                                  const header &header,
-                                  size_t *encoded_size,
-                                  const logger *logger);
+  H3C_EXPORT size_t encoded_size(const header &header) const noexcept;
+
+  H3C_EXPORT std::error_code encode(uint8_t *dest,
+                                    size_t size,
+                                    const header &header,
+                                    size_t *encoded_size) const noexcept;
+
+private:
+  const logger *logger;
+};
 
 class decoder {
 public:
-  H3C_EXPORT std::error_code init(const logger *logger);
+  H3C_EXPORT explicit decoder(const logger *logger);
+
+  decoder(const decoder &) = delete;
+  decoder &operator=(const decoder &) = delete;
+
+  decoder(decoder &&) = default;
+  decoder &operator=(decoder &&) = default;
+
+  ~decoder() = default;
+
+  H3C_EXPORT std::error_code prefix_decode(const uint8_t *src,
+                                           size_t size,
+                                           size_t *encoded_size) const noexcept;
 
   H3C_EXPORT std::error_code decode(const uint8_t *src,
                                     size_t size,
                                     header *header,
-                                    size_t *encoded_size,
-                                    const logger *logger);
+                                    size_t *encoded_size) noexcept;
 
 private:
-  struct {
-    struct {
-      std::unique_ptr<char[]> data; // NOLINT
-      size_t size = 0;
-    } name;
+  const logger *logger;
 
-    struct {
-      std::unique_ptr<char[]> data; // NOLINT
-      size_t size = 0;
-    } value;
-  } huffman_decoded;
+  struct decoded {
+    explicit decoded(size_t size)
+        : data(std::unique_ptr<char[]>(new char[size])), size(size)
+    {}
 
-  std::error_code literal_with_name_reference_decode(const uint8_t *src,
-                                                     size_t size,
-                                                     header *header,
-                                                     size_t *encoded_size,
-                                                     const logger *logger);
+    std::unique_ptr<char[]> data;
+    size_t size;
+  };
 
-  std::error_code literal_without_name_reference_decode(const uint8_t *src,
-                                                        size_t size,
-                                                        header *header,
-                                                        size_t *encoded_size,
-                                                        const logger *logger);
+  decoded huffman_decoded_name_;
+  decoded huffman_decoded_value_;
+
+  std::error_code indexed_header_field_decode(const uint8_t *src,
+                                              size_t size,
+                                              header *header,
+                                              size_t *encoded_size) noexcept;
+
+  std::error_code
+  literal_with_name_reference_decode(const uint8_t *src,
+                                     size_t size,
+                                     header *header,
+                                     size_t *encoded_size) noexcept;
+
+  std::error_code
+  literal_without_name_reference_decode(const uint8_t *src,
+                                        size_t size,
+                                        header *header,
+                                        size_t *encoded_size) noexcept;
 };
 
 } // namespace qpack

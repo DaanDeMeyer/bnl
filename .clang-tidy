@@ -3,6 +3,7 @@ Checks:
 '
 *,
 -bugprone-exception-escape,
+-cppcoreguidelines-avoid-c-arrays,
 -cppcoreguidelines-avoid-magic-numbers,
 -cppcoreguidelines-macro-usage,
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,
@@ -11,8 +12,11 @@ Checks:
 -fuchsia-default-arguments,
 -fuchsia-overloaded-operator,
 -google-readability-todo,
+-hicpp-avoid-c-arrays,
 -hicpp-use-auto,
 -llvm-header-guard,
+-misc-non-private-member-variables-in-classes,
+-modernize-avoid-c-arrays,
 -modernize-use-auto,
 -readability-magic-numbers,
 '

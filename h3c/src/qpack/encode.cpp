@@ -14,15 +14,17 @@ static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 namespace h3c {
 
-size_t qpack::prefix::encoded_size()
+qpack::encoder::encoder(const class logger *logger) noexcept : logger(logger) {}
+
+size_t qpack::encoder::prefix_encoded_size() const noexcept
 {
   return QPACK_PREFIX_ENCODED_SIZE;
 }
 
-std::error_code qpack::prefix::encode(uint8_t *dest,
-                                      size_t size,
-                                      size_t *encoded_size,
-                                      const logger *logger)
+std::error_code qpack::encoder::prefix_encode(uint8_t *dest,
+                                              size_t size,
+                                              size_t *encoded_size) const
+    noexcept
 {
   assert(dest);
   assert(encoded_size);
@@ -40,7 +42,7 @@ std::error_code qpack::prefix::encode(uint8_t *dest,
   return {};
 }
 
-static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix)
+static size_t prefix_int_encoded_size(uint64_t value, uint8_t prefix) noexcept
 {
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
@@ -79,7 +81,7 @@ static std::error_code prefix_int_encode(uint8_t *dest,
                                          uint64_t value,
                                          uint8_t prefix,
                                          size_t *encoded_size,
-                                         const logger *logger)
+                                         const logger *logger) noexcept
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
@@ -124,7 +126,7 @@ static std::error_code prefix_int_encode(uint8_t *dest,
   }                                                                            \
   (void) 0
 
-static size_t literal_encoded_size(const char *data, size_t size)
+static size_t literal_encoded_size(const char *data, size_t size) noexcept
 {
   size_t huffman_encoded_size = huffman::encoded_size(data, size);
   return huffman_encoded_size < size ? huffman_encoded_size : size;
@@ -163,16 +165,17 @@ static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x50;
 static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
-static size_t indexed_header_field_encoded_size(uint8_t index)
+static size_t indexed_header_field_encoded_size(uint8_t index) noexcept
 {
   return prefix_int_encoded_size(index, 6);
 }
 
-static std::error_code indexed_header_field_encode(uint8_t *dest,
-                                                   size_t size,
-                                                   uint8_t index,
-                                                   size_t *encoded_size,
-                                                   const logger *logger)
+static std::error_code
+indexed_header_field_encode(uint8_t *dest,
+                            size_t size,
+                            uint8_t index,
+                            size_t *encoded_size,
+                            const logger *logger) noexcept
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
@@ -184,8 +187,9 @@ static std::error_code indexed_header_field_encode(uint8_t *dest,
   return {};
 }
 
-static size_t literal_with_name_reference_encoded_size(uint8_t index,
-                                                       const header &header)
+static size_t
+literal_with_name_reference_encoded_size(uint8_t index,
+                                         const header &header) noexcept
 {
   size_t encoded_size = 0;
 
@@ -199,12 +203,13 @@ static size_t literal_with_name_reference_encoded_size(uint8_t index,
   return encoded_size;
 }
 
-static std::error_code literal_with_name_reference_encode(uint8_t *dest,
-                                                          size_t size,
-                                                          uint8_t index,
-                                                          const header &header,
-                                                          size_t *encoded_size,
-                                                          const logger *logger)
+static std::error_code
+literal_with_name_reference_encode(uint8_t *dest,
+                                   size_t size,
+                                   uint8_t index,
+                                   const header &header,
+                                   size_t *encoded_size,
+                                   const logger *logger) noexcept
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
@@ -217,7 +222,8 @@ static std::error_code literal_with_name_reference_encode(uint8_t *dest,
   return {};
 }
 
-static size_t literal_without_name_reference_encoded_size(const header &header)
+static size_t
+literal_without_name_reference_encoded_size(const header &header) noexcept
 {
   size_t encoded_size = 0;
 
@@ -239,7 +245,7 @@ literal_without_name_reference_encode(uint8_t *dest,
                                       size_t size,
                                       const header &header,
                                       size_t *encoded_size,
-                                      const logger *logger)
+                                      const logger *logger) noexcept
 {
   *encoded_size = 0;
   uint8_t *begin = dest;
@@ -252,7 +258,7 @@ literal_without_name_reference_encode(uint8_t *dest,
   return {};
 }
 
-size_t qpack::encoded_size(const header &header)
+size_t qpack::encoder::encoded_size(const header &header) const noexcept
 {
   assert(header);
 
@@ -272,11 +278,10 @@ size_t qpack::encoded_size(const header &header)
   return 0;
 }
 
-std::error_code qpack::encode(uint8_t *dest,
-                              size_t size,
-                              const header &header,
-                              size_t *encoded_size,
-                              const logger *logger)
+std::error_code qpack::encoder::encode(uint8_t *dest,
+                                       size_t size,
+                                       const header &header,
+                                       size_t *encoded_size) const noexcept
 {
   assert(dest);
   assert(header);

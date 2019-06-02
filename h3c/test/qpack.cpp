@@ -13,31 +13,26 @@
 // clang-format on
 
 template <size_t N>
-static void encode_and_decode(const h3c::header &src, const h3c::logger &logger)
+static void encode_and_decode(const h3c::header &src,
+                              h3c::qpack::encoder *encoder,
+                              h3c::qpack::decoder *decoder)
 {
   std::array<uint8_t, N> buffer = {};
 
   std::error_code error;
 
-  size_t encoded_size = h3c::qpack::encoded_size(src);
+  size_t encoded_size = encoder->encoded_size(src);
   REQUIRE(encoded_size == N);
 
-  error = h3c::qpack::encode(buffer.data(), buffer.size(), src, &encoded_size,
-                             &logger);
+  error = encoder->encode(buffer.data(), buffer.size(), src, &encoded_size);
 
   CAPTURE(error);
 
   REQUIRE(!error);
   REQUIRE(encoded_size == N);
 
-  h3c::qpack::decoder qpack;
-  error = qpack.init(&logger);
-
-  REQUIRE(!error);
-
   h3c::header dest = {};
-  error = qpack.decode(buffer.data(), buffer.size(), &dest, &encoded_size,
-                       &logger);
+  error = decoder->decode(buffer.data(), buffer.size(), &dest, &encoded_size);
 
   REQUIRE(!error);
   REQUIRE(encoded_size == N);
@@ -53,22 +48,25 @@ TEST_CASE("qpack")
 {
   h3c::logger logger;
 
+  h3c::qpack::encoder encoder(&logger);
+  h3c::qpack::decoder decoder(&logger);
+
   SUBCASE("indexed header field")
   {
     h3c::header path = MAKE_HEADER(":path", "/");
-    encode_and_decode<1>(path, logger);
+    encode_and_decode<1>(path, &encoder, &decoder);
   }
 
   SUBCASE("literal with name reference")
   {
     h3c::header authority = MAKE_HEADER(":authority", "www.example.com");
-    encode_and_decode<14>(authority, logger);
+    encode_and_decode<14>(authority, &encoder, &decoder);
   }
 
   SUBCASE("literal without name reference")
   {
     h3c::header via = MAKE_HEADER("via", "1.0 fred");
-    encode_and_decode<11>(via, logger);
+    encode_and_decode<11>(via, &encoder, &decoder);
   }
 
   SUBCASE("encode: buffer too small")
@@ -77,11 +75,11 @@ TEST_CASE("qpack")
 
     std::array<uint8_t, 21> buffer = {};
 
-    size_t encoded_size = h3c::qpack::encoded_size(link);
+    size_t encoded_size = encoder.encoded_size(link);
     REQUIRE(encoded_size == buffer.size() + 1);
 
-    std::error_code error = h3c::qpack::encode(buffer.data(), buffer.size(),
-                                               link, &encoded_size, &logger);
+    std::error_code error = encoder.encode(buffer.data(), buffer.size(), link,
+                                           &encoded_size);
 
     REQUIRE(error == h3c::error::buffer_too_small);
     REQUIRE(encoded_size == 0);
@@ -92,8 +90,7 @@ TEST_CASE("qpack")
     h3c::header link = MAKE_HEADER("Link", "</feed>; rel=\"alternate\"");
 
     size_t encoded_size = 0;
-    std::error_code error = h3c::qpack::encode(nullptr, 0, link, &encoded_size,
-                                               &logger);
+    std::error_code error = encoder.encode(nullptr, 0, link, &encoded_size);
 
     REQUIRE(error == h3c::error::malformed_header);
     REQUIRE(encoded_size == 0);
@@ -105,20 +102,14 @@ TEST_CASE("qpack")
 
     std::array<uint8_t, 17> buffer = {};
     size_t encoded_size = 0;
-    std::error_code error = h3c::qpack::encode(buffer.data(), buffer.size(),
-                                               location, &encoded_size,
-                                               &logger);
+    std::error_code error = encoder.encode(buffer.data(), buffer.size(),
+                                           location, &encoded_size);
 
     REQUIRE(!error);
     REQUIRE(encoded_size == 17);
 
-    h3c::qpack::decoder qpack;
-    error = qpack.init(&logger);
-
-    REQUIRE(!error);
-
-    error = qpack.decode(buffer.data(), buffer.size() - 1, &location,
-                         &encoded_size, &logger);
+    error = decoder.decode(buffer.data(), buffer.size() - 1, &location,
+                           &encoded_size);
 
     REQUIRE(error == h3c::error::incomplete);
     REQUIRE(encoded_size == 0);
@@ -132,13 +123,10 @@ TEST_CASE("qpack")
     h3c::header header = {};
     size_t encoded_size = 0;
 
-    h3c::qpack::decoder qpack;
-    std::error_code error = qpack.init(&logger);
+    h3c::qpack::decoder decoder(&logger);
 
-    REQUIRE(!error);
-
-    error = qpack.decode(buffer.data(), buffer.size(), &header, &encoded_size,
-                         &logger);
+    std::error_code error = decoder.decode(buffer.data(), buffer.size(),
+                                           &header, &encoded_size);
 
     REQUIRE(error == h3c::error::qpack_decompression_failed);
     REQUIRE(encoded_size == 0);
@@ -146,8 +134,8 @@ TEST_CASE("qpack")
     // 0x5f = literal with name reference, 100 = unassigned index
     buffer = { { 0x5f, 100 } };
 
-    error = qpack.decode(buffer.data(), buffer.size(), &header, &encoded_size,
-                         &logger);
+    error = decoder.decode(buffer.data(), buffer.size(), &header,
+                           &encoded_size);
 
     REQUIRE(error == h3c::error::qpack_decompression_failed);
     REQUIRE(encoded_size == 0);

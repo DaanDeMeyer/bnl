@@ -12,12 +12,17 @@
 
 namespace h3c {
 
+// TODO: Find out what is best for max header and max value size.
+qpack::decoder::decoder(const class logger *logger)
+    : logger(logger), huffman_decoded_name_(1000), huffman_decoded_value_(64000)
+{}
+
 static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
-std::error_code qpack::prefix::decode(const uint8_t *src,
-                                      size_t size,
-                                      size_t *encoded_size,
-                                      const logger *logger)
+std::error_code qpack::decoder::prefix_decode(const uint8_t *src,
+                                              size_t size,
+                                              size_t *encoded_size) const
+    noexcept
 {
   (void) src;
   assert(encoded_size);
@@ -29,26 +34,6 @@ std::error_code qpack::prefix::decode(const uint8_t *src,
   }
 
   *encoded_size = QPACK_PREFIX_ENCODED_SIZE;
-
-  return {};
-}
-
-std::error_code qpack::decoder::init(const logger *logger)
-{
-  // TODO: Find out what is best for max header and max value size.
-
-  std::unique_ptr<char[]> name(new (std::nothrow) char[1000]);   // NOLINT
-  std::unique_ptr<char[]> value(new (std::nothrow) char[64000]); // NOLINT
-
-  if (!name || !value) {
-    THROW(error::out_of_memory);
-  }
-
-  huffman_decoded.name.data = std::move(name);
-  huffman_decoded.name.size = 1000;
-
-  huffman_decoded.value.data = std::move(value);
-  huffman_decoded.value.size = 64000;
 
   return {};
 }
@@ -143,11 +128,11 @@ static std::error_code prefix_int_decode(const uint8_t *src,
   }                                                                            \
   (void) 0
 
-static std::error_code indexed_header_field_decode(const uint8_t *src,
-                                                   size_t size,
-                                                   header *header,
-                                                   size_t *encoded_size,
-                                                   const logger *logger)
+std::error_code
+qpack::decoder::indexed_header_field_decode(const uint8_t *src,
+                                            size_t size,
+                                            header *header,
+                                            size_t *encoded_size) noexcept
 {
   *encoded_size = 0;
   const uint8_t *begin = src;
@@ -172,12 +157,11 @@ static std::error_code indexed_header_field_decode(const uint8_t *src,
   return {};
 }
 
-std::error_code
-qpack::decoder::literal_with_name_reference_decode(const uint8_t *src,
-                                                   size_t size,
-                                                   header *header,
-                                                   size_t *encoded_size,
-                                                   const logger *logger)
+std::error_code qpack::decoder::literal_with_name_reference_decode(
+    const uint8_t *src,
+    size_t size,
+    header *header,
+    size_t *encoded_size) noexcept
 {
   *encoded_size = 0;
   const uint8_t *begin = src;
@@ -198,24 +182,23 @@ qpack::decoder::literal_with_name_reference_decode(const uint8_t *src,
     THROW(error::qpack_decompression_failed);
   }
 
-  TRY_LITERAL_DECODE(header->value, 7U, huffman_decoded.value);
+  TRY_LITERAL_DECODE(header->value, 7U, huffman_decoded_name_);
 
   *encoded_size = static_cast<size_t>(src - begin);
 
   return {};
 }
 
-std::error_code
-qpack::decoder::literal_without_name_reference_decode(const uint8_t *src,
-                                                      size_t size,
-                                                      header *header,
-                                                      size_t *encoded_size,
-                                                      const logger *logger)
+std::error_code qpack::decoder::literal_without_name_reference_decode(
+    const uint8_t *src,
+    size_t size,
+    header *header,
+    size_t *encoded_size) noexcept
 {
   *encoded_size = 0;
   const uint8_t *begin = src;
 
-  TRY_LITERAL_DECODE(header->name, 3U, huffman_decoded.name);
+  TRY_LITERAL_DECODE(header->name, 3U, huffman_decoded_name_);
 
   if (!util::is_lowercase(header->name.data, header->name.size)) {
     H3C_LOG_ERROR(logger, "Header ({}) is not lowercase",
@@ -223,7 +206,7 @@ qpack::decoder::literal_without_name_reference_decode(const uint8_t *src,
     THROW(error::malformed_header);
   }
 
-  TRY_LITERAL_DECODE(header->value, 7U, huffman_decoded.value);
+  TRY_LITERAL_DECODE(header->value, 7U, huffman_decoded_value_);
 
   *encoded_size = static_cast<size_t>(src - begin);
 
@@ -237,8 +220,7 @@ static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 std::error_code qpack::decoder::decode(const uint8_t *src,
                                        size_t size,
                                        header *header,
-                                       size_t *encoded_size,
-                                       const logger *logger)
+                                       size_t *encoded_size) noexcept
 {
   assert(src);
   assert(header);
@@ -249,19 +231,18 @@ std::error_code qpack::decoder::decode(const uint8_t *src,
   }
 
   if ((*src & INDEXED_HEADER_FIELD_PREFIX) == INDEXED_HEADER_FIELD_PREFIX) {
-    return indexed_header_field_decode(src, size, header, encoded_size, logger);
+    return indexed_header_field_decode(src, size, header, encoded_size);
   }
 
   if ((*src & LITERAL_WITH_NAME_REFERENCE_PREFIX) ==
       LITERAL_WITH_NAME_REFERENCE_PREFIX) {
-    return literal_with_name_reference_decode(src, size, header, encoded_size,
-                                              logger);
+    return literal_with_name_reference_decode(src, size, header, encoded_size);
   }
 
   if ((*src & LITERAL_WITHOUT_NAME_REFERENCE_PREFIX) ==
       LITERAL_WITHOUT_NAME_REFERENCE_PREFIX) {
     return literal_without_name_reference_decode(src, size, header,
-                                                 encoded_size, logger);
+                                                 encoded_size);
   }
 
   H3C_LOG_ERROR(logger, "Unexpected header block instruction prefix ({})",

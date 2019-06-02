@@ -17,6 +17,7 @@ decode(uint8_t *src,
        uint64_t *stream_id,
        std::vector<std::pair<std::string, std::string>> *headers,
        size_t *encoded_size,
+       h3c::qpack::decoder *decoder,
        const h3c::logger *logger)
 {
   *encoded_size = 0;
@@ -54,21 +55,18 @@ decode(uint8_t *src,
   }
 
   size_t prefix_encoded_size = 0;
-  TRY(h3c::qpack::prefix::decode(src, size, &prefix_encoded_size, logger));
+  TRY(decoder->prefix_decode(src, size, &prefix_encoded_size));
 
   src += prefix_encoded_size;
   size -= prefix_encoded_size;
   header_block_encoded_size -= prefix_encoded_size;
   *encoded_size += prefix_encoded_size;
 
-  h3c::qpack::decoder qpack;
-  TRY(qpack.init(logger));
-
   while (header_block_encoded_size > 0) {
     size_t header_encoded_size = 0;
     h3c::header header = {};
 
-    TRY(qpack.decode(src, size, &header, &header_encoded_size, logger));
+    TRY(decoder->decode(src, size, &header, &header_encoded_size));
 
     std::string name(header.name.data, header.name.size);
     std::string value(header.value.data, header.value.size);
@@ -147,13 +145,15 @@ int main(int argc, char *argv[])
 
   // Decode input
 
+  h3c::qpack::decoder decoder(&logger);
+
   while (!encoded.empty()) {
     uint64_t stream_id = 0;
     std::vector<std::pair<std::string, std::string>> headers;
     size_t encoded_size = 0;
 
     std::error_code error = decode(encoded.data(), encoded.size(), &stream_id,
-                                   &headers, &encoded_size, &logger);
+                                   &headers, &encoded_size, &decoder, &logger);
     if (error) {
       return error.value();
     }
