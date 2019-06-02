@@ -33,7 +33,8 @@ enum class error : uint32_t {
   setting_overflow,
   concurrent_streams_limit_exceeded,
   malformed_header,
-  stream_closed
+  stream_closed,
+  unknown_frame_type
 };
 
 H3C_EXPORT const std::error_category &error_category() noexcept;

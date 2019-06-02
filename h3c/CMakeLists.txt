@@ -11,6 +11,7 @@ target_include_directories(h3c PRIVATE src)
 target_sources(h3c PRIVATE
   src/frame/decode.cpp
   src/frame/encode.cpp
+  src/frame/frame.cpp
   src/huffman/encode.cpp
   src/huffman/decode.cpp
   src/qpack/encode.cpp

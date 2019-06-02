@@ -55,6 +55,8 @@ std::string error_category_impl::message(int condition) const noexcept
       return "malformed header";
     case error::stream_closed:
       return "stream closed";
+    case error::unknown_frame_type:
+      return "unknown frame type";
   }
 
   return "unknown error";
