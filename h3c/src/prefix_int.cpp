@@ -1,6 +1,5 @@
 #include <h3c/prefix_int.hpp>
 
-#include <util/decode.hpp>
 #include <util/error.hpp>
 
 namespace h3c {

@@ -1,6 +1,5 @@
 #include <h3c/qpack.hpp>
 
-#include <util/decode.hpp>
 #include <util/error.hpp>
 #include <util/string.hpp>
 

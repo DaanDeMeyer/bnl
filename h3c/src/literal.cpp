@@ -1,6 +1,5 @@
 #include <h3c/literal.hpp>
 
-#include <util/decode.hpp>
 #include <util/error.hpp>
 
 #include <algorithm>

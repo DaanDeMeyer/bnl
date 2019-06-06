@@ -1,6 +1,5 @@
 #include <h3c/frame.hpp>
 
-#include <util/decode.hpp>
 #include <util/enum.hpp>
 #include <util/error.hpp>
 
