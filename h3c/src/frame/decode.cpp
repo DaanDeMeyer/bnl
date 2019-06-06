@@ -61,147 +61,155 @@ frame frame::decoder::decode(buffer &src, std::error_code &ec) const noexcept
 {
   frame frame;
 
-  DECODE_START();
+  bool is_unknown_frame_type = true;
 
-  uint64_t type = DECODE_TRY(varint_.decode(src, ec));
-  uint64_t payload_encoded_size = DECODE_TRY(varint_.decode(src, ec));
+  while (is_unknown_frame_type) {
+    DECODE_START();
 
-  switch (type) {
+    uint64_t type = DECODE_TRY(varint_.decode(src, ec));
+    uint64_t payload_encoded_size = DECODE_TRY(varint_.decode(src, ec));
 
-    case util::to_underlying(frame::type::data): {
-      frame::payload::data data{};
+    is_unknown_frame_type = false;
 
-      data.size = payload_encoded_size;
-      payload_encoded_size = 0;
+    switch (type) {
 
-      frame = data;
-      break;
-    }
+      case util::to_underlying(frame::type::data): {
+        frame::payload::data data{};
 
-    case util::to_underlying(frame::type::headers): {
-      frame::payload::headers headers{};
+        data.size = payload_encoded_size;
+        payload_encoded_size = 0;
 
-      headers.size = payload_encoded_size;
-      payload_encoded_size = 0;
-
-      frame = headers;
-      break;
-    }
-
-    case util::to_underlying(frame::type::priority): {
-      frame::payload::priority priority{};
-
-      uint8_t byte = 0;
-      TRY_UINT8_DECODE(byte);
-      priority.prioritized_element_type =
-          static_cast<frame::payload::priority::type>(byte >> 6U);
-      priority.element_dependency_type =
-          static_cast<frame::payload::priority::type>(
-              static_cast<uint8_t>(byte >> 4U) & 0x03U);
-
-      TRY_VARINT_DECODE(priority.prioritized_element_id);
-      TRY_VARINT_DECODE(priority.element_dependency_id);
-
-      TRY_UINT8_DECODE(priority.weight);
-
-      frame = priority;
-      break;
-    }
-
-    case util::to_underlying(frame::type::cancel_push): {
-      frame::payload::cancel_push cancel_push{};
-
-      TRY_VARINT_DECODE(cancel_push.push_id);
-
-      frame = cancel_push;
-      break;
-    }
-
-    case util::to_underlying(frame::type::settings): {
-      frame::payload::settings settings{};
-
-      while (payload_encoded_size > 0) {
-        uint64_t id = 0;
-        TRY_VARINT_DECODE(id);
-
-        switch (id) {
-          case setting::max_header_list_size::id:
-            TRY_SETTING_DECODE(setting::max_header_list_size,
-                               settings.max_header_list_size);
-            break;
-          case setting::num_placeholders::id:
-            TRY_SETTING_DECODE(setting::num_placeholders,
-                               settings.num_placeholders);
-            break;
-          case setting::qpack_max_table_capacity::id:
-            TRY_SETTING_DECODE(setting::qpack_max_table_capacity,
-                               settings.qpack_max_table_capacity);
-            break;
-          case setting::qpack_blocked_streams::id:
-            TRY_SETTING_DECODE(setting::qpack_blocked_streams,
-                               settings.qpack_blocked_streams);
-            break;
-          default:;
-            // Unknown setting id => ignore its value
-            uint64_t value = 0;
-            TRY_VARINT_DECODE(value);
-            (void) value;
-        }
+        frame = data;
+        break;
       }
 
-      frame = settings;
-      break;
+      case util::to_underlying(frame::type::headers): {
+        frame::payload::headers headers{};
+
+        headers.size = payload_encoded_size;
+        payload_encoded_size = 0;
+
+        frame = headers;
+        break;
+      }
+
+      case util::to_underlying(frame::type::priority): {
+        frame::payload::priority priority{};
+
+        uint8_t byte = 0;
+        TRY_UINT8_DECODE(byte);
+        priority.prioritized_element_type =
+            static_cast<frame::payload::priority::type>(byte >> 6U);
+        priority.element_dependency_type =
+            static_cast<frame::payload::priority::type>(
+                static_cast<uint8_t>(byte >> 4U) & 0x03U);
+
+        TRY_VARINT_DECODE(priority.prioritized_element_id);
+        TRY_VARINT_DECODE(priority.element_dependency_id);
+
+        TRY_UINT8_DECODE(priority.weight);
+
+        frame = priority;
+        break;
+      }
+
+      case util::to_underlying(frame::type::cancel_push): {
+        frame::payload::cancel_push cancel_push{};
+
+        TRY_VARINT_DECODE(cancel_push.push_id);
+
+        frame = cancel_push;
+        break;
+      }
+
+      case util::to_underlying(frame::type::settings): {
+        frame::payload::settings settings{};
+
+        while (payload_encoded_size > 0) {
+          uint64_t id = 0;
+          TRY_VARINT_DECODE(id);
+
+          switch (id) {
+            case setting::max_header_list_size::id:
+              TRY_SETTING_DECODE(setting::max_header_list_size,
+                                 settings.max_header_list_size);
+              break;
+            case setting::num_placeholders::id:
+              TRY_SETTING_DECODE(setting::num_placeholders,
+                                 settings.num_placeholders);
+              break;
+            case setting::qpack_max_table_capacity::id:
+              TRY_SETTING_DECODE(setting::qpack_max_table_capacity,
+                                 settings.qpack_max_table_capacity);
+              break;
+            case setting::qpack_blocked_streams::id:
+              TRY_SETTING_DECODE(setting::qpack_blocked_streams,
+                                 settings.qpack_blocked_streams);
+              break;
+            default:;
+              // Unknown setting id => ignore its value
+              uint64_t value = 0;
+              TRY_VARINT_DECODE(value);
+              (void) value;
+          }
+        }
+
+        frame = settings;
+        break;
+      }
+
+      case util::to_underlying(frame::type::push_promise): {
+        frame::payload::push_promise push_promise{};
+
+        TRY_VARINT_DECODE(push_promise.push_id);
+
+        push_promise.size = payload_encoded_size;
+        payload_encoded_size = 0;
+
+        frame = push_promise;
+        break;
+      }
+
+      case util::to_underlying(frame::type::goaway): {
+        frame::payload::goaway goaway{};
+
+        TRY_VARINT_DECODE(goaway.stream_id);
+
+        frame = goaway;
+        break;
+      }
+
+      case util::to_underlying(frame::type::max_push_id): {
+        frame::payload::max_push_id max_push_id{};
+
+        TRY_VARINT_DECODE(max_push_id.push_id);
+
+        frame = max_push_id;
+        break;
+      }
+
+      case util::to_underlying(frame::type::duplicate_push): {
+        frame::payload::duplicate_push duplicate_push{};
+
+        TRY_VARINT_DECODE(duplicate_push.push_id);
+
+        frame = duplicate_push;
+        break;
+      }
+
+      default:
+        // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#extensions
+        // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-grease
+        LOG_E("Ignoring unknown frame type ({})", type);
+        is_unknown_frame_type = true;
+        src.advance(payload_encoded_size);
+        payload_encoded_size = 0;
     }
 
-    case util::to_underlying(frame::type::push_promise): {
-      frame::payload::push_promise push_promise{};
-
-      TRY_VARINT_DECODE(push_promise.push_id);
-
-      push_promise.size = payload_encoded_size;
-      payload_encoded_size = 0;
-
-      frame = push_promise;
-      break;
+    if (payload_encoded_size > 0) {
+      LOG_E("Frame payload's advertised length exceeds its actual length");
+      DECODE_THROW(error::malformed_frame);
     }
-
-    case util::to_underlying(frame::type::goaway): {
-      frame::payload::goaway goaway{};
-
-      TRY_VARINT_DECODE(goaway.stream_id);
-
-      frame = goaway;
-      break;
-    }
-
-    case util::to_underlying(frame::type::max_push_id): {
-      frame::payload::max_push_id max_push_id{};
-
-      TRY_VARINT_DECODE(max_push_id.push_id);
-
-      frame = max_push_id;
-      break;
-    }
-
-    case util::to_underlying(frame::type::duplicate_push): {
-      frame::payload::duplicate_push duplicate_push{};
-
-      TRY_VARINT_DECODE(duplicate_push.push_id);
-
-      frame = duplicate_push;
-      break;
-    }
-
-    default:
-      // Unknown frame types are the one case where we let the buffer advance
-      // since they are not a fatal error and should just be ignored by the
-      // endpoint.
-      THROW(error::unknown_frame_type);
-  }
-
-  if (payload_encoded_size > 0) {
-    LOG_E("Frame payload's advertised length exceeds its actual length");
-    DECODE_THROW(error::malformed_frame);
   }
 
   return frame;
