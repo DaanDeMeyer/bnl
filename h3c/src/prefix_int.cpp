@@ -70,34 +70,38 @@ buffer prefix_int::encoder::encode(uint64_t value, uint8_t prefix) const
 
 prefix_int::decoder::decoder(logger *logger) : logger_(logger) {}
 
-#define TRY_UINT8_DECODE(value)                                                \
-  if (src.empty()) {                                                           \
-    DECODE_THROW(error::incomplete);                                           \
-  }                                                                            \
-                                                                               \
-  (value) = *src;                                                              \
-                                                                               \
-  src.advance(1);                                                              \
-  (void) 0
+uint8_t prefix_int::decoder::uint8_decode(buffer &src,
+                                          std::error_code &ec) const noexcept
+{
+  DECODE_START();
+
+  if (src.empty()) {
+    DECODE_THROW(error::incomplete);
+  }
+
+  uint8_t result = *src;
+
+  src.advance(1);
+
+  return result;
+}
 
 uint64_t prefix_int::decoder::decode(buffer &src,
                                      uint8_t prefix,
                                      std::error_code &ec) const noexcept
 {
-  uint64_t result = 0;
-
   DECODE_START();
 
-  uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
+  uint64_t result = DECODE_TRY(uint8_decode(src, ec));
 
-  TRY_UINT8_DECODE(result);
+  uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
   result &= prefix_max;
 
   if (result >= prefix_max) {
     uint64_t offset = 0;
     uint8_t byte = 0;
     do {
-      TRY_UINT8_DECODE(byte);
+      byte = DECODE_TRY(uint8_decode(src, ec));
       result += (byte & 127U) * (1U << offset);
       offset += 7;
     } while ((byte & 128U) == 128);

@@ -42,6 +42,8 @@ public:
 
 private:
   logger *logger_;
+
+  uint8_t uint8_decode(buffer &src, std::error_code &ec) const noexcept;
 };
 
 } // namespace prefix_int
