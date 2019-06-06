@@ -2,14 +2,12 @@
 
 #include <util/error.hpp>
 
-#include <cassert>
-
 namespace h3c {
 
-varint::encoder::encoder(logger *logger) noexcept : logger_(logger)
-{}
+varint::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
 
-size_t varint::encoder::encoded_size(uint64_t varint) const noexcept
+size_t varint::encoder::encoded_size(uint64_t varint, std::error_code &ec) const
+    noexcept
 {
   if (varint < 0x40U) {
     return sizeof(uint8_t);
@@ -27,7 +25,7 @@ size_t varint::encoder::encoded_size(uint64_t varint) const noexcept
     return sizeof(uint64_t);
   }
 
-  return 0;
+  THROW(error::varint_overflow);
 }
 
 // All encode functions convert from host to network byte order (big-endian)
@@ -77,24 +75,13 @@ static void uint64_encode(uint8_t *dest, uint64_t number)
   dest[0] |= UINT64_HEADER;
 }
 
-std::error_code varint::encoder::encode(uint8_t *dest,
-                                        size_t size,
-                                        uint64_t varint,
-                                        size_t *encoded_size) const noexcept
+size_t varint::encoder::encode(uint8_t *dest,
+                               uint64_t varint,
+                               std::error_code &ec) const noexcept
 {
-  assert(dest);
-  assert(encoded_size);
+  ASSERT(dest != nullptr);
 
-  *encoded_size = 0;
-
-  size_t varint_size = this->encoded_size(varint);
-  if (varint_size == 0) {
-    THROW(error::varint_overflow);
-  }
-
-  if (varint_size > size) {
-    THROW(error::buffer_too_small);
-  }
+  size_t varint_size = TRY(this->encoded_size(varint, ec));
 
   switch (varint_size) {
     case sizeof(uint8_t):
@@ -110,12 +97,20 @@ std::error_code varint::encoder::encode(uint8_t *dest,
       uint64_encode(dest, varint);
       break;
     default:
-      THROW(error::internal_error);
+      NOTREACHED();
   }
 
-  *encoded_size = varint_size;
+  return varint_size;
+}
 
-  return {};
+buffer varint::encoder::encode(uint64_t varint, std::error_code &ec) const
+{
+  size_t encoded_size = this->encoded_size(varint, ec);
+  mutable_buffer dest(encoded_size);
+
+  ASSERT(encoded_size == TRY(encode(dest.data(), varint, ec)));
+
+  return std::move(dest);
 }
 
 } // namespace h3c

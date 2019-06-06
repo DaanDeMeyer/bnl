@@ -1,6 +1,7 @@
 #pragma once
 
 #include <h3c/export.hpp>
+#include <h3c/varint.hpp>
 
 #include <cstdint>
 
@@ -10,12 +11,12 @@ namespace setting {
 
 namespace max_header_list_size {
 static constexpr uint64_t id = 0x6U;
-static constexpr uint64_t max = (0x40ULL << 56U) - 1;
+static constexpr uint64_t max = varint::max;
 } // namespace max_header_list_size
 
 namespace num_placeholders {
 static constexpr uint64_t id = 0x9U;
-static constexpr uint64_t max = (0x40ULL << 56U) - 1;
+static constexpr uint64_t max = varint::max;
 } // namespace num_placeholders
 
 namespace qpack_max_table_capacity {
@@ -31,7 +32,7 @@ static constexpr uint64_t max = (1U << 16U) - 1;
 } // namespace setting
 
 struct settings {
-  uint64_t max_header_list_size = (0x40ULL << 56U) - 1;
+  uint64_t max_header_list_size = varint::max;
   uint64_t num_placeholders = 0;
   uint32_t qpack_max_table_capacity = 0;
   uint16_t qpack_blocked_streams = 0;

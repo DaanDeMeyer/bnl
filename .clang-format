@@ -23,4 +23,5 @@ Cpp11BracedListStyle: false
 IndentCaseLabels: true
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 100
+PenaltyReturnTypeOnItsOwnLine: 0
 SpaceAfterCStyleCast: true

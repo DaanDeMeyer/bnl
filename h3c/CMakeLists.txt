@@ -19,7 +19,10 @@ target_sources(h3c PRIVATE
   src/util/string.cpp
   src/varint/decode.cpp
   src/varint/encode.cpp
+  src/buffer.cpp
   src/error.cpp
+  src/literal.cpp
+  src/prefix_int.cpp
 )
 
 # Make h3c-log available so we can use it in the tests.
@@ -27,6 +30,7 @@ add_subdirectory(../h3c-log ../h3c-log)
 
 if(H3C_TEST)
   target_sources(h3c-test PRIVATE
+    test/buffer.cpp
     test/frame.cpp
     test/huffman.cpp
     test/qpack.cpp
@@ -36,22 +40,17 @@ if(H3C_TEST)
   target_link_libraries(h3c-test PRIVATE h3c h3c-log)
 endif()
 
-add_executable(h3c-qpack-encode)
+add_executable(h3c-qpack-interop-encode)
 
-cddm_add_common(h3c-qpack-encode CXX 11 bin)
-target_link_libraries(h3c-qpack-encode PRIVATE h3c h3c-log)
-target_include_directories(h3c-qpack-encode PRIVATE app)
-if(MSVC)
-  target_compile_definitions(h3c-qpack-encode PRIVATE CRT_SECURE_NO_WARNINGS)
-endif()
-target_sources(h3c-qpack-encode PRIVATE app/qpack-encode.cpp)
+cddm_add_common(h3c-qpack-interop-encode CXX 11 bin)
+target_link_libraries(h3c-qpack-interop-encode PRIVATE h3c h3c-log)
+target_include_directories(h3c-qpack-interop-encode PRIVATE app)
+target_sources(h3c-qpack-interop-encode PRIVATE app/qpack-interop-encode.cpp)
 
-add_executable(h3c-qpack-decode)
+add_executable(h3c-qpack-interop-decode)
 
-cddm_add_common(h3c-qpack-decode CXX 11 bin)
-target_link_libraries(h3c-qpack-decode PRIVATE h3c h3c-log)
-target_include_directories(h3c-qpack-decode PRIVATE app)
-if(MSVC)
-  target_compile_definitions(h3c-qpack-decode PRIVATE CRT_SECURE_NO_WARNINGS)
-endif()
-target_sources(h3c-qpack-decode PRIVATE app/qpack-decode.cpp)
+cddm_add_common(h3c-qpack-interop-decode CXX 11 bin)
+target_link_libraries(h3c-qpack-interop-decode PRIVATE h3c h3c-log)
+target_include_directories(h3c-qpack-interop-decode PRIVATE app)
+target_sources(h3c-qpack-interop-decode PRIVATE app/qpack-interop-decode.cpp)
+

@@ -3,29 +3,28 @@
 #include <h3c/error.hpp>
 #include <h3c/log.hpp>
 
-#include <cassert>
-
 #define THROW(err)                                                             \
   {                                                                            \
-    std::error_code code(err);                                                 \
+    ec = err;                                                                  \
                                                                                \
-    switch (err) {                                                             \
-      case h3c::error::internal_error:                                         \
-        assert(0);                                                             \
-      default:                                                                 \
-        H3C_LOG_ERROR(logger, "{}", code.message());                           \
-        break;                                                                 \
+    H3C_LOG_ERROR(&logger, "{}", ec.message());                                \
+                                                                               \
+    if (err == h3c::error::internal_error) {                                   \
+      std::abort();                                                            \
     }                                                                          \
                                                                                \
-    return code;                                                               \
+    return {};                                                                 \
   }                                                                            \
   (void) 0
 
-#define TRY(statement)                                                         \
-  {                                                                            \
-    std::error_code error = statement;                                         \
-    if (error) {                                                               \
-      return error;                                                            \
-    }                                                                          \
-  }                                                                            \
+#define TRY(expression)                                                        \
+  [&]() {                                                                      \
+    using type = decltype(expression);                                         \
+    ec = {};                                                                   \
+    auto result = expression;                                                  \
+    return ec ? type{} : std::move(result);                                    \
+  }();                                                                         \
+  if (ec) {                                                                    \
+    return ec.value();                                                         \
+  };                                                                           \
   (void) 0

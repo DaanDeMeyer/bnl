@@ -28,45 +28,31 @@
 
 #include <util/error.hpp>
 
-#include <cassert>
-
 namespace h3c {
 
 #include "encode_generated.cpp"
 
 huffman::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
 
-size_t
-huffman::encoder::encoded_size(const char *string, size_t size) const noexcept
+size_t huffman::encoder::encoded_size(const buffer &string) const noexcept
 {
-  assert(string);
-
   size_t num_bits = 0;
 
-  for (size_t i = 0; i < size; i++) {
-    num_bits += encode_table[static_cast<unsigned char>(string[i])].num_bits;
+  for (uint8_t character : string) {
+    num_bits += encode_table[character].num_bits;
   }
 
   // Pad the prefix of EOS (256).
   return (num_bits + 7) / 8;
 }
 
-static std::error_code symbol_encode(uint8_t *dest,
-                                     size_t size,
-                                     size_t *rem_bits,
-                                     const symbol &symbol,
-                                     size_t *encoded_size,
-                                     const logger *logger_)
+static size_t
+symbol_encode(uint8_t *dest, size_t *rem_bits, const symbol &symbol)
 {
-  *encoded_size = 0;
   uint8_t *begin = dest;
 
   uint32_t code = symbol.code;
   size_t num_bits = symbol.num_bits;
-
-  if (size == 0) {
-    THROW(error::buffer_too_small);
-  }
 
   if (*rem_bits == 8) {
     *dest = 0;
@@ -79,7 +65,6 @@ static std::error_code symbol_encode(uint8_t *dest,
   } else /* num_bits > *rem_bits */ {
 
     *dest++ |= static_cast<uint8_t>(code >> (num_bits - *rem_bits));
-    size--;
     num_bits -= *rem_bits;
 
     if ((num_bits & 0x7U) != 0U) {
@@ -88,19 +73,10 @@ static std::error_code symbol_encode(uint8_t *dest,
     }
 
     while (num_bits > 8) {
-      if (size == 0) {
-        THROW(error::buffer_too_small);
-      }
-
       *dest = static_cast<uint8_t>(code >> (num_bits - (num_bits % 8)));
 
       dest++;
-      size--;
       num_bits -= 8;
-    }
-
-    if (size == 0) {
-      THROW(error::buffer_too_small);
     }
 
     *dest = static_cast<uint8_t>(code);
@@ -112,39 +88,39 @@ static std::error_code symbol_encode(uint8_t *dest,
     *rem_bits = 8;
   }
 
-  *encoded_size = static_cast<size_t>(dest - begin);
-
-  return {};
+  return static_cast<size_t>(dest - begin);
 }
 
-std::error_code huffman::encoder::encode(uint8_t *dest,
-                                         size_t size,
-                                         const char *string,
-                                         size_t string_size) const noexcept
+size_t
+huffman::encoder::encode(uint8_t *dest, const buffer &string) const noexcept
 {
-  assert(dest);
-  assert(string);
-
+  uint8_t *begin = dest;
   size_t rem_bits = 8;
 
-  for (size_t i = 0; i < string_size; ++i) {
-    const symbol &symbol = encode_table[static_cast<unsigned char>(string[i])];
-
-    size_t encoded_size = 0;
-    TRY(symbol_encode(dest, size, &rem_bits, symbol, &encoded_size, logger_));
-
-    dest += encoded_size;
-    size -= encoded_size;
+  for (uint8_t character : string) {
+    const symbol &symbol = encode_table[character];
+    dest += symbol_encode(dest, &rem_bits, symbol);
   }
 
   // 256 is special terminal symbol, pad with its prefix.
   if (rem_bits < 8) {
     // If rem_bits < 8, we should have at least 1 buffer space available.
     const symbol &symbol = encode_table[256];
-    *dest |= static_cast<uint8_t>(symbol.code >> (symbol.num_bits - rem_bits));
+    *dest++ |= static_cast<uint8_t>(symbol.code >>
+                                    (symbol.num_bits - rem_bits));
   }
 
-  return {};
+  return static_cast<size_t>(dest - begin);
+}
+
+buffer huffman::encoder::encode(const buffer &string) const
+{
+  size_t encoded_size = this->encoded_size(string);
+  mutable_buffer encoded(encoded_size);
+
+  ASSERT(encoded_size == encode(encoded.data(), string));
+
+  return std::move(encoded);
 }
 
 } // namespace h3c

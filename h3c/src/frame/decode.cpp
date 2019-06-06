@@ -1,12 +1,8 @@
 #include <h3c/frame.hpp>
 
-#include <h3c/varint.hpp>
-
+#include <util/decode.hpp>
 #include <util/enum.hpp>
 #include <util/error.hpp>
-
-#include <cassert>
-#include <limits>
 
 namespace h3c {
 
@@ -14,87 +10,61 @@ frame::decoder::decoder(logger *logger) noexcept
     : logger_(logger), varint_(logger)
 {}
 
-#define TRY_VARINT_DECODE_1(value)                                             \
+#define TRY_VARINT_DECODE(value)                                               \
   {                                                                            \
-    size_t varint_encoded_size = 0;                                            \
-    TRY(varint_.decode(src, size, &(value), &varint_encoded_size));            \
+    size_t before = src.position();                                            \
+    (value) = DECODE_TRY(varint_.decode(src, ec));                             \
                                                                                \
-    src += varint_encoded_size;                                                \
-    size -= varint_encoded_size;                                               \
-  }                                                                            \
-  (void) 0
-
-// Additionally checks and updates `frame_length` compared to
-// `TRY_VARINT_DECODE_1`.
-#define TRY_VARINT_DECODE_2(value)                                             \
-  {                                                                            \
-    size_t varint_encoded_size = 0;                                            \
-    TRY(varint_.decode(src, size, &(value), &varint_encoded_size));            \
+    size_t varint_encoded_size = src.position() - before;                      \
                                                                                \
     if (varint_encoded_size > payload_encoded_size) {                          \
-      H3C_LOG_ERROR(                                                           \
-          logger_,                                                             \
-          "Frame payload's actual length exceeds its advertised length");      \
-      THROW(error::malformed_frame);                                           \
+      LOG_E("Frame payload's actual length exceeds its advertised length");    \
+      DECODE_THROW(error::malformed_frame);                                    \
     }                                                                          \
                                                                                \
-    src += varint_encoded_size;                                                \
-    size -= varint_encoded_size;                                               \
     payload_encoded_size -= varint_encoded_size;                               \
   }                                                                            \
   (void) 0
 
 #define TRY_UINT8_DECODE(value)                                                \
-  if (size == 0) {                                                             \
-    THROW(error::incomplete);                                                  \
+  if (src.empty()) {                                                           \
+    DECODE_THROW(error::incomplete);                                           \
   }                                                                            \
                                                                                \
   if (payload_encoded_size == 0) {                                             \
-    H3C_LOG_ERROR(                                                             \
-        logger_,                                                               \
-        "Frame payload's actual length exceeds its advertised length");        \
-    THROW(error::malformed_frame);                                             \
+    LOG_E("Frame payload's actual length exceeds its advertised length");      \
+    DECODE_THROW(error::malformed_frame);                                      \
   }                                                                            \
                                                                                \
   (value) = *src;                                                              \
                                                                                \
-  src++;                                                                       \
-  size--;                                                                      \
+  src.advance(1);                                                              \
   payload_encoded_size--;                                                      \
   (void) 0
 
 #define TRY_SETTING_DECODE(setting, value)                                     \
   {                                                                            \
     uint64_t encoded_value = 0;                                                \
-    TRY_VARINT_DECODE_2(encoded_value);                                        \
+    TRY_VARINT_DECODE(encoded_value);                                          \
                                                                                \
     if (encoded_value > setting::max) {                                        \
-      H3C_LOG_ERROR(logger_, "Value of {} ({}) exceeds maximum ({})",          \
-                    #setting, encoded_value, setting::max);                    \
-      THROW(error::malformed_frame);                                           \
+      LOG_E("Value of {} ({}) exceeds maximum ({})", #setting, encoded_value,  \
+            setting::max);                                                     \
+      DECODE_THROW(error::malformed_frame);                                    \
     }                                                                          \
                                                                                \
     (value) = static_cast<decltype(value)>(encoded_value);                     \
   }                                                                            \
   (void) 0
 
-std::error_code frame::decoder::decode(const uint8_t *src,
-                                       size_t size,
-                                       frame *frame,
-                                       size_t *encoded_size) const noexcept
+frame frame::decoder::decode(buffer &src, std::error_code &ec) const noexcept
 {
-  assert(src);
-  assert(frame);
-  assert(encoded_size);
+  frame frame;
 
-  *encoded_size = 0;
-  const uint8_t *begin = src;
+  DECODE_START();
 
-  uint64_t type = 0;
-  TRY_VARINT_DECODE_1(type);
-
-  uint64_t payload_encoded_size = 0;
-  TRY_VARINT_DECODE_1(payload_encoded_size);
+  uint64_t type = DECODE_TRY(varint_.decode(src, ec));
+  uint64_t payload_encoded_size = DECODE_TRY(varint_.decode(src, ec));
 
   switch (type) {
 
@@ -104,7 +74,7 @@ std::error_code frame::decoder::decode(const uint8_t *src,
       data.size = payload_encoded_size;
       payload_encoded_size = 0;
 
-      *frame = data;
+      frame = data;
       break;
     }
 
@@ -114,7 +84,7 @@ std::error_code frame::decoder::decode(const uint8_t *src,
       headers.size = payload_encoded_size;
       payload_encoded_size = 0;
 
-      *frame = headers;
+      frame = headers;
       break;
     }
 
@@ -129,21 +99,21 @@ std::error_code frame::decoder::decode(const uint8_t *src,
           static_cast<frame::payload::priority::type>(
               static_cast<uint8_t>(byte >> 4U) & 0x03U);
 
-      TRY_VARINT_DECODE_2(priority.prioritized_element_id);
-      TRY_VARINT_DECODE_2(priority.element_dependency_id);
+      TRY_VARINT_DECODE(priority.prioritized_element_id);
+      TRY_VARINT_DECODE(priority.element_dependency_id);
 
       TRY_UINT8_DECODE(priority.weight);
 
-      *frame = priority;
+      frame = priority;
       break;
     }
 
     case util::to_underlying(frame::type::cancel_push): {
       frame::payload::cancel_push cancel_push{};
 
-      TRY_VARINT_DECODE_2(cancel_push.push_id);
+      TRY_VARINT_DECODE(cancel_push.push_id);
 
-      *frame = cancel_push;
+      frame = cancel_push;
       break;
     }
 
@@ -152,7 +122,7 @@ std::error_code frame::decoder::decode(const uint8_t *src,
 
       while (payload_encoded_size > 0) {
         uint64_t id = 0;
-        TRY_VARINT_DECODE_2(id);
+        TRY_VARINT_DECODE(id);
 
         switch (id) {
           case setting::max_header_list_size::id:
@@ -174,66 +144,67 @@ std::error_code frame::decoder::decode(const uint8_t *src,
           default:;
             // Unknown setting id => ignore its value
             uint64_t value = 0;
-            TRY_VARINT_DECODE_2(value);
+            TRY_VARINT_DECODE(value);
+            (void) value;
         }
       }
 
-      *frame = settings;
+      frame = settings;
       break;
     }
 
     case util::to_underlying(frame::type::push_promise): {
       frame::payload::push_promise push_promise{};
 
-      TRY_VARINT_DECODE_2(push_promise.push_id);
+      TRY_VARINT_DECODE(push_promise.push_id);
 
       push_promise.size = payload_encoded_size;
       payload_encoded_size = 0;
 
-      *frame = push_promise;
+      frame = push_promise;
       break;
     }
 
     case util::to_underlying(frame::type::goaway): {
       frame::payload::goaway goaway{};
 
-      TRY_VARINT_DECODE_2(goaway.stream_id);
+      TRY_VARINT_DECODE(goaway.stream_id);
 
-      *frame = goaway;
+      frame = goaway;
       break;
     }
 
     case util::to_underlying(frame::type::max_push_id): {
       frame::payload::max_push_id max_push_id{};
 
-      TRY_VARINT_DECODE_2(max_push_id.push_id);
+      TRY_VARINT_DECODE(max_push_id.push_id);
 
-      *frame = max_push_id;
+      frame = max_push_id;
       break;
     }
 
     case util::to_underlying(frame::type::duplicate_push): {
       frame::payload::duplicate_push duplicate_push{};
 
-      TRY_VARINT_DECODE_2(duplicate_push.push_id);
+      TRY_VARINT_DECODE(duplicate_push.push_id);
 
-      *frame = duplicate_push;
+      frame = duplicate_push;
       break;
     }
 
     default:
+      // Unknown frame types are the one case where we let the buffer advance
+      // since they are not a fatal error and should just be ignored by the
+      // endpoint.
       THROW(error::unknown_frame_type);
   }
 
   if (payload_encoded_size > 0) {
-    H3C_LOG_ERROR(
-        logger_, "Frame payload's advertised length exceeds its actual length");
-    THROW(error::malformed_frame);
+    LOG_E("Frame payload's advertised length exceeds its actual length");
+    DECODE_THROW(error::malformed_frame);
   }
 
-  *encoded_size = static_cast<size_t>(src - begin);
-
-  return {};
+  return frame;
 }
 
 } // namespace h3c

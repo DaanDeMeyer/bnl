@@ -1,6 +1,8 @@
 #pragma once
 
+#include <h3c/buffer.hpp>
 #include <h3c/export.hpp>
+#include <h3c/util/class.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -20,20 +22,16 @@ class encoder {
 public:
   H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
-  encoder(const encoder &) = delete;
-  encoder &operator=(const encoder &) = delete;
+  H3C_MOVE_ONLY(encoder)
 
-  encoder(encoder &&) = default;
-  encoder &operator=(encoder &&) = default;
+  H3C_EXPORT size_t encoded_size(uint64_t varint, std::error_code &ec) const
+      noexcept;
 
-  ~encoder() = default;
+  H3C_EXPORT size_t encode(uint8_t *dest,
+                           uint64_t varint,
+                           std::error_code &ec) const noexcept;
 
-  H3C_EXPORT size_t encoded_size(uint64_t varint) const noexcept;
-
-  H3C_EXPORT std::error_code encode(uint8_t *dest,
-                                    size_t size,
-                                    uint64_t varint,
-                                    size_t *encoded_size) const noexcept;
+  H3C_EXPORT buffer encode(uint64_t varint, std::error_code &ec) const;
 
 private:
   logger *logger_;
@@ -43,18 +41,9 @@ class decoder {
 public:
   H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
-  decoder(const decoder &) = delete;
-  decoder &operator=(const decoder &) = delete;
+  H3C_MOVE_ONLY(decoder)
 
-  decoder(decoder &&) = default;
-  decoder &operator=(decoder &&) = default;
-
-  ~decoder() = default;
-
-  H3C_EXPORT std::error_code decode(const uint8_t *src,
-                                    size_t size,
-                                    uint64_t *varint,
-                                    size_t *encoded_size) const noexcept;
+  H3C_EXPORT uint64_t decode(buffer &src, std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;

@@ -2,6 +2,7 @@
 
 #include <h3c/export.hpp>
 #include <h3c/settings.hpp>
+#include <h3c/util/class.hpp>
 #include <h3c/varint.hpp>
 
 #include <cstddef>
@@ -85,7 +86,7 @@ public:
   // We allow implicit conversions from a frame payload into a frame.
 
   // clang-format off
-  H3C_EXPORT explicit frame() noexcept;
+  H3C_EXPORT frame() noexcept;
   H3C_EXPORT frame(frame::payload::data data) noexcept;                     // NOLINT
   H3C_EXPORT frame(frame::payload::headers headers) noexcept;               // NOLINT
   H3C_EXPORT frame(frame::payload::priority priority) noexcept;             // NOLINT
@@ -112,9 +113,6 @@ public:
 private:
   type type_; // NOLINT
 
-  // We don't store the frame length since it's easier to calculate it when
-  // needed. This also prevents it from getting stale.
-
   union {
     payload::data data_;
     payload::headers headers_;
@@ -132,45 +130,32 @@ class frame::encoder {
 public:
   H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
-  encoder(const encoder &) = delete;
-  encoder &operator=(const encoder &) = delete;
+  H3C_MOVE_ONLY(encoder)
 
-  encoder(encoder &&) = default;
-  encoder &operator=(encoder &&) = default;
+  H3C_EXPORT size_t encoded_size(const frame &frame, std::error_code &ec) const
+      noexcept;
 
-  ~encoder() = default;
+  H3C_EXPORT size_t encode(uint8_t *dest,
+                           const frame &frame,
+                           std::error_code &ec) const noexcept;
 
-  H3C_EXPORT size_t encoded_size(const frame &frame) const noexcept;
-
-  H3C_EXPORT std::error_code encode(uint8_t *dest,
-                                    size_t size,
-                                    const frame &frame,
-                                    size_t *encoded_size) const noexcept;
+  H3C_EXPORT h3c::buffer encode(const frame &frame, std::error_code &ec) const;
 
 private:
   logger *logger_;
 
   varint::encoder varint_;
 
-  uint64_t payload_size(const frame &frame) const noexcept;
+  uint64_t payload_size(const frame &frame, std::error_code &ec) const noexcept;
 };
 
 class frame::decoder {
 public:
   H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
-  decoder(const decoder &) = delete;
-  decoder &operator=(const decoder &) = delete;
+  H3C_MOVE_ONLY(decoder)
 
-  decoder(decoder &&) = default;
-  decoder &operator=(decoder &&) = default;
-
-  ~decoder() = default;
-
-  H3C_EXPORT std::error_code decode(const uint8_t *src,
-                                    size_t size,
-                                    frame *frame,
-                                    size_t *encoded_size) const noexcept;
+  H3C_EXPORT frame decode(buffer &src, std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;

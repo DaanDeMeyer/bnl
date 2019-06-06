@@ -26,6 +26,7 @@
 
 #include <h3c/huffman.hpp>
 
+#include <util/enum.hpp>
 #include <util/error.hpp>
 
 namespace h3c {
@@ -34,59 +35,79 @@ namespace h3c {
 
 huffman::decoder::decoder(logger *logger) noexcept : logger_(logger) {}
 
-std::error_code huffman::decoder::decode(const uint8_t *src,
-                                         size_t size,
-                                         char *string,
-                                         size_t *string_size) const noexcept
+buffer huffman::decoder::decode(buffer &src,
+                                size_t encoded_size,
+                                std::error_code &ec) const
 {
-  uint8_t state = 0;
-  bool accept = false;
-  size_t string_length = 0;
+  size_t decoded_size = TRY(this->decoded_size(src, encoded_size, ec));
+  mutable_buffer decoded(decoded_size);
 
-  for (size_t i = 0; i < size; ++i) {
+  uint8_t *dest = decoded.data();
+  uint8_t state = 0;
+
+  for (size_t i = 0; i < encoded_size; ++i) {
     const node &first = decode_table[state][src[i] >> 4U];
 
-    if ((first.flags & static_cast<uint8_t>(decode_flag::failed)) != 0) {
-      THROW(error::qpack_decompression_failed);
-    }
-
-    if ((first.flags & static_cast<uint8_t>(decode_flag::symbol)) != 0) {
-      if (*string_size == 0) {
-        THROW(error::buffer_too_small);
-      }
-
-      *string++ = static_cast<char>(first.symbol);
-      (*string_size)--;
-      string_length++;
+    if ((first.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+      *dest++ = first.symbol;
     }
 
     const node &second = decode_table[first.state][src[i] & 0xfU];
 
-    if ((second.flags & static_cast<uint8_t>(decode_flag::failed)) != 0) {
-      THROW(error::qpack_decompression_failed);
-    }
-
-    if ((second.flags & static_cast<uint8_t>(decode_flag::symbol)) != 0) {
-      if (*string_size == 0) {
-        THROW(error::buffer_too_small);
-      }
-
-      *string++ = static_cast<char>(second.symbol);
-      (*string_size)--;
-      string_length++;
+    if ((second.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+      *dest++ = second.symbol;
     }
 
     state = second.state;
-    accept = (second.flags & static_cast<uint8_t>(decode_flag::accepted)) != 0;
+  }
+
+  src.advance(encoded_size);
+
+  return std::move(decoded);
+}
+
+size_t huffman::decoder::decoded_size(const buffer &src,
+                                      size_t encoded_size,
+                                      std::error_code &ec) const noexcept
+{
+  if (src.size() < encoded_size) {
+    THROW(error::incomplete);
+  }
+
+  size_t decoded_size = 0;
+  uint8_t state = 0;
+  bool accept = false;
+
+  for (size_t i = 0; i < encoded_size; i++) {
+    const node &first = decode_table[state][src.data()[i] >> 4U];
+
+    if ((first.flags & util::to_underlying(decode_flag::failed)) != 0) {
+      THROW(error::qpack_decompression_failed);
+    }
+
+    if ((first.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+      decoded_size++;
+    }
+
+    const node &second = decode_table[first.state][src.data()[i] & 0xfU];
+
+    if ((second.flags & util::to_underlying(decode_flag::failed)) != 0) {
+      THROW(error::qpack_decompression_failed);
+    }
+
+    if ((second.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+      decoded_size++;
+    }
+
+    state = second.state;
+    accept = (second.flags & util::to_underlying(decode_flag::accepted)) != 0;
   }
 
   if (!accept) {
     THROW(error::qpack_decompression_failed);
   }
 
-  *string_size = string_length;
-
-  return {};
+  return decoded_size;
 }
 
 } // namespace h3c

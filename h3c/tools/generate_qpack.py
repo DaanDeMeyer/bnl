@@ -119,7 +119,7 @@ static_table_raw = """\
 find_index_template = """\
 static static_table::index_type find_index(const header &header, uint8_t *index)
 {{
-  uint64_t name_hash = XXH64(header.name.data, header.name.size, 0);
+  uint64_t name_hash = XXH64(header.name.data(), header.name.size(), 0);
   uint64_t value_hash;
 
   switch (name_hash) {{
@@ -138,7 +138,7 @@ case {}U: // {}
 
 values_template = """\
 case {}U: // {}
-  value_hash = XXH64(header.value.data, header.value.size, 0);
+  value_hash = XXH64(header.value.data(), header.value.size(), 0);
   switch(value_hash) {{
     {}
   }}
@@ -178,7 +178,7 @@ for header, entry in itertools.groupby(static_table, lambda x: x[1]):
 find_index = find_index_template.format(cases)
 
 encode_generated_template = """\
-#include <h3c/http.hpp>
+#include <h3c/header.hpp>
 
 #include <xxhash.h>
 
@@ -220,16 +220,7 @@ bool find_header_value(uint8_t index, header *header)
 
 header_value_case_template = """\
 case {0}:
-  *header = {{
-    {{
-      "{1}",
-      sizeof("{1}") - 1
-    }},
-    {{
-      "{2}",
-      sizeof("{2}") - 1
-    }}
-  }};
+  *header = {{ "{1}", "{2}" }};
   return true;\
 """
 
@@ -255,16 +246,7 @@ bool find_header_only(uint8_t index, header *header)
 
 header_only_case_template = """\
 case {0}:
-  *header = {{
-    {{
-      "{1}",
-      sizeof("{1}") - 1
-    }},
-    {{
-      nullptr,
-      0
-    }}
-  }};
+  *header = {{ "{1}", {{}} }};
   return true;\
 """
 
@@ -276,7 +258,7 @@ for entry in static_table:
 find_header_only = find_header_only_template.format(cases)
 
 decode_generated_template = """\
-#include <h3c/http.hpp>
+#include <h3c/header.hpp>
 
 #include <cstdint>
 

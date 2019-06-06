@@ -1,31 +1,50 @@
 #pragma once
 
 #include <h3c/error.hpp>
-#include <h3c/log.hpp>
+#include <util/log.hpp>
 
-#include <cassert>
+#include <cstdlib>
 
-#define THROW(err)                                                             \
+#define THROW_VOID(err)                                                        \
   {                                                                            \
-    std::error_code code(err);                                                 \
+    ec = err;                                                                  \
                                                                                \
-    switch (err) {                                                             \
-      case error::internal_error:                                              \
-        assert(0);                                                             \
-      default:                                                                 \
-        H3C_LOG_ERROR(logger_, "{}", code.message());                          \
-        break;                                                                 \
+    LOG_E("{}", ec.message());                                                 \
+                                                                               \
+    if (ec == error::internal_error) {                                         \
+      ASSERT(false);                                                           \
     }                                                                          \
-                                                                               \
-    return code;                                                               \
   }                                                                            \
   (void) 0
 
-#define TRY(statement)                                                         \
+#define THROW(err)                                                             \
+  THROW_VOID(err);                                                             \
+  return {};                                                                   \
+  (void) 0
+
+#define TRY(expression)                                                        \
+  [&]() {                                                                      \
+    using type = decltype(expression);                                         \
+    ec = {};                                                                   \
+    auto result = expression;                                                  \
+    return ec ? type{} : result;                                               \
+  }();                                                                         \
+  if (ec) {                                                                    \
+    return {};                                                                 \
+  };                                                                           \
+  (void) 0
+
+#define ASSERT(expression)                                                     \
   {                                                                            \
-    std::error_code error = statement;                                         \
-    if (error) {                                                               \
-      return error;                                                            \
+    auto result = expression;                                                  \
+    if (!result) {                                                             \
+      LOG_E("Assertion failed: {}", #expression);                              \
+      std::abort();                                                            \
     }                                                                          \
   }                                                                            \
+  (void) 0
+
+#define NOTREACHED()                                                           \
+  LOG_E("Assertion failed: NOTREACHED()");                                     \
+  std::abort();                                                                \
   (void) 0

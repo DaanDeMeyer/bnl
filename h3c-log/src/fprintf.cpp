@@ -4,7 +4,6 @@
 #include <fmt/color.h>
 
 #include <array>
-#include <cassert>
 
 static constexpr std::array<const char *, 6> level_names = { "TRACE", "DEBUG",
                                                              "INFO",  "WARN",
@@ -35,19 +34,12 @@ void fprintf::operator()(log::level level,
   FILE *output = nullptr;
 
   switch (level) {
-    case log::level::trace:
-    case log::level::debug:
-    case log::level::info:
-      output = out_ != nullptr ? out_ : stdout;
-      break;
     case log::level::warning:
     case log::level::error:
       output = err_ != nullptr ? err_ : stderr;
       break;
     default:
-      // TODO: Handle error
-      assert(0);
-      return;
+      output = out_ != nullptr ? out_ : stdout;
   }
 
   fmt::text_style color;

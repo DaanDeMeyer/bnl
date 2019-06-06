@@ -2,12 +2,9 @@
 
 #include <util/error.hpp>
 
-#include <cassert>
-
 namespace h3c {
 
-varint::decoder::decoder(logger *logger) noexcept : logger_(logger)
-{}
+varint::decoder::decoder(logger *logger) noexcept : logger_(logger) {}
 
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
@@ -50,18 +47,10 @@ static uint64_t uint64_decode(const uint8_t *src)
   return result & 0x3fffffffffffffffU;
 }
 
-std::error_code varint::decoder::decode(const uint8_t *src,
-                                        size_t size,
-                                        uint64_t *varint,
-                                        size_t *encoded_size) const noexcept
+uint64_t
+varint::decoder::decode(buffer &src, std::error_code &ec) const noexcept
 {
-  assert(src);
-  assert(varint);
-  assert(encoded_size);
-
-  *encoded_size = 0;
-
-  if (size == 0) {
+  if (src.empty()) {
     THROW(error::incomplete);
   }
 
@@ -71,30 +60,32 @@ std::error_code varint::decoder::decode(const uint8_t *src,
   // varint size = 2^header
   varint_size <<= header; // shift left => x2
 
-  if (varint_size > size) {
+  if (varint_size > src.size()) {
     THROW(error::incomplete);
   }
 
+  uint64_t varint = 0;
+
   switch (varint_size) {
     case sizeof(uint8_t):
-      *varint = uint8_decode(src);
+      varint = uint8_decode(src.data());
       break;
     case sizeof(uint16_t):
-      *varint = uint16_decode(src);
+      varint = uint16_decode(src.data());
       break;
     case sizeof(uint32_t):
-      *varint = uint32_decode(src);
+      varint = uint32_decode(src.data());
       break;
     case sizeof(uint64_t):
-      *varint = uint64_decode(src);
+      varint = uint64_decode(src.data());
       break;
     default:
-      THROW(error::internal_error);
+      NOTREACHED();
   }
 
-  *encoded_size = varint_size;
+  src.advance(varint_size);
 
-  return {};
+  return varint;
 }
 
 } // namespace h3c

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <h3c/buffer.hpp>
 #include <h3c/export.hpp>
+#include <h3c/util/class.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -16,21 +18,13 @@ class encoder {
 public:
   H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
-  encoder(const encoder &) = delete;
-  encoder &operator=(const encoder &) = delete;
+  H3C_MOVE_ONLY(encoder)
 
-  encoder(encoder &&) = default;
-  encoder &operator=(encoder &&) = default;
+  H3C_EXPORT size_t encoded_size(const buffer &string) const noexcept;
 
-  ~encoder() = default;
+  H3C_EXPORT size_t encode(uint8_t *dest, const buffer &string) const noexcept;
 
-  H3C_EXPORT size_t encoded_size(const char *string, size_t size) const
-      noexcept;
-
-  H3C_EXPORT std::error_code encode(uint8_t *dest,
-                                    size_t size,
-                                    const char *string,
-                                    size_t string_size) const noexcept;
+  H3C_EXPORT buffer encode(const buffer &string) const;
 
 private:
   logger *logger_;
@@ -40,21 +34,18 @@ class decoder {
 public:
   H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
-  decoder(const decoder &) = delete;
-  decoder &operator=(const decoder &) = delete;
+  H3C_MOVE_ONLY(decoder)
 
-  decoder(decoder &&) = default;
-  decoder &operator=(decoder &&) = default;
-
-  ~decoder() = default;
-
-  H3C_EXPORT std::error_code decode(const uint8_t *src,
-                                    size_t size,
-                                    char *string,
-                                    size_t *string_size) const noexcept;
+  H3C_EXPORT buffer decode(buffer &src,
+                           size_t encoded_size,
+                           std::error_code &ec) const;
 
 private:
   logger *logger_;
+
+  size_t decoded_size(const buffer &src,
+                      size_t encoded_size,
+                      std::error_code &ec) const noexcept;
 };
 
 } // namespace huffman

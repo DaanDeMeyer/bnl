@@ -4,8 +4,7 @@
 #include <h3c/huffman.hpp>
 #include <h3c/log.hpp>
 
-#include <cstdint>
-#include <iostream>
+#include <algorithm>
 #include <random>
 #include <string>
 
@@ -31,34 +30,20 @@ static std::string random_string(std::string::size_type length)
 }
 
 static void encode_and_decode(const std::string &string,
-                              h3c::huffman::encoder *encoder,
-                              h3c::huffman::decoder *decoder)
+                              const h3c::huffman::encoder &encoder,
+                              const h3c::huffman::decoder &decoder)
 {
-  size_t encoded_size = encoder->encoded_size(string.data(), string.size());
+  h3c::mutable_buffer buffer(string.size());
+  std::copy_n(string.data(), string.size(), buffer.data());
 
-  std::vector<uint8_t> buffer(encoded_size);
+  h3c::buffer encoded = encoder.encode(buffer);
 
-  std::error_code error = encoder->encode(buffer.data(), buffer.size(),
-                                          string.data(), string.size());
+  std::error_code ec;
+  h3c::buffer decoded = decoder.decode(encoded, encoded.size(), ec);
 
-  CAPTURE(error);
-
-  REQUIRE(!error);
-
-  std::vector<char> decode(string.size() + 20);
-
-  size_t string_size = decode.size();
-  error = decoder->decode(buffer.data(), encoded_size, decode.data(),
-                          &string_size);
-
-  CAPTURE(string);
-
-  std::string decoded(decode.data(), string_size);
-
-  CAPTURE(decoded);
-
-  REQUIRE(!error);
-  REQUIRE(decoded == string);
+  REQUIRE(!ec);
+  REQUIRE(decoded.size() == string.size());
+  REQUIRE(std::equal(decoded.begin(), decoded.end(), string.begin()));
 }
 
 TEST_CASE("huffman")
@@ -68,5 +53,27 @@ TEST_CASE("huffman")
   h3c::huffman::encoder encoder(&logger);
   h3c::huffman::decoder decoder(&logger);
 
-  encode_and_decode(random_string(20), &encoder, &decoder);
+  SUBCASE("random")
+  {
+    for (size_t i = 0; i < 1000; i++) {
+      encode_and_decode(random_string(20), encoder, decoder);
+    }
+  }
+
+  SUBCASE("incomplete")
+  {
+    h3c::buffer buffer("abcde");
+    h3c::buffer encoded = encoder.encode(buffer);
+
+    h3c::buffer slice = encoded.slice(2);
+
+    std::error_code ec;
+    h3c::buffer decoded = decoder.decode(slice, encoded.size(), ec);
+
+    REQUIRE(ec == h3c::error::incomplete);
+
+    decoded = decoder.decode(encoded, encoded.size(), ec);
+
+    REQUIRE(!ec);
+  }
 }
