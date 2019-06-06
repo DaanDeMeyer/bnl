@@ -26,15 +26,11 @@ enum class error : uint32_t {
   // than 16 bytes for library error codes.
 
   not_implemented = UINT16_MAX + 1,
-  out_of_memory,
-  buffer_too_small,
   incomplete,
   varint_overflow,
   setting_overflow,
-  concurrent_streams_limit_exceeded,
   malformed_header,
-  stream_closed,
-  unknown_frame_type
+  stream_closed
 };
 
 H3C_EXPORT const std::error_category &error_category() noexcept;

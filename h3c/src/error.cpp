@@ -39,24 +39,16 @@ std::string error_category_impl::message(int condition) const noexcept
 
     case error::not_implemented:
       return "not implemented";
-    case error::out_of_memory:
-      return "out of memory";
-    case error::buffer_too_small:
-      return "buffer too small";
     case error::incomplete:
       return "incomplete";
     case error::varint_overflow:
       return "varint overflow";
     case error::setting_overflow:
       return "setting overflow";
-    case error::concurrent_streams_limit_exceeded:
-      return "concurrent streams limit exceeded";
     case error::malformed_header:
       return "malformed header";
     case error::stream_closed:
       return "stream closed";
-    case error::unknown_frame_type:
-      return "unknown frame type";
   }
 
   return "unknown error";
