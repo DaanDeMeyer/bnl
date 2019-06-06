@@ -34,11 +34,11 @@ size_t qpack::encoder::prefix_encode(uint8_t *dest) const noexcept
 buffer qpack::encoder::prefix_encode() const
 {
   size_t encoded_size = this->prefix_encoded_size();
-  h3c::mutable_buffer dest(encoded_size);
+  mutable_buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == prefix_encode(dest.data()));
+  ASSERT(encoded_size == prefix_encode(encoded.data()));
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
 size_t qpack::encoder::encoded_size(const header &header,
@@ -144,11 +144,11 @@ size_t qpack::encoder::encode(uint8_t *dest,
 buffer qpack::encoder::encode(const header &header, std::error_code &ec) const
 {
   size_t encoded_size = TRY(this->encoded_size(header, ec));
-  mutable_buffer dest(encoded_size);
+  mutable_buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(dest.data(), header, ec)));
+  ASSERT(encoded_size == TRY(encode(encoded.data(), header, ec)));
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
 } // namespace h3c

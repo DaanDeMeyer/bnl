@@ -42,7 +42,7 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
-  H3C_EXPORT buffer decode(buffer &src,
+  H3C_EXPORT buffer decode(buffer &encoded,
                            uint8_t prefix,
                            std::error_code &ec) const;
 

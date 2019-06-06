@@ -10,18 +10,18 @@
 
 static h3c::buffer id_encode(uint64_t id)
 {
-  h3c::mutable_buffer dest(sizeof(uint64_t));
+  h3c::mutable_buffer encoded(sizeof(uint64_t));
 
-  dest[0] = static_cast<uint8_t>(id >> 56U);
-  dest[1] = static_cast<uint8_t>(id >> 48U);
-  dest[2] = static_cast<uint8_t>(id >> 40U);
-  dest[3] = static_cast<uint8_t>(id >> 32U);
-  dest[4] = static_cast<uint8_t>(id >> 24U);
-  dest[5] = static_cast<uint8_t>(id >> 16U);
-  dest[6] = static_cast<uint8_t>(id >> 8U);
-  dest[7] = static_cast<uint8_t>(id >> 0U);
+  encoded[0] = static_cast<uint8_t>(id >> 56U);
+  encoded[1] = static_cast<uint8_t>(id >> 48U);
+  encoded[2] = static_cast<uint8_t>(id >> 40U);
+  encoded[3] = static_cast<uint8_t>(id >> 32U);
+  encoded[4] = static_cast<uint8_t>(id >> 24U);
+  encoded[5] = static_cast<uint8_t>(id >> 16U);
+  encoded[6] = static_cast<uint8_t>(id >> 8U);
+  encoded[7] = static_cast<uint8_t>(id >> 0U);
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
 static h3c::buffer size_encode(const std::vector<h3c::header> &headers,
@@ -37,20 +37,20 @@ static h3c::buffer size_encode(const std::vector<h3c::header> &headers,
     }
   }
 
-  h3c::mutable_buffer dest(sizeof(uint32_t));
+  h3c::mutable_buffer encoded(sizeof(uint32_t));
 
-  dest[0] = static_cast<uint8_t>(encoded_size >> 24U);
-  dest[1] = static_cast<uint8_t>(encoded_size >> 16U);
-  dest[2] = static_cast<uint8_t>(encoded_size >> 8U);
-  dest[3] = static_cast<uint8_t>(encoded_size >> 0U);
+  encoded[0] = static_cast<uint8_t>(encoded_size >> 24U);
+  encoded[1] = static_cast<uint8_t>(encoded_size >> 16U);
+  encoded[2] = static_cast<uint8_t>(encoded_size >> 8U);
+  encoded[3] = static_cast<uint8_t>(encoded_size >> 0U);
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
-void write(std::ostream &dest, const h3c::buffer &src)
+void write(std::ostream &dest, const h3c::buffer &encoded)
 {
-  dest.write(reinterpret_cast<const char *>(src.data()),
-             static_cast<int32_t>(src.size()));
+  dest.write(reinterpret_cast<const char *>(encoded.data()),
+             static_cast<int32_t>(encoded.size()));
 }
 
 #pragma GCC diagnostic push

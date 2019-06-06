@@ -36,14 +36,14 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
-  H3C_EXPORT buffer decode(buffer &src,
+  H3C_EXPORT buffer decode(buffer &encoded,
                            size_t encoded_size,
                            std::error_code &ec) const;
 
 private:
   logger *logger_;
 
-  size_t decoded_size(const buffer &src,
+  size_t decoded_size(const buffer &encoded,
                       size_t encoded_size,
                       std::error_code &ec) const noexcept;
 };

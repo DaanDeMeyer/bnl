@@ -139,7 +139,7 @@ public:
                            const frame &frame,
                            std::error_code &ec) const noexcept;
 
-  H3C_EXPORT h3c::buffer encode(const frame &frame, std::error_code &ec) const;
+  H3C_EXPORT buffer encode(const frame &frame, std::error_code &ec) const;
 
 private:
   logger *logger_;
@@ -155,7 +155,7 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
-  H3C_EXPORT frame decode(buffer &src, std::error_code &ec) const noexcept;
+  H3C_EXPORT frame decode(buffer &encoded, std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;

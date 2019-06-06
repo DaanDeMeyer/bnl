@@ -106,11 +106,11 @@ size_t varint::encoder::encode(uint8_t *dest,
 buffer varint::encoder::encode(uint64_t varint, std::error_code &ec) const
 {
   size_t encoded_size = this->encoded_size(varint, ec);
-  mutable_buffer dest(encoded_size);
+  mutable_buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(dest.data(), varint, ec)));
+  ASSERT(encoded_size == TRY(encode(encoded.data(), varint, ec)));
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
 } // namespace h3c

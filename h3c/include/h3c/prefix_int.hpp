@@ -36,14 +36,14 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
-  H3C_EXPORT uint64_t decode(buffer &src,
+  H3C_EXPORT uint64_t decode(buffer &encoded,
                              uint8_t prefix,
                              std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;
 
-  uint8_t uint8_decode(buffer &src, std::error_code &ec) const noexcept;
+  uint8_t uint8_decode(buffer &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace prefix_int

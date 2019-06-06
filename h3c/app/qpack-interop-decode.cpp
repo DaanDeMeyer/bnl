@@ -11,38 +11,38 @@ static h3c::logger logger{ h3c::log::impl::fprintf() }; // NOLINT
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 
-uint64_t id_decode(h3c::buffer &src, std::error_code &ec)
+uint64_t id_decode(h3c::buffer &encoded, std::error_code &ec)
 {
-  if (src.size() < sizeof(uint64_t)) {
+  if (encoded.size() < sizeof(uint64_t)) {
     THROW(h3c::error::incomplete);
   }
 
-  uint64_t id = static_cast<uint64_t>(src[0]) << 56U |
-                static_cast<uint64_t>(src[1]) << 48U |
-                static_cast<uint64_t>(src[2]) << 40U |
-                static_cast<uint64_t>(src[3]) << 32U |
-                static_cast<uint64_t>(src[4]) << 24U |
-                static_cast<uint64_t>(src[5]) << 16U |
-                static_cast<uint64_t>(src[6]) << 8U |
-                static_cast<uint64_t>(src[7]) << 0U;
+  uint64_t id = static_cast<uint64_t>(encoded[0]) << 56U |
+                static_cast<uint64_t>(encoded[1]) << 48U |
+                static_cast<uint64_t>(encoded[2]) << 40U |
+                static_cast<uint64_t>(encoded[3]) << 32U |
+                static_cast<uint64_t>(encoded[4]) << 24U |
+                static_cast<uint64_t>(encoded[5]) << 16U |
+                static_cast<uint64_t>(encoded[6]) << 8U |
+                static_cast<uint64_t>(encoded[7]) << 0U;
 
-  src.advance(sizeof(uint64_t));
+  encoded.advance(sizeof(uint64_t));
 
   return id;
 }
 
-size_t size_decode(h3c::buffer &src, std::error_code &ec)
+size_t size_decode(h3c::buffer &encoded, std::error_code &ec)
 {
-  if (src.size() < sizeof(uint32_t)) {
+  if (encoded.size() < sizeof(uint32_t)) {
     THROW(h3c::error::incomplete);
   }
 
-  size_t encoded_size = static_cast<uint32_t>(src[0]) << 24U |
-                        static_cast<uint32_t>(src[1]) << 16U |
-                        static_cast<uint32_t>(src[2]) << 8U |
-                        static_cast<uint32_t>(src[3]) << 0U;
+  size_t encoded_size = static_cast<uint32_t>(encoded[0]) << 24U |
+                        static_cast<uint32_t>(encoded[1]) << 16U |
+                        static_cast<uint32_t>(encoded[2]) << 8U |
+                        static_cast<uint32_t>(encoded[3]) << 0U;
 
-  src.advance(sizeof(uint32_t));
+  encoded.advance(sizeof(uint32_t));
 
   return encoded_size;
 }
@@ -80,15 +80,15 @@ int main(int argc, char *argv[])
 
   // Read input
 
-  h3c::mutable_buffer src;
+  h3c::mutable_buffer encoded;
 
   try {
     input.seekg(0, std::ios::end);
     std::streamsize size = input.tellg();
     input.seekg(0, std::ios::beg);
 
-    src = h3c::mutable_buffer(static_cast<size_t>(size));
-    input.read(reinterpret_cast<char *>(src.data()), size);
+    encoded = h3c::mutable_buffer(static_cast<size_t>(size));
+    input.read(reinterpret_cast<char *>(encoded.data()), size);
   } catch (const std::ios_base::failure &e) {
     H3C_LOG_ERROR(&logger, "Error reading input: {}", e.what());
     return 1;
@@ -111,21 +111,21 @@ int main(int argc, char *argv[])
   std::error_code ec;
   h3c::qpack::decoder qpack(&logger);
 
-  while (!src.empty()) {
-    TRY(id_decode(src, ec));
-    size_t encoded_size = TRY(size_decode(src, ec));
+  while (!encoded.empty()) {
+    TRY(id_decode(encoded, ec));
+    size_t encoded_size = TRY(size_decode(encoded, ec));
 
-    size_t begin = src.position();
+    size_t begin = encoded.position();
 
-    qpack.prefix_decode(src, ec);
+    qpack.prefix_decode(encoded, ec);
     if (ec) {
       return ec.value();
     }
 
     std::vector<h3c::header> headers;
 
-    while (src.position() - begin != encoded_size) {
-      h3c::header header = TRY(qpack.decode(src, ec));
+    while (encoded.position() - begin != encoded_size) {
+      h3c::header header = TRY(qpack.decode(encoded, ec));
       headers.emplace_back(std::move(header));
     }
 

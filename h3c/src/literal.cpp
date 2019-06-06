@@ -46,37 +46,38 @@ buffer literal::encoder::encode(const buffer &literal, uint8_t prefix) const
     return literal;
   }
 
-  h3c::mutable_buffer dest(encoded_size);
+  mutable_buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == encode(dest.data(), literal, prefix));
+  ASSERT(encoded_size == encode(encoded.data(), literal, prefix));
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
 literal::decoder::decoder(logger *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-buffer
-literal::decoder::decode(buffer &src, uint8_t prefix, std::error_code &ec) const
+buffer literal::decoder::decode(buffer &encoded,
+                                uint8_t prefix,
+                                std::error_code &ec) const
 {
   DECODE_START();
 
-  if (src.empty()) {
+  if (encoded.empty()) {
     DECODE_THROW(error::incomplete);
   }
 
-  bool is_huffman_encoded = (static_cast<uint8_t>(*src >> prefix) & // NOLINT
-                             0x01) != 0;
+  bool is_huffman_encoded = (static_cast<uint8_t>(*encoded >> prefix) // NOLINT
+                             & 0x01) != 0;
   size_t literal_encoded_size = DECODE_TRY(
-      static_cast<size_t>(prefix_int_.decode(src, prefix, ec)));
+      static_cast<size_t>(prefix_int_.decode(encoded, prefix, ec)));
 
   if (is_huffman_encoded) {
-    return DECODE_TRY(huffman_.decode(src, literal_encoded_size, ec));
+    return DECODE_TRY(huffman_.decode(encoded, literal_encoded_size, ec));
   }
 
-  buffer literal = src.slice(literal_encoded_size);
-  src.advance(literal_encoded_size);
+  buffer literal = encoded.slice(literal_encoded_size);
+  encoded.advance(literal_encoded_size);
   return literal;
 }
 

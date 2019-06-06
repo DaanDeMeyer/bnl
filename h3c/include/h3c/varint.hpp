@@ -43,7 +43,8 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
-  H3C_EXPORT uint64_t decode(buffer &src, std::error_code &ec) const noexcept;
+  H3C_EXPORT uint64_t decode(buffer &encoded, std::error_code &ec) const
+      noexcept;
 
 private:
   logger *logger_;

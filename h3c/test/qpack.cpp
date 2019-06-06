@@ -7,30 +7,32 @@
 #include <algorithm>
 
 template <size_t N>
-static void encode_and_decode(const h3c::header &src,
+static void encode_and_decode(const h3c::header &header,
                               const h3c::qpack::encoder &encoder,
                               const h3c::qpack::decoder &decoder)
 {
   std::error_code ec;
 
-  size_t encoded_size = encoder.encoded_size(src, ec);
+  size_t encoded_size = encoder.encoded_size(header, ec);
   REQUIRE(!ec);
   REQUIRE(encoded_size == N);
 
-  h3c::buffer encoded = encoder.encode(src, ec);
+  h3c::buffer encoded = encoder.encode(header, ec);
   REQUIRE(!ec);
   REQUIRE(encoded.size() == N);
 
-  h3c::header dest = decoder.decode(encoded, ec);
+  h3c::header decoded = decoder.decode(encoded, ec);
 
   REQUIRE(!ec);
   REQUIRE(encoded.empty());
 
-  REQUIRE(dest.name.size() == src.name.size());
-  REQUIRE(std::equal(dest.name.begin(), dest.name.end(), src.name.begin()));
+  REQUIRE(decoded.name.size() == header.name.size());
+  REQUIRE(std::equal(decoded.name.begin(), decoded.name.end(),
+                     header.name.begin()));
 
-  REQUIRE(dest.value.size() == src.value.size());
-  REQUIRE(std::equal(dest.value.begin(), dest.value.end(), src.value.begin()));
+  REQUIRE(decoded.value.size() == header.value.size());
+  REQUIRE(std::equal(decoded.value.begin(), decoded.value.end(),
+                     header.value.begin()));
 }
 
 TEST_CASE("qpack")

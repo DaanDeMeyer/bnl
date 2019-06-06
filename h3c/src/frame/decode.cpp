@@ -11,10 +11,10 @@ frame::decoder::decoder(logger *logger) noexcept
 
 #define TRY_VARINT_DECODE(value)                                               \
   {                                                                            \
-    size_t before = src.position();                                            \
-    (value) = DECODE_TRY(varint_.decode(src, ec));                             \
+    size_t before = encoded.position();                                            \
+    (value) = DECODE_TRY(varint_.decode(encoded, ec));                             \
                                                                                \
-    size_t varint_encoded_size = src.position() - before;                      \
+    size_t varint_encoded_size = encoded.position() - before;                      \
                                                                                \
     if (varint_encoded_size > payload_encoded_size) {                          \
       LOG_E("Frame payload's actual length exceeds its advertised length");    \
@@ -26,7 +26,7 @@ frame::decoder::decoder(logger *logger) noexcept
   (void) 0
 
 #define TRY_UINT8_DECODE(value)                                                \
-  if (src.empty()) {                                                           \
+  if (encoded.empty()) {                                                           \
     DECODE_THROW(error::incomplete);                                           \
   }                                                                            \
                                                                                \
@@ -35,9 +35,9 @@ frame::decoder::decoder(logger *logger) noexcept
     DECODE_THROW(error::malformed_frame);                                      \
   }                                                                            \
                                                                                \
-  (value) = *src;                                                              \
+  (value) = *encoded;                                                              \
                                                                                \
-  src.advance(1);                                                              \
+  encoded.advance(1);                                                              \
   payload_encoded_size--;                                                      \
   (void) 0
 
@@ -56,7 +56,7 @@ frame::decoder::decoder(logger *logger) noexcept
   }                                                                            \
   (void) 0
 
-frame frame::decoder::decode(buffer &src, std::error_code &ec) const noexcept
+frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
 {
   frame frame;
 
@@ -65,8 +65,8 @@ frame frame::decoder::decode(buffer &src, std::error_code &ec) const noexcept
   while (is_unknown_frame_type) {
     DECODE_START();
 
-    uint64_t type = DECODE_TRY(varint_.decode(src, ec));
-    uint64_t payload_encoded_size = DECODE_TRY(varint_.decode(src, ec));
+    uint64_t type = DECODE_TRY(varint_.decode(encoded, ec));
+    uint64_t payload_encoded_size = DECODE_TRY(varint_.decode(encoded, ec));
 
     is_unknown_frame_type = false;
 
@@ -201,7 +201,7 @@ frame frame::decoder::decode(buffer &src, std::error_code &ec) const noexcept
         // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-grease
         LOG_E("Ignoring unknown frame type ({})", type);
         is_unknown_frame_type = true;
-        src.advance(payload_encoded_size);
+        encoded.advance(payload_encoded_size);
         payload_encoded_size = 0;
     }
 

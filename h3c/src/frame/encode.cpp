@@ -208,15 +208,14 @@ size_t frame::encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-h3c::buffer
-frame::encoder::encode(const frame &frame, std::error_code &ec) const
+buffer frame::encoder::encode(const frame &frame, std::error_code &ec) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame, ec));
-  h3c::mutable_buffer dest(encoded_size);
+  mutable_buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(dest.data(), frame, ec)));
+  ASSERT(encoded_size == TRY(encode(encoded.data(), frame, ec)));
 
-  return std::move(dest);
+  return std::move(encoded);
 }
 
 } // namespace h3c

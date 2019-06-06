@@ -56,9 +56,9 @@ public:
   H3C_MOVE_ONLY(decoder)
 
   H3C_EXPORT void
-  prefix_decode(buffer &src, std::error_code &ec) const noexcept;
+  prefix_decode(buffer &encoded, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT header decode(buffer &src, std::error_code &ec) const;
+  H3C_EXPORT header decode(buffer &encoded, std::error_code &ec) const;
 
 private:
   logger *logger_;
