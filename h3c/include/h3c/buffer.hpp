@@ -48,10 +48,7 @@ public:
   H3C_EXPORT buffer slice(size_t size) const noexcept;
 
   H3C_EXPORT void advance(size_t size) noexcept;
-  H3C_EXPORT void undo(size_t size) noexcept;
-  H3C_EXPORT size_t position() const noexcept;
-
-  H3C_EXPORT void reset() noexcept;
+  H3C_EXPORT void reset(const uint8_t *position) noexcept;
 
 protected:
   enum class type { static_, sso, unique, shared };

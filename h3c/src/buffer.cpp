@@ -205,20 +205,12 @@ void buffer::advance(size_t size) noexcept
   position_ += size;
 }
 
-void buffer::undo(size_t size) noexcept
+void buffer::reset(const uint8_t *position) noexcept
 {
-  assert(size <= position_);
-  position_ -= size;
-}
-
-size_t buffer::position() const noexcept
-{
-  return position_;
-}
-
-void buffer::reset() noexcept
-{
-  destroy();
+  const uint8_t *data = this->data() - position_;
+  assert(position >= data);
+  assert(position <= data + size_);
+  position_ = position - data;
 }
 
 void buffer::upgrade() const noexcept

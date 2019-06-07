@@ -11,10 +11,10 @@ frame::decoder::decoder(logger *logger) noexcept
 
 #define TRY_VARINT_DECODE(value)                                               \
   {                                                                            \
-    size_t before = encoded.position();                                            \
-    (value) = DECODE_TRY(varint_.decode(encoded, ec));                             \
+    const uint8_t *before = encoded.data();                                    \
+    (value) = DECODE_TRY(varint_.decode(encoded, ec));                         \
                                                                                \
-    size_t varint_encoded_size = encoded.position() - before;                      \
+    size_t varint_encoded_size = encoded.data() - before;                      \
                                                                                \
     if (varint_encoded_size > payload_encoded_size) {                          \
       LOG_E("Frame payload's actual length exceeds its advertised length");    \
@@ -26,7 +26,7 @@ frame::decoder::decoder(logger *logger) noexcept
   (void) 0
 
 #define TRY_UINT8_DECODE(value)                                                \
-  if (encoded.empty()) {                                                           \
+  if (encoded.empty()) {                                                       \
     DECODE_THROW(error::incomplete);                                           \
   }                                                                            \
                                                                                \
@@ -35,9 +35,9 @@ frame::decoder::decoder(logger *logger) noexcept
     DECODE_THROW(error::malformed_frame);                                      \
   }                                                                            \
                                                                                \
-  (value) = *encoded;                                                              \
+  (value) = *encoded;                                                          \
                                                                                \
-  encoded.advance(1);                                                              \
+  encoded.advance(1);                                                          \
   payload_encoded_size--;                                                      \
   (void) 0
 
@@ -56,7 +56,8 @@ frame::decoder::decoder(logger *logger) noexcept
   }                                                                            \
   (void) 0
 
-frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
+frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const
+    noexcept
 {
   frame frame;
 

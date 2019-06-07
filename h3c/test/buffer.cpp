@@ -33,9 +33,10 @@ TEST_CASE("buffer")
     REQUIRE(data.use_count() == 2);
 
     {
+      const uint8_t *begin = buffer.begin();
       buffer.advance(250);
       h3c::buffer slice = buffer.slice(500);
-      buffer.undo(250);
+      buffer.reset(begin);
 
       REQUIRE(slice.data() == data.get() + 250);
       REQUIRE(slice.size() == 500);
@@ -113,7 +114,7 @@ TEST_CASE("buffer")
     h3c::buffer second = buffer.slice(1);
     REQUIRE(second[0] == 'd');
 
-    buffer.undo(1);
+    buffer.reset(buffer.data() - 1);
     REQUIRE(buffer[0] == 'c');
   }
 }
