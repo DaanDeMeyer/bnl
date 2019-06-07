@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fstream>
+#include <queue>
 #include <vector>
 
 #include <h3c/error.hpp>
@@ -24,19 +25,8 @@ static h3c::buffer id_encode(uint64_t id)
   return std::move(encoded);
 }
 
-static h3c::buffer size_encode(const std::vector<h3c::header> &headers,
-                               const h3c::qpack::encoder &qpack,
-                               std::error_code &ec)
+static h3c::buffer size_encode(uint32_t encoded_size)
 {
-  size_t encoded_size = qpack.prefix_encoded_size();
-
-  for (const auto &header : headers) {
-    encoded_size += qpack.encoded_size(header, ec);
-    if (ec) {
-      return {};
-    }
-  }
-
   h3c::mutable_buffer encoded(sizeof(uint32_t));
 
   encoded[0] = static_cast<uint8_t>(encoded_size >> 24U);
@@ -109,13 +99,24 @@ int main(int argc, char *argv[])
       // Encode header block and write to output
 
       try {
-        write(output, id_encode(id));
-        h3c::buffer size_encoded = TRY(size_encode(headers, qpack, ec));
-        write(output, size_encoded);
-        write(output, qpack.prefix_encode());
+        std::queue<h3c::buffer> buffers;
 
         for (const h3c::header &header : headers) {
           h3c::buffer encoded = TRY(qpack.encode(header, ec));
+          buffers.emplace(std::move(encoded));
+        }
+
+        if (qpack.count() > UINT32_MAX) {
+          H3C_LOG_ERROR(&logger, "Headers encoded size does not fit in an "
+                                 "unsigned 32-bit integer");
+        }
+
+        write(output, id_encode(id));
+        write(output, size_encode(static_cast<uint32_t>(qpack.count())));
+
+        while (!buffers.empty()) {
+          h3c::buffer encoded = std::move(buffers.front());
+          buffers.pop();
           write(output, encoded);
         }
       } catch (const std::ios_base::failure &e) {

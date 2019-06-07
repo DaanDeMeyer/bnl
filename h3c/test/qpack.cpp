@@ -8,8 +8,8 @@
 
 template <size_t N>
 static void encode_and_decode(const h3c::header &header,
-                              const h3c::qpack::encoder &encoder,
-                              const h3c::qpack::decoder &decoder)
+                              h3c::qpack::encoder &encoder,
+                              h3c::qpack::decoder &decoder)
 {
   std::error_code ec;
 
@@ -47,19 +47,19 @@ TEST_CASE("qpack")
   SUBCASE("indexed header field")
   {
     h3c::header path = { ":path", "/" };
-    encode_and_decode<1>(path, encoder, decoder);
+    encode_and_decode<3>(path, encoder, decoder);
   }
 
   SUBCASE("literal with name reference")
   {
     h3c::header authority = { ":authority", "www.example.com" };
-    encode_and_decode<14>(authority, encoder, decoder);
+    encode_and_decode<16>(authority, encoder, decoder);
   }
 
   SUBCASE("literal without name reference")
   {
     h3c::header via = { "via", "1.0 fred" };
-    encode_and_decode<11>(via, encoder, decoder);
+    encode_and_decode<13>(via, encoder, decoder);
   }
 
   SUBCASE("encode: malformed header")
@@ -78,34 +78,40 @@ TEST_CASE("qpack")
 
     encoded = encoded.slice(10);
 
-    REQUIRE(encoded.size() == 10);
-
-    std::error_code ec;
     h3c::header decoded = decoder.decode(encoded, ec);
 
     REQUIRE(ec == h3c::error::incomplete);
-    REQUIRE(encoded.size() == 10);
+    // Prefix has been decoded so size is 2 less than before.
+    REQUIRE(encoded.size() == 8);
   }
 
-  SUBCASE("decode: qpack decompression failed")
+  SUBCASE("decode: qpack decompression failed (indexed header field)")
   {
-    h3c::mutable_buffer encoded(2);
-    encoded[0] = 0xff; // 0xff = indexed header field
-    encoded[1] = 100;  // 100 = unassigned index
-
-    std::error_code ec;
+    h3c::mutable_buffer encoded(4);
+    encoded[0] = 0;    // prefix
+    encoded[1] = 0;    // prefix
+    encoded[2] = 0xff; // 0xff = indexed header field
+    encoded[3] = 100;  // 100 = unassigned index
 
     h3c::header header = decoder.decode(encoded, ec);
 
     REQUIRE(ec == h3c::error::qpack_decompression_failed);
+    // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
+  }
 
-    encoded[0] = 0x5f; // 0x5f = literal with name reference
-    encoded[0] = 100;  // 100 = unassigned index
+  SUBCASE("decode: qpack decompression failed (literal with name reference)")
+  {
+    h3c::mutable_buffer encoded(4);
+    encoded[0] = 0;    // prefix
+    encoded[1] = 0;    // prefix
+    encoded[2] = 0x5f; // 0x5f = literal with name reference
+    encoded[3] = 100;  // 100 = unassigned index
 
-    header = decoder.decode(encoded, ec);
+    h3c::header header = decoder.decode(encoded, ec);
 
     REQUIRE(ec == h3c::error::qpack_decompression_failed);
+    // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }
 }

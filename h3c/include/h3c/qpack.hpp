@@ -6,7 +6,6 @@
 #include <h3c/prefix_int.hpp>
 #include <h3c/util/class.hpp>
 
-#include <memory>
 #include <system_error>
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-qpack.html
@@ -27,26 +26,27 @@ public:
 
   H3C_MOVE_ONLY(encoder)
 
-  H3C_EXPORT size_t prefix_encoded_size() const noexcept;
-
-  H3C_EXPORT size_t prefix_encode(uint8_t *dest) const noexcept;
-
-  H3C_EXPORT buffer prefix_encode() const;
+  H3C_EXPORT uint64_t count() const noexcept;
 
   H3C_EXPORT size_t encoded_size(const header &header,
                                  std::error_code &ec) const noexcept;
 
   H3C_EXPORT size_t encode(uint8_t *dest,
                            const header &header,
-                           std::error_code &ec) const noexcept;
+                           std::error_code &ec) noexcept;
 
-  H3C_EXPORT buffer encode(const header &header, std::error_code &ec) const;
+  H3C_EXPORT buffer encode(const header &header, std::error_code &ec);
 
 private:
   logger *logger_;
 
   prefix_int::encoder prefix_int_;
   literal::encoder literal_;
+
+  enum class state { prefix, header };
+
+  state state_ = state::prefix;
+  uint64_t count_ = 0;
 };
 
 class decoder {
@@ -55,16 +55,20 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
-  H3C_EXPORT void
-  prefix_decode(buffer &encoded, std::error_code &ec) const noexcept;
+  H3C_EXPORT uint64_t count() const noexcept;
 
-  H3C_EXPORT header decode(buffer &encoded, std::error_code &ec) const;
+  H3C_EXPORT header decode(buffer &encoded, std::error_code &ec);
 
 private:
   logger *logger_;
 
   prefix_int::decoder prefix_int_;
   literal::decoder literal_;
+
+  enum class state { prefix, header };
+
+  state state_ = state::prefix;
+  uint64_t count_ = 0;
 };
 
 } // namespace qpack

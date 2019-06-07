@@ -17,28 +17,9 @@ qpack::encoder::encoder(logger *logger) noexcept
     : logger_(logger), prefix_int_(logger), literal_(logger)
 {}
 
-size_t qpack::encoder::prefix_encoded_size() const noexcept
+uint64_t qpack::encoder::count() const noexcept
 {
-  return QPACK_PREFIX_ENCODED_SIZE;
-}
-
-size_t qpack::encoder::prefix_encode(uint8_t *dest) const noexcept
-{
-  ASSERT(dest != nullptr);
-
-  std::fill(dest, dest + QPACK_PREFIX_ENCODED_SIZE, 0);
-
-  return QPACK_PREFIX_ENCODED_SIZE;
-}
-
-buffer qpack::encoder::prefix_encode() const
-{
-  size_t encoded_size = this->prefix_encoded_size();
-  mutable_buffer encoded(encoded_size);
-
-  ASSERT(encoded_size == prefix_encode(encoded.data()));
-
-  return std::move(encoded);
+  return count_;
 }
 
 size_t qpack::encoder::encoded_size(const header &header,
@@ -52,10 +33,14 @@ size_t qpack::encoder::encoded_size(const header &header,
     THROW(error::malformed_header);
   }
 
+  size_t encoded_size = 0;
+
+  if (state_ == state::prefix) {
+    encoded_size += QPACK_PREFIX_ENCODED_SIZE;
+  }
+
   uint8_t index = 0;
   static_table::index_type result = static_table::find_index(header, &index);
-
-  size_t encoded_size = 0;
 
   switch (result) {
 
@@ -98,12 +83,18 @@ static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
 size_t qpack::encoder::encode(uint8_t *dest,
                               const header &header,
-                              std::error_code &ec) const noexcept
+                              std::error_code &ec) noexcept
 {
   ASSERT(dest != nullptr);
 
   size_t encoded_size = TRY(this->encoded_size(header, ec));
   uint8_t *begin = dest;
+
+  if (state_ == state::prefix) {
+    std::fill(dest, dest + QPACK_PREFIX_ENCODED_SIZE, 0);
+    dest += QPACK_PREFIX_ENCODED_SIZE;
+    state_ = state::header;
+  }
 
   uint8_t index = 0;
   qpack::static_table::index_type result =
@@ -138,10 +129,12 @@ size_t qpack::encoder::encode(uint8_t *dest,
 
   ASSERT(static_cast<size_t>(dest - begin) == encoded_size);
 
+  count_ += encoded_size;
+
   return encoded_size;
 }
 
-buffer qpack::encoder::encode(const header &header, std::error_code &ec) const
+buffer qpack::encoder::encode(const header &header, std::error_code &ec)
 {
   size_t encoded_size = TRY(this->encoded_size(header, ec));
   mutable_buffer encoded(encoded_size);

@@ -12,17 +12,12 @@ qpack::decoder::decoder(logger *logger)
     : logger_(logger), prefix_int_(logger), literal_(logger)
 {}
 
-static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
-
-void qpack::decoder::prefix_decode(buffer &encoded, std::error_code &ec) const
-    noexcept
+uint64_t qpack::decoder::count() const noexcept
 {
-  if (encoded.size() < QPACK_PREFIX_ENCODED_SIZE) {
-    THROW_VOID(error::incomplete);
-  }
-
-  encoded.advance(QPACK_PREFIX_ENCODED_SIZE);
+  return count_;
 }
+
+static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 static constexpr uint8_t INDEXED_HEADER_FIELD_PREFIX = 0x80;
 static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x40;
@@ -54,7 +49,7 @@ static instruction qpack_instruction_type(uint8_t byte)
   return instruction::unknown;
 }
 
-header qpack::decoder::decode(buffer &encoded, std::error_code &ec) const
+header qpack::decoder::decode(buffer &encoded, std::error_code &ec)
 {
   header header;
 
@@ -62,6 +57,18 @@ header qpack::decoder::decode(buffer &encoded, std::error_code &ec) const
 
   if (encoded.empty()) {
     DECODE_THROW(error::incomplete);
+  }
+
+  if (state_ == state::prefix) {
+    if (encoded.size() < QPACK_PREFIX_ENCODED_SIZE) {
+      DECODE_THROW(error::incomplete);
+    }
+
+    encoded.advance(QPACK_PREFIX_ENCODED_SIZE);
+    count_ += DECODE_SIZE();
+    state_ = state::header;
+
+    DECODE_COMMIT();
   }
 
   switch (qpack_instruction_type(*encoded)) {
@@ -123,6 +130,8 @@ header qpack::decoder::decode(buffer &encoded, std::error_code &ec) const
       LOG_E("Unexpected header block instruction prefix ({})", *encoded);
       DECODE_THROW(error::qpack_decompression_failed);
   }
+
+  count_ += DECODE_SIZE();
 
   return header;
 }

@@ -115,16 +115,9 @@ int main(int argc, char *argv[])
     TRY(id_decode(encoded, ec));
     size_t encoded_size = TRY(size_decode(encoded, ec));
 
-    const uint8_t *begin = encoded.data();
-
-    qpack.prefix_decode(encoded, ec);
-    if (ec) {
-      return ec.value();
-    }
-
     std::vector<h3c::header> headers;
 
-    while (encoded.data() - begin != encoded_size) {
+    while (qpack.count() != encoded_size) {
       h3c::header header = TRY(qpack.decode(encoded, ec));
       headers.emplace_back(std::move(header));
     }
