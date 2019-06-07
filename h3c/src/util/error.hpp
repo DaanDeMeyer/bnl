@@ -21,12 +21,20 @@
   std::abort();                                                                \
   (void) 0
 
+#define TRY_VOID(expression)                                                   \
+  [&]() {                                                                      \
+    ec = {};                                                                   \
+    return expression;                                                         \
+  }();                                                                         \
+  if (ec) {                                                                    \
+    return;                                                                    \
+  }                                                                            \
+  (void) 0
+
 #define TRY(expression)                                                        \
   [&]() {                                                                      \
-    using type = decltype(expression);                                         \
     ec = {};                                                                   \
-    auto result = expression;                                                  \
-    return ec ? type{} : result;                                               \
+    return expression;                                                         \
   }();                                                                         \
   if (ec) {                                                                    \
     return {};                                                                 \
@@ -34,43 +42,52 @@
   (void) 0
 
 #define THROW_VOID(err)                                                        \
-  {                                                                            \
-    ec = err;                                                                  \
+  ec = err;                                                                    \
                                                                                \
-    LOG_E("{}", ec.message());                                                 \
+  LOG_E("{}", ec.message());                                                   \
                                                                                \
-    if (ec == error::internal_error) {                                         \
-      ASSERT(false);                                                           \
-    }                                                                          \
+  if (ec == error::internal_error) {                                           \
+    ASSERT(false);                                                             \
   }                                                                            \
+                                                                               \
+  return;                                                                      \
   (void) 0
 
 #define THROW(err)                                                             \
-  THROW_VOID(err);                                                             \
+  ec = err;                                                                    \
+                                                                               \
+  LOG_E("{}", ec.message());                                                   \
+                                                                               \
+  if (ec == error::internal_error) {                                           \
+    ASSERT(false);                                                             \
+  }                                                                            \
+                                                                               \
   return {};                                                                   \
   (void) 0
 
-#define DECODE_START() size_t begin = encoded.position()
+#define DECODE_START() const uint8_t *begin = encoded.data()
 
 #define DECODE_THROW(err)                                                      \
-  encoded.undo(encoded.position() - begin);                                    \
+  encoded.reset(begin);                                                        \
   THROW(err);                                                                  \
   (void) 0
 
-#define DECODE_TRY(statement)                                                  \
+#define DECODE_TRY(expression)                                                 \
   [&]() {                                                                      \
-    using type = decltype(statement);                                          \
     ec = {};                                                                   \
                                                                                \
-    auto result = statement;                                                   \
+    auto result = expression;                                                  \
     if (ec) {                                                                  \
-      encoded.undo(encoded.position() - begin);                                \
+      encoded.reset(begin);                                                    \
     }                                                                          \
                                                                                \
-    return ec ? type{} : std::move(result);                                    \
+    return result;                                                             \
   }();                                                                         \
   if (ec) {                                                                    \
     return {};                                                                 \
   };                                                                           \
   (void) 0
 
+#define DECODE_SIZE() static_cast<size_t>(encoded.data() - begin)
+
+#define DECODE_COMMIT() begin = encoded.data()

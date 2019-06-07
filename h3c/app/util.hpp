@@ -4,25 +4,21 @@
 #include <h3c/log.hpp>
 
 #define THROW(err)                                                             \
-  {                                                                            \
-    ec = err;                                                                  \
+  ec = err;                                                                    \
                                                                                \
-    H3C_LOG_ERROR(&logger, "{}", ec.message());                                \
+  H3C_LOG_ERROR(&logger, "{}", ec.message());                                  \
                                                                                \
-    if (err == h3c::error::internal_error) {                                   \
-      std::abort();                                                            \
-    }                                                                          \
-                                                                               \
-    return {};                                                                 \
+  if (err == h3c::error::internal_error) {                                     \
+    std::abort();                                                              \
   }                                                                            \
+                                                                               \
+  return {};                                                                   \
   (void) 0
 
 #define TRY(expression)                                                        \
   [&]() {                                                                      \
-    using type = decltype(expression);                                         \
     ec = {};                                                                   \
-    auto result = expression;                                                  \
-    return ec ? type{} : std::move(result);                                    \
+    return expression;                                                         \
   }();                                                                         \
   if (ec) {                                                                    \
     return ec.value();                                                         \
