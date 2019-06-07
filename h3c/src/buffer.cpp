@@ -48,7 +48,7 @@ buffer::buffer(const char *static_, size_t size) noexcept // NOLINT
 buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
     : type_(type::sso), sso_(), size_(size)
 {
-  assert(size < SSO_THRESHOLD);
+  assert(size <= SSO_THRESHOLD);
   std::copy_n(data, size, sso_.data());
 }
 
@@ -183,9 +183,17 @@ buffer buffer::slice(size_t size) const noexcept
     case type::unique:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+      if (size <= SSO_THRESHOLD) {
+        return buffer(data(), size);
+      }
+
       upgrade();
 #pragma GCC diagnostic pop
     case type::shared:
+      if (size <= SSO_THRESHOLD) {
+        return buffer(data(), size);
+      }
+
       uint8_t *data = shared_.get() + position_;
       return buffer(std::shared_ptr<uint8_t>(shared_, data), size);
   }
