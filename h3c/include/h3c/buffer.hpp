@@ -42,7 +42,6 @@ public:
   H3C_EXPORT size_t size() const noexcept;
   H3C_EXPORT bool empty() const noexcept;
 
-  H3C_EXPORT const uint8_t *begin() const noexcept;
   H3C_EXPORT const uint8_t *end() const noexcept;
 
   H3C_EXPORT buffer slice(size_t size) const noexcept;
@@ -93,7 +92,6 @@ public:
   H3C_EXPORT uint8_t &operator[](size_t index) noexcept;
   H3C_EXPORT uint8_t &operator*() noexcept;
 
-  H3C_EXPORT uint8_t *begin() noexcept;
   H3C_EXPORT uint8_t *end() noexcept;
 };
 

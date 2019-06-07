@@ -31,7 +31,7 @@ size_t literal::encoder::encode(uint8_t *dest,
     dest += huffman_.encode(dest, literal);
   } else {
     dest += prefix_int_.encode(dest, encoded_size, prefix);
-    std::copy_n(literal.begin(), literal.size(), dest);
+    std::copy_n(literal.data(), literal.size(), dest);
     dest += literal.size();
   }
 

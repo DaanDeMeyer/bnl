@@ -38,8 +38,8 @@ size_t huffman::encoder::encoded_size(const buffer &string) const noexcept
 {
   size_t num_bits = 0;
 
-  for (uint8_t character : string) {
-    num_bits += encode_table[character].num_bits;
+  for (size_t i = 0; i < string.size(); i++) {
+    num_bits += encode_table[string[i]].num_bits;
   }
 
   // Pad the prefix of EOS (256).
@@ -97,8 +97,8 @@ huffman::encoder::encode(uint8_t *dest, const buffer &string) const noexcept
   uint8_t *begin = dest;
   size_t rem_bits = 8;
 
-  for (uint8_t character : string) {
-    const symbol &symbol = encode_table[character];
+  for (size_t i = 0; i < string.size(); i++) {
+    const symbol &symbol = encode_table[string[i]];
     dest += symbol_encode(dest, &rem_bits, symbol);
   }
 

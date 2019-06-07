@@ -43,7 +43,7 @@ static void encode_and_decode(const std::string &string,
 
   REQUIRE(!ec);
   REQUIRE(decoded.size() == string.size());
-  REQUIRE(std::equal(decoded.begin(), decoded.end(), string.begin()));
+  REQUIRE(std::equal(decoded.data(), decoded.end(), string.data()));
 }
 
 TEST_CASE("huffman")

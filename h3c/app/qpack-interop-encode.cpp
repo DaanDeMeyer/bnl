@@ -140,10 +140,10 @@ int main(int argc, char *argv[])
     }
 
     h3c::mutable_buffer name(i);
-    std::copy_n(line.substr(0, i).begin(), name.size(), name.begin());
+    std::copy_n(line.substr(0, i).data(), name.size(), name.data());
 
     h3c::mutable_buffer value(line.size() - (i + 1));
-    std::copy_n(line.substr(i + 1).begin(), value.size(), value.begin());
+    std::copy_n(line.substr(i + 1).data(), value.size(), value.data());
 
     headers.emplace_back(h3c::header{ std::move(name), std::move(value) });
   }

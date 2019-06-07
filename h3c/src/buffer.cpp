@@ -13,7 +13,7 @@ buffer::buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept // NOLINT
   switch (type_) {
     case type::sso:
       new (&sso_) decltype(sso_)();
-      std::copy_n(data.get(), size, sso_.begin());
+      std::copy_n(data.get(), size, sso_.data());
       break;
     case type::unique:
       new (&unique_) decltype(unique_)(std::move(data));
@@ -30,7 +30,7 @@ buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
   switch (type_) {
     case type::sso:
       new (&sso_) decltype(sso_)();
-      std::copy_n(data.get(), size, sso_.begin());
+      std::copy_n(data.get(), size, sso_.data());
       break;
     case type::shared:
       new (&shared_) decltype(shared_)(std::move(data));
@@ -49,7 +49,7 @@ buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
     : type_(type::sso), sso_(), size_(size)
 {
   assert(size < SSO_THRESHOLD);
-  std::copy_n(data, size, sso_.begin());
+  std::copy_n(data, size, sso_.data());
 }
 
 buffer::buffer(const buffer &other) noexcept : buffer()
@@ -162,11 +162,6 @@ bool buffer::empty() const noexcept
   return size() == 0;
 }
 
-const uint8_t *buffer::begin() const noexcept
-{
-  return data();
-}
-
 const uint8_t *buffer::end() const noexcept
 {
   return data() + size();
@@ -273,11 +268,6 @@ uint8_t &mutable_buffer::operator[](size_t index) noexcept
 uint8_t &mutable_buffer::operator*() noexcept
 {
   return *data();
-}
-
-uint8_t *mutable_buffer::begin() noexcept
-{
-  return data();
 }
 
 uint8_t *mutable_buffer::end() noexcept

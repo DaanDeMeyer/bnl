@@ -33,7 +33,7 @@ TEST_CASE("buffer")
     REQUIRE(data.use_count() == 2);
 
     {
-      const uint8_t *begin = buffer.begin();
+      const uint8_t *begin = buffer.data();
       buffer.advance(250);
       h3c::buffer slice = buffer.slice(500);
       buffer.reset(begin);
