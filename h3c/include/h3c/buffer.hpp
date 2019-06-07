@@ -50,6 +50,8 @@ public:
   H3C_EXPORT void reset() noexcept;
   H3C_EXPORT void reset(const uint8_t *position) noexcept;
 
+  H3C_EXPORT buffer &operator+=(size_t size);
+
 protected:
   enum class type { static_, sso, unique, shared };
 

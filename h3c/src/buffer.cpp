@@ -213,6 +213,12 @@ void buffer::reset(const uint8_t *position) noexcept
   position_ = position - data;
 }
 
+buffer &buffer::operator+=(size_t size)
+{
+  advance(size);
+  return *this;
+}
+
 void buffer::upgrade() const noexcept
 {
   assert(type_ == type::unique);
