@@ -200,6 +200,11 @@ void buffer::advance(size_t size) noexcept
   position_ += size;
 }
 
+void buffer::reset() noexcept
+{
+  position_ = 0;
+}
+
 void buffer::reset(const uint8_t *position) noexcept
 {
   const uint8_t *data = this->data() - position_;
