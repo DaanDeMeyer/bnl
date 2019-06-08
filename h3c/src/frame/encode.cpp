@@ -25,21 +25,21 @@ uint64_t frame::encoder::payload_size(const frame &frame,
 
   switch (frame) {
     case frame::type::data:
-      payload_size += frame.data().size;
+      payload_size += frame.data.size;
       break;
 
     case frame::type::headers:
-      payload_size += frame.headers().size;
+      payload_size += frame.headers.size;
       break;
 
     case frame::type::priority: {
       payload_size++; // PT size + DT size + Empty size = 1 byte. See
                       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
 
-      uint64_t prioritized_element_id = frame.priority().prioritized_element_id;
+      uint64_t prioritized_element_id = frame.priority.prioritized_element_id;
       payload_size += TRY(varint_.encoded_size(prioritized_element_id, ec));
 
-      uint64_t element_dependency_id = frame.priority().element_dependency_id;
+      uint64_t element_dependency_id = frame.priority.element_dependency_id;
       payload_size += TRY(varint_.encoded_size(element_dependency_id, ec));
 
       payload_size++; // Weight
@@ -47,42 +47,42 @@ uint64_t frame::encoder::payload_size(const frame &frame,
     }
 
     case frame::type::cancel_push: {
-      uint64_t push_id = frame.cancel_push().push_id;
+      uint64_t push_id = frame.cancel_push.push_id;
       payload_size += TRY(varint_.encoded_size(push_id, ec));
       break;
     }
 
     case frame::type::settings:
       TRY_SETTING_SIZE(setting::max_header_list_size,
-                       frame.settings().max_header_list_size);
+                       frame.settings.max_header_list_size);
       TRY_SETTING_SIZE(setting::num_placeholders,
-                       frame.settings().num_placeholders);
+                       frame.settings.num_placeholders);
       TRY_SETTING_SIZE(setting::qpack_max_table_capacity,
-                       frame.settings().qpack_max_table_capacity);
+                       frame.settings.qpack_max_table_capacity);
       TRY_SETTING_SIZE(setting::qpack_blocked_streams,
-                       frame.settings().qpack_blocked_streams);
+                       frame.settings.qpack_blocked_streams);
       break;
 
     case frame::type::push_promise: {
-      uint64_t push_id = frame.push_promise().push_id;
+      uint64_t push_id = frame.push_promise.push_id;
       payload_size += TRY(varint_.encoded_size(push_id, ec));
-      payload_size += frame.push_promise().size;
+      payload_size += frame.push_promise.size;
       break;
     }
 
     case frame::type::goaway: {
-      payload_size += TRY(varint_.encoded_size(frame.goaway().stream_id, ec));
+      payload_size += TRY(varint_.encoded_size(frame.goaway.stream_id, ec));
       break;
     }
 
     case frame::type::max_push_id: {
-      uint64_t push_id = frame.max_push_id().push_id;
+      uint64_t push_id = frame.max_push_id.push_id;
       payload_size += TRY(varint_.encoded_size(push_id, ec));
       break;
     }
 
     case frame::type::duplicate_push:
-      uint64_t push_id = frame.duplicate_push().push_id;
+      uint64_t push_id = frame.duplicate_push.push_id;
       payload_size += TRY(varint_.encoded_size(push_id, ec));
       break;
   }
@@ -107,7 +107,7 @@ size_t frame::encoder::encoded_size(const frame &frame,
       break;
 
     case frame::type::push_promise: {
-      uint64_t push_id = frame.push_promise().push_id;
+      uint64_t push_id = frame.push_promise.push_id;
       payload_encoded_size = TRY(varint_.encoded_size(push_id, ec));
       break;
     }
@@ -156,9 +156,9 @@ size_t frame::encoder::encode(uint8_t *dest,
       break;
     case frame::type::priority: {
       uint8_t prioritized_element_type = util::to_underlying(
-          frame.priority().prioritized_element_type);
+          frame.priority.prioritized_element_type);
       uint8_t element_dependency_type = util::to_underlying(
-          frame.priority().element_dependency_type);
+          frame.priority.element_dependency_type);
 
       uint8_t byte = 0;
       byte |= static_cast<uint8_t>((prioritized_element_type << 6U));
@@ -167,39 +167,39 @@ size_t frame::encoder::encode(uint8_t *dest,
 
       *dest++ = byte;
 
-      uint64_t prioritized_element_id = frame.priority().prioritized_element_id;
-      uint64_t element_dependency_id = frame.priority().element_dependency_id;
+      uint64_t prioritized_element_id = frame.priority.prioritized_element_id;
+      uint64_t element_dependency_id = frame.priority.element_dependency_id;
 
       dest += TRY(varint_.encode(dest, prioritized_element_id, ec));
       dest += TRY(varint_.encode(dest, element_dependency_id, ec));
 
-      *dest++ = frame.priority().weight;
+      *dest++ = frame.priority.weight;
       break;
     }
     case frame::type::cancel_push:
-      dest += TRY(varint_.encode(dest, frame.cancel_push().push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.cancel_push.push_id, ec));
       break;
     case frame::type::settings:
       TRY_SETTING_ENCODE(setting::max_header_list_size,
-                         frame.settings().max_header_list_size);
+                         frame.settings.max_header_list_size);
       TRY_SETTING_ENCODE(setting::num_placeholders,
-                         frame.settings().num_placeholders);
+                         frame.settings.num_placeholders);
       TRY_SETTING_ENCODE(setting::qpack_max_table_capacity,
-                         frame.settings().qpack_max_table_capacity);
+                         frame.settings.qpack_max_table_capacity);
       TRY_SETTING_ENCODE(setting::qpack_blocked_streams,
-                         frame.settings().qpack_blocked_streams);
+                         frame.settings.qpack_blocked_streams);
       break;
     case frame::type::push_promise:
-      dest += TRY(varint_.encode(dest, frame.push_promise().push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.push_promise.push_id, ec));
       break;
     case frame::type::goaway:
-      dest += TRY(varint_.encode(dest, frame.goaway().stream_id, ec));
+      dest += TRY(varint_.encode(dest, frame.goaway.stream_id, ec));
       break;
     case frame::type::max_push_id:
-      dest += TRY(varint_.encode(dest, frame.max_push_id().push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.max_push_id.push_id, ec));
       break;
     case frame::type::duplicate_push:
-      dest += TRY(varint_.encode(dest, frame.duplicate_push().push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.duplicate_push.push_id, ec));
       break;
   }
 

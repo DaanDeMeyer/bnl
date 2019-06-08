@@ -100,29 +100,20 @@ public:
 
   H3C_EXPORT operator type() const noexcept; // NOLINT
 
-  H3C_EXPORT frame::payload::data data() const noexcept;
-  H3C_EXPORT frame::payload::headers headers() const noexcept;
-  H3C_EXPORT frame::payload::priority priority() const noexcept;
-  H3C_EXPORT frame::payload::settings settings() const noexcept;
-  H3C_EXPORT frame::payload::cancel_push cancel_push() const noexcept;
-  H3C_EXPORT frame::payload::push_promise push_promise() const noexcept;
-  H3C_EXPORT frame::payload::goaway goaway() const noexcept;
-  H3C_EXPORT frame::payload::max_push_id max_push_id() const noexcept;
-  H3C_EXPORT frame::payload::duplicate_push duplicate_push() const noexcept;
-
 private:
-  type type_; // NOLINT
+  const type type_; // NOLINT
 
+public:
   union {
-    payload::data data_;
-    payload::headers headers_;
-    payload::priority priority_;
-    payload::settings settings_;
-    payload::cancel_push cancel_push_;
-    payload::push_promise push_promise_;
-    payload::goaway goaway_;
-    payload::max_push_id max_push_id_;
-    payload::duplicate_push duplicate_push_;
+    const payload::data data;
+    const payload::headers headers;
+    const payload::priority priority;
+    const payload::settings settings;
+    const payload::cancel_push cancel_push;
+    const payload::push_promise push_promise;
+    const payload::goaway goaway;
+    const payload::max_push_id max_push_id;
+    const payload::duplicate_push duplicate_push;
   };
 };
 

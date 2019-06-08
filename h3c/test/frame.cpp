@@ -45,14 +45,14 @@ TEST_CASE("frame")
   {
     h3c::frame frame = h3c::frame::payload::data{ 64 };
     h3c::frame decoded = encode_and_decode<3>(frame, encoder, decoder);
-    REQUIRE(decoded.data().size == frame.data().size);
+    REQUIRE(decoded.data.size == frame.data.size);
   }
 
   SUBCASE("headers")
   {
     h3c::frame frame = h3c::frame::payload::headers{ 16384 };
     h3c::frame decoded = encode_and_decode<5>(frame, encoder, decoder);
-    REQUIRE(decoded.headers().size == frame.headers().size);
+    REQUIRE(decoded.headers.size == frame.headers.size);
   }
 
   SUBCASE("priority")
@@ -69,52 +69,52 @@ TEST_CASE("frame")
     h3c::frame frame = priority;
     h3c::frame decoded = encode_and_decode<16>(frame, encoder, decoder);
 
-    REQUIRE(decoded.priority().prioritized_element_type ==
-            frame.priority().prioritized_element_type);
-    REQUIRE(decoded.priority().element_dependency_type ==
-            frame.priority().element_dependency_type);
-    REQUIRE(decoded.priority().prioritized_element_id ==
-            frame.priority().prioritized_element_id);
-    REQUIRE(decoded.priority().weight == frame.priority().weight);
+    REQUIRE(decoded.priority.prioritized_element_type ==
+            frame.priority.prioritized_element_type);
+    REQUIRE(decoded.priority.element_dependency_type ==
+            frame.priority.element_dependency_type);
+    REQUIRE(decoded.priority.prioritized_element_id ==
+            frame.priority.prioritized_element_id);
+    REQUIRE(decoded.priority.weight == frame.priority.weight);
   }
 
   SUBCASE("cancel push")
   {
     h3c::frame frame = h3c::frame::payload::cancel_push{ 64 };
     h3c::frame decoded = encode_and_decode<4>(frame, encoder, decoder);
-    REQUIRE(decoded.cancel_push().push_id == frame.cancel_push().push_id);
+    REQUIRE(decoded.cancel_push.push_id == frame.cancel_push.push_id);
   }
 
   SUBCASE("settings")
   {
     h3c::frame frame = h3c::frame::payload::settings();
     h3c::frame decoded = encode_and_decode<17>(frame, encoder, decoder);
-    REQUIRE(decoded.settings().max_header_list_size ==
-            frame.settings().max_header_list_size);
-    REQUIRE(decoded.settings().num_placeholders ==
-            frame.settings().num_placeholders);
+    REQUIRE(decoded.settings.max_header_list_size ==
+            frame.settings.max_header_list_size);
+    REQUIRE(decoded.settings.num_placeholders ==
+            frame.settings.num_placeholders);
   }
 
   SUBCASE("push promise")
   {
     h3c::frame frame = h3c::frame::payload::push_promise{ 16384, 1073741824 };
     h3c::frame decoded = encode_and_decode<13>(frame, encoder, decoder);
-    REQUIRE(decoded.push_promise().push_id == frame.push_promise().push_id);
-    REQUIRE(decoded.push_promise().size == frame.push_promise().size);
+    REQUIRE(decoded.push_promise.push_id == frame.push_promise.push_id);
+    REQUIRE(decoded.push_promise.size == frame.push_promise.size);
   }
 
   SUBCASE("goaway")
   {
     h3c::frame frame = h3c::frame::payload::goaway{ 1073741823 };
     h3c::frame decoded = encode_and_decode<6>(frame, encoder, decoder);
-    REQUIRE(decoded.goaway().stream_id == frame.goaway().stream_id);
+    REQUIRE(decoded.goaway.stream_id == frame.goaway.stream_id);
   }
 
   SUBCASE("max push id")
   {
     h3c::frame frame = h3c::frame::payload::max_push_id{ 1073741824 };
     h3c::frame decoded = encode_and_decode<10>(frame, encoder, decoder);
-    REQUIRE(decoded.max_push_id().push_id == frame.max_push_id().push_id);
+    REQUIRE(decoded.max_push_id.push_id == frame.max_push_id.push_id);
   }
 
   SUBCASE("duplicate push")
@@ -124,7 +124,7 @@ TEST_CASE("frame")
     };
 
     h3c::frame decoded = encode_and_decode<10>(frame, encoder, decoder);
-    REQUIRE(decoded.duplicate_push().push_id == frame.duplicate_push().push_id);
+    REQUIRE(decoded.duplicate_push.push_id == frame.duplicate_push.push_id);
   }
 
   SUBCASE("encode: varint overflow")
@@ -159,12 +159,12 @@ TEST_CASE("frame")
     REQUIRE(!ec);
 
     h3c::buffer slice = encoded.slice(encoded.size() - 1);
-    h3c::frame decoded = decoder.decode(slice, ec);
+    decoder.decode(slice, ec);
 
     REQUIRE(ec == h3c::error::incomplete);
     REQUIRE(slice.size() == encoded.size() - 1);
 
-    decoded = decoder.decode(encoded, ec);
+    decoder.decode(encoded, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.empty());
