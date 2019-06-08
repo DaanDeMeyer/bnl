@@ -114,7 +114,7 @@ header qpack::decoder::decode(buffer &encoded, std::error_code &ec)
     case instruction::literal_without_name_reference: {
       header.name = DECODE_TRY(literal_.decode(encoded, 3, ec));
 
-      auto name = reinterpret_cast<const char *>(header.name.data());
+      const char *name = reinterpret_cast<const char *>(header.name.data());
       size_t size = header.name.size();
 
       if (!util::is_lowercase(name, size)) {

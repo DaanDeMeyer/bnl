@@ -101,7 +101,7 @@ public:
   H3C_EXPORT operator type() const noexcept; // NOLINT
 
 private:
-  const type type_; // NOLINT
+  const type type_;
 
 public:
   union {

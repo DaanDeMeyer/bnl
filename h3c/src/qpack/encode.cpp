@@ -25,7 +25,7 @@ uint64_t qpack::encoder::count() const noexcept
 size_t qpack::encoder::encoded_size(const header &header,
                                     std::error_code &ec) const noexcept
 {
-  auto name = reinterpret_cast<const char *>(header.name.data());
+  const char *name = reinterpret_cast<const char *>(header.name.data());
   size_t size = header.name.size();
 
   if (!util::is_lowercase(name, size)) {

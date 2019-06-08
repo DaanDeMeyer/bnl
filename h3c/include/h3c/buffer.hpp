@@ -61,7 +61,7 @@ private:
 private:
   enum class type { static_, sso, unique, shared };
 
-  mutable type type_; // NOLINT
+  mutable type type_;
 
   static constexpr size_t SSO_THRESHOLD = 10;
 

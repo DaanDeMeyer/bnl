@@ -49,7 +49,7 @@ size_t size_decode(h3c::buffer &encoded, std::error_code &ec)
 
 void write(std::ostream &dest, const std::vector<h3c::header> &headers)
 {
-  for (const auto &header : headers) {
+  for (const h3c::header &header : headers) {
     std::string name(reinterpret_cast<const char *>(header.name.data()),
                      header.name.size());
     std::string value(reinterpret_cast<const char *>(header.value.data()),

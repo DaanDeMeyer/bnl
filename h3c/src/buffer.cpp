@@ -248,7 +248,7 @@ void buffer::upgrade() const noexcept
 {
   assert(type_ == type::unique);
 
-  auto temp = std::move(unique_);
+  std::unique_ptr<uint8_t[]> temp = std::move(unique_);
   unique_.~unique_ptr();
   new (&shared_) decltype(shared_)(temp.release(),
                                    std::default_delete<uint8_t[]>());

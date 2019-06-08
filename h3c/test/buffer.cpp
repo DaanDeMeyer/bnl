@@ -6,7 +6,7 @@ TEST_CASE("buffer")
 {
   SUBCASE("unique")
   {
-    auto data = std::unique_ptr<uint8_t[]>(new uint8_t[1000]);
+    std::unique_ptr<uint8_t[]> data(new uint8_t[1000]);
 
     data[30] = 10;
 
@@ -21,8 +21,8 @@ TEST_CASE("buffer")
 
   SUBCASE("shared")
   {
-    auto data = std::shared_ptr<uint8_t>(new uint8_t[1000],
-                                         std::default_delete<uint8_t[]>());
+    std::shared_ptr<uint8_t> data(new uint8_t[1000],
+                                  std::default_delete<uint8_t[]>());
 
     data.get()[300] = 88;
 
@@ -50,7 +50,7 @@ TEST_CASE("buffer")
 
   SUBCASE("upgrade")
   {
-    auto data = std::unique_ptr<uint8_t[]>(new uint8_t[1000]);
+    std::unique_ptr<uint8_t[]> data(new uint8_t[1000]);
 
     data[5] = 104;
 
@@ -66,8 +66,8 @@ TEST_CASE("buffer")
     h3c::buffer buffer;
 
     {
-      auto data = std::shared_ptr<uint8_t>(new uint8_t[1000],
-                                           std::default_delete<uint8_t[]>());
+      std::shared_ptr<uint8_t> data(new uint8_t[1000],
+                                    std::default_delete<uint8_t[]>());
       data.get()[780] = 189;
       buffer = h3c::buffer(data, 1000);
     }
@@ -84,7 +84,7 @@ TEST_CASE("buffer")
 
   SUBCASE("sso")
   {
-    auto data = std::unique_ptr<uint8_t[]>(new uint8_t[20]);
+    std::unique_ptr<uint8_t[]> data(new uint8_t[20]);
     data[10] = 123;
 
     h3c::buffer first(std::move(data), 20);
