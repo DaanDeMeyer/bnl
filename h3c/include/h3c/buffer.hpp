@@ -50,6 +50,8 @@ public:
   H3C_EXPORT static buffer concat(const buffer &first, const buffer &second);
 
 protected:
+  H3C_EXPORT explicit buffer(size_t size) noexcept;
+
   H3C_EXPORT uint8_t *data_mut() noexcept;
 
 private:
@@ -63,9 +65,11 @@ private:
 private:
   enum class type { static_, sso, unique, shared };
 
-  mutable type type_;
-
   static constexpr size_t SSO_THRESHOLD = 10;
+
+  mutable type type_;
+  size_t size_ = 0;
+  size_t position_ = 0;
 
   union {
     const char *static_;
@@ -74,9 +78,6 @@ private:
     // `std::shared_ptr<uint8_t[]>` requires C++17.
     mutable std::shared_ptr<uint8_t> shared_;
   };
-
-  size_t size_ = 0;
-  size_t position_ = 0;
 };
 
 H3C_EXPORT bool operator==(const buffer &lhs, const buffer &rhs) noexcept;
@@ -87,15 +88,14 @@ public:
   using buffer::buffer; // NOLINT
 
   mutable_buffer() = default;
+  H3C_EXPORT explicit mutable_buffer(size_t size);
+
+  H3C_MOVE_ONLY(mutable_buffer)
 
   template <size_t Size>
   mutable_buffer(const char (&static_)[Size]) noexcept = delete;
 
-  H3C_MOVE_ONLY(mutable_buffer)
-
   mutable_buffer slice(size_t) = delete;
-
-  H3C_EXPORT explicit mutable_buffer(size_t size);
 
   H3C_EXPORT uint8_t *data() noexcept;
   H3C_EXPORT uint8_t &operator[](size_t index) noexcept;

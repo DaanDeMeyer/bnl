@@ -36,7 +36,7 @@ buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
       new (&shared_) decltype(shared_)(std::move(data));
       break;
     default:
-      assert(0);
+      assert(false);
       break;
   }
 }
@@ -229,6 +229,22 @@ buffer buffer::concat(const buffer &first, const buffer &second)
   return std::move(result);
 }
 
+buffer::buffer(size_t size) noexcept // NOLINT
+    : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
+{
+  switch (type_) {
+    case type::sso:
+      new (&sso_) decltype(sso_)();
+      break;
+    case type::unique:
+      new (&unique_) decltype(unique_)(new uint8_t[size]);
+      break;
+    default:
+      assert(false);
+      break;
+  }
+}
+
 uint8_t *buffer::data_mut() noexcept
 {
   switch (type_) {
@@ -247,11 +263,11 @@ uint8_t *buffer::data_mut() noexcept
 }
 
 buffer::buffer(const char *static_, size_t size) noexcept // NOLINT
-    : type_(type::static_), static_(static_), size_(size)
+    : type_(type::static_), size_(size), static_(static_)
 {}
 
 buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
-    : type_(type::sso), sso_(), size_(size)
+    : type_(type::sso), size_(size), sso_()
 {
   assert(size <= SSO_THRESHOLD);
   std::copy_n(data, size, sso_.data());
@@ -298,9 +314,7 @@ bool operator!=(const buffer &lhs, const buffer &rhs) noexcept
   return !(lhs == rhs);
 }
 
-mutable_buffer::mutable_buffer(size_t size) // NOLINT
-    : buffer(std::unique_ptr<uint8_t[]>(new uint8_t[size]), size)
-{}
+mutable_buffer::mutable_buffer(size_t size) : buffer(size) {}
 
 uint8_t *mutable_buffer::data() noexcept
 {
