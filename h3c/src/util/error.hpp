@@ -46,10 +46,6 @@
                                                                                \
   LOG_E("{}", ec.message());                                                   \
                                                                                \
-  if (ec == error::internal_error) {                                           \
-    ASSERT(false);                                                             \
-  }                                                                            \
-                                                                               \
   return;                                                                      \
   (void) 0
 
@@ -57,10 +53,6 @@
   ec = err;                                                                    \
                                                                                \
   LOG_E("{}", ec.message());                                                   \
-                                                                               \
-  if (ec == error::internal_error) {                                           \
-    ASSERT(false);                                                             \
-  }                                                                            \
                                                                                \
   return {};                                                                   \
   (void) 0
