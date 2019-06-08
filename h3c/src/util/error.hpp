@@ -60,7 +60,7 @@
 #define DECODE_START() const uint8_t *begin = encoded.data()
 
 #define DECODE_THROW(err)                                                      \
-  encoded.reset(begin);                                                        \
+  DECODE_RESET();                                                              \
   THROW(err);                                                                  \
   (void) 0
 
@@ -70,7 +70,7 @@
                                                                                \
     auto result = expression;                                                  \
     if (ec) {                                                                  \
-      encoded.reset(begin);                                                    \
+      DECODE_RESET();                                                          \
     }                                                                          \
                                                                                \
     return result;                                                             \
@@ -83,3 +83,5 @@
 #define DECODE_SIZE() static_cast<size_t>(encoded.data() - begin)
 
 #define DECODE_COMMIT() begin = encoded.data()
+
+#define DECODE_RESET() encoded.reset(begin)
