@@ -47,10 +47,10 @@ public:
   H3C_EXPORT buffer slice(size_t size) const noexcept;
 
   H3C_EXPORT void advance(size_t size) noexcept;
+  H3C_EXPORT buffer &operator+=(size_t size);
+
   H3C_EXPORT void reset() noexcept;
   H3C_EXPORT void reset(const uint8_t *position) noexcept;
-
-  H3C_EXPORT buffer &operator+=(size_t size);
 
 protected:
   enum class type { static_, sso, unique, shared };
@@ -75,6 +75,9 @@ private:
 
   void destroy() noexcept;
 };
+
+H3C_EXPORT bool operator==(const buffer &lhs, const buffer &rhs) noexcept;
+H3C_EXPORT bool operator!=(const buffer &lhs, const buffer &rhs) noexcept;
 
 class mutable_buffer : public buffer {
 public:

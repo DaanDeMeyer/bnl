@@ -26,13 +26,8 @@ static void encode_and_decode(const h3c::header &header,
   REQUIRE(!ec);
   REQUIRE(encoded.empty());
 
-  REQUIRE(decoded.name.size() == header.name.size());
-  REQUIRE(
-      std::equal(decoded.name.data(), decoded.name.end(), header.name.data()));
-
-  REQUIRE(decoded.value.size() == header.value.size());
-  REQUIRE(std::equal(decoded.value.data(), decoded.value.end(),
-                     header.value.data()));
+  REQUIRE(decoded.name == header.name);
+  REQUIRE(decoded.value == header.value);
 }
 
 TEST_CASE("qpack")

@@ -208,6 +208,12 @@ void buffer::advance(size_t size) noexcept
   position_ += size;
 }
 
+buffer &buffer::operator+=(size_t size)
+{
+  advance(size);
+  return *this;
+}
+
 void buffer::reset() noexcept
 {
   position_ = 0;
@@ -219,12 +225,6 @@ void buffer::reset(const uint8_t *position) noexcept
   assert(position >= data);
   assert(position <= data + size_);
   position_ = position - data;
-}
-
-buffer &buffer::operator+=(size_t size)
-{
-  advance(size);
-  return *this;
 }
 
 void buffer::upgrade() const noexcept
@@ -255,6 +255,17 @@ void buffer::destroy() noexcept
 
   position_ = 0;
   size_ = 0;
+}
+
+bool operator==(const buffer &lhs, const buffer &rhs) noexcept
+{
+  return lhs.size() == rhs.size() &&
+         std::equal(lhs.data(), lhs.end(), rhs.data());
+}
+
+bool operator!=(const buffer &lhs, const buffer &rhs) noexcept
+{
+  return !(lhs == rhs);
 }
 
 mutable_buffer::mutable_buffer(size_t size) // NOLINT

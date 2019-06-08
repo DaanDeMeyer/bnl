@@ -4,46 +4,38 @@
 #include <h3c/huffman.hpp>
 #include <h3c/log.hpp>
 
-#include <algorithm>
 #include <random>
-#include <string>
 
-static std::string random_string(std::string::size_type length)
+static h3c::buffer random_string(size_t length)
 {
-  static const char *chrs = "0123456789"
-                            "abcdefghijklmnopqrstuvwxyz"
-                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  static const uint8_t characters[] = "0123456789"
+                                      "abcdefghijklmnopqrstuvwxyz"
+                                      "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   static std::mt19937 rg{ std::random_device{}() };
-  static std::uniform_int_distribution<std::string::size_type> pick(
-      0, strlen(chrs) - 1);
+  static std::uniform_int_distribution<size_t> pick(0, sizeof(characters) - 1);
 
-  std::string s;
+  h3c::mutable_buffer buffer(length);
 
-  s.reserve(length);
-
-  while (length-- > 0) {
-    s += chrs[pick(rg)];
+  for (size_t i = 0; i < buffer.size(); i++) {
+    buffer[i] = characters[pick(rg)];
   }
 
-  return s;
+  return std::move(buffer);
 }
 
-static void encode_and_decode(const std::string &string,
+static void encode_and_decode(const h3c::buffer &string,
                               const h3c::huffman::encoder &encoder,
                               const h3c::huffman::decoder &decoder)
 {
-  h3c::mutable_buffer buffer(string.size());
-  std::copy_n(string.data(), string.size(), buffer.data());
-
-  h3c::buffer encoded = encoder.encode(buffer);
+  h3c::buffer encoded = encoder.encode(string);
 
   std::error_code ec;
   h3c::buffer decoded = decoder.decode(encoded, encoded.size(), ec);
 
   REQUIRE(!ec);
   REQUIRE(decoded.size() == string.size());
-  REQUIRE(std::equal(decoded.data(), decoded.end(), string.data()));
+  REQUIRE(string == decoded);
 }
 
 TEST_CASE("huffman")
@@ -56,7 +48,8 @@ TEST_CASE("huffman")
   SUBCASE("random")
   {
     for (size_t i = 0; i < 1000; i++) {
-      encode_and_decode(random_string(20), encoder, decoder);
+      h3c::buffer buffer = random_string(20);
+      encode_and_decode(buffer, encoder, decoder);
     }
   }
 
