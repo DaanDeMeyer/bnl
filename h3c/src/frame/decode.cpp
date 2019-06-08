@@ -56,6 +56,34 @@ frame::decoder::decoder(logger *logger) noexcept
   }                                                                            \
   (void) 0
 
+frame::type
+frame::decoder::peek(buffer &encoded, std::error_code &ec) const noexcept
+{
+  DECODE_START();
+
+  while (true) {
+    uint64_t type = DECODE_TRY(varint_.decode(encoded, ec));
+
+    switch (type) {
+      case util::to_underlying(frame::type::data):
+      case util::to_underlying(frame::type::headers):
+      case util::to_underlying(frame::type::priority):
+      case util::to_underlying(frame::type::cancel_push):
+      case util::to_underlying(frame::type::settings):
+      case util::to_underlying(frame::type::push_promise):
+      case util::to_underlying(frame::type::goaway):
+      case util::to_underlying(frame::type::max_push_id):
+      case util::to_underlying(frame::type::duplicate_push):
+        DECODE_RESET();
+        return static_cast<frame::type>(type);
+      default:
+        break;
+    }
+  }
+
+  NOTREACHED();
+}
+
 frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const
     noexcept
 {

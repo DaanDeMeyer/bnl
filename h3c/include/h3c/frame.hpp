@@ -146,6 +146,9 @@ public:
 
   H3C_MOVE_ONLY(decoder)
 
+  H3C_EXPORT frame::type
+  peek(buffer &encoded, std::error_code &ec) const noexcept;
+
   H3C_EXPORT frame decode(buffer &encoded, std::error_code &ec) const noexcept;
 
 private:
