@@ -104,6 +104,9 @@ buffer &buffer::operator=(buffer &&other) noexcept
     type_ = other.type_;
     size_ = other.size_;
     position_ = other.position_;
+
+    other.size_ = 0;
+    other.position_ = 0;
   }
 
   return *this;
