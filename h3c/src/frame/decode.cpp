@@ -14,7 +14,7 @@ frame::decoder::decoder(logger *logger) noexcept
     const uint8_t *before = encoded.data();                                    \
     (value) = DECODE_TRY(varint_.decode(encoded, ec));                         \
                                                                                \
-    size_t varint_encoded_size = encoded.data() - before;                      \
+    size_t varint_encoded_size = static_cast<size_t>(encoded.data() - before); \
                                                                                \
     if (varint_encoded_size > payload_encoded_size) {                          \
       LOG_E("Frame payload's actual length exceeds its advertised length");    \
@@ -190,7 +190,10 @@ frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const
           // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-grease
           LOG_E("Ignoring unknown frame type ({})", type);
           is_unknown_frame_type = true;
-          encoded.advance(payload_encoded_size);
+
+          // TODO: Error on unreasonable unknown frame payload size.
+          encoded.advance(static_cast<size_t>(payload_encoded_size));
+
           payload_encoded_size = 0;
           return {};
       }

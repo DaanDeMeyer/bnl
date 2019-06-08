@@ -216,7 +216,7 @@ void buffer::reset(const uint8_t *position) noexcept
   const uint8_t *data = this->data() - position_;
   assert(position >= data);
   assert(position <= data + size_);
-  position_ = position - data;
+  position_ = static_cast<size_t>(position - data);
 }
 
 buffer buffer::concat(const buffer &first, const buffer &second)
