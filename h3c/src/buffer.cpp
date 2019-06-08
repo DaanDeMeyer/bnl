@@ -219,6 +219,16 @@ void buffer::reset(const uint8_t *position) noexcept
   position_ = position - data;
 }
 
+buffer buffer::concat(const buffer &first, const buffer &second)
+{
+  mutable_buffer result(first.size() + second.size());
+
+  std::copy_n(first.data(), first.size(), result.data());
+  std::copy_n(second.data(), second.size(), result.data() + first.size());
+
+  return std::move(result);
+}
+
 uint8_t *buffer::data_mut() noexcept
 {
   switch (type_) {

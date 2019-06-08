@@ -47,6 +47,8 @@ public:
   H3C_EXPORT void reset() noexcept;
   H3C_EXPORT void reset(const uint8_t *position) noexcept;
 
+  H3C_EXPORT static buffer concat(const buffer &first, const buffer &second);
+
 protected:
   H3C_EXPORT uint8_t *data_mut() noexcept;
 
