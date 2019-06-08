@@ -41,17 +41,6 @@ buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
   }
 }
 
-buffer::buffer(const char *static_, size_t size) noexcept // NOLINT
-    : type_(type::static_), static_(static_), size_(size)
-{}
-
-buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
-    : type_(type::sso), sso_(), size_(size)
-{
-  assert(size <= SSO_THRESHOLD);
-  std::copy_n(data, size, sso_.data());
-}
-
 buffer::buffer(const buffer &other) noexcept : buffer()
 {
   operator=(other);
@@ -227,6 +216,34 @@ void buffer::reset(const uint8_t *position) noexcept
   position_ = position - data;
 }
 
+uint8_t *buffer::data_mut() noexcept
+{
+  switch (type_) {
+    case type::static_:
+      break;
+    case type::sso:
+      return sso_.data() + position_;
+    case type::unique:
+      return unique_.get() + position_;
+    case type::shared:
+      return shared_.get() + position_;
+  }
+
+  assert(false);
+  return nullptr;
+}
+
+buffer::buffer(const char *static_, size_t size) noexcept // NOLINT
+    : type_(type::static_), static_(static_), size_(size)
+{}
+
+buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
+    : type_(type::sso), sso_(), size_(size)
+{
+  assert(size <= SSO_THRESHOLD);
+  std::copy_n(data, size, sso_.data());
+}
+
 void buffer::upgrade() const noexcept
 {
   assert(type_ == type::unique);
@@ -274,20 +291,7 @@ mutable_buffer::mutable_buffer(size_t size) // NOLINT
 
 uint8_t *mutable_buffer::data() noexcept
 {
-  switch (type_) {
-    case type::static_:
-      assert(false);
-      break;
-    case type::sso:
-      return sso_.data() + position_;
-    case type::unique:
-      return unique_.get() + position_;
-    case type::shared:
-      return shared_.get() + position_;
-  }
-
-  assert(false);
-  return nullptr;
+  return data_mut();
 }
 
 uint8_t &mutable_buffer::operator[](size_t index) noexcept

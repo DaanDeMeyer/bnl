@@ -22,11 +22,6 @@ public:
   H3C_EXPORT buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept;
   H3C_EXPORT buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
 
-private:
-  H3C_EXPORT buffer(const char *static_, size_t size) noexcept;
-  H3C_EXPORT buffer(const uint8_t *data, size_t size) noexcept;
-
-public:
   H3C_EXPORT buffer(const buffer &other) noexcept;
   H3C_EXPORT buffer &operator=(const buffer &other) noexcept;
 
@@ -53,6 +48,17 @@ public:
   H3C_EXPORT void reset(const uint8_t *position) noexcept;
 
 protected:
+  H3C_EXPORT uint8_t *data_mut() noexcept;
+
+private:
+  H3C_EXPORT buffer(const char *static_, size_t size) noexcept;
+  H3C_EXPORT buffer(const uint8_t *data, size_t size) noexcept;
+
+  void upgrade() const noexcept;
+
+  void destroy() noexcept;
+
+private:
   enum class type { static_, sso, unique, shared };
 
   mutable type type_; // NOLINT
@@ -69,11 +75,6 @@ protected:
 
   size_t size_ = 0;
   size_t position_ = 0;
-
-private:
-  void upgrade() const noexcept;
-
-  void destroy() noexcept;
 };
 
 H3C_EXPORT bool operator==(const buffer &lhs, const buffer &rhs) noexcept;
