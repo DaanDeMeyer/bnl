@@ -24,7 +24,9 @@ class encoder {
 public:
   H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(encoder)
+  H3C_MOVE_ONLY(encoder);
+
+  ~encoder() = default;
 
   H3C_EXPORT uint64_t count() const noexcept;
 
@@ -53,7 +55,9 @@ class decoder {
 public:
   H3C_EXPORT explicit decoder(logger *logger);
 
-  H3C_MOVE_ONLY(decoder)
+  H3C_MOVE_ONLY(decoder);
+
+  ~decoder() = default;
 
   H3C_EXPORT uint64_t count() const noexcept;
 

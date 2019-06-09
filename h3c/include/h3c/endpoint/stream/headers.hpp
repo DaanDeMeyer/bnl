@@ -19,7 +19,9 @@ class encoder {
 public:
   H3C_EXPORT encoder(uint64_t id, logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(encoder)
+  H3C_MOVE_ONLY(encoder);
+
+  ~encoder() = default;
 
   H3C_EXPORT void add(header_view header, std::error_code &ec);
   H3C_EXPORT void fin(std::error_code &ec) noexcept;
@@ -45,7 +47,9 @@ class decoder {
 public:
   H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(decoder)
+  H3C_MOVE_ONLY(decoder);
+
+  ~decoder() = default;
 
   enum class state : uint8_t { frame, qpack, fin, error };
 

@@ -62,8 +62,8 @@ public:
   encoder(const encoder &) = delete;
   encoder &operator=(const encoder &) = delete;
 
-  encoder(encoder &&) = default;
-  encoder &operator=(encoder &&) = default;
+  encoder(encoder &&) noexcept;
+  encoder &operator=(encoder &&) noexcept;
 
   H3C_EXPORT ~encoder() noexcept;
 
@@ -92,7 +92,9 @@ class decoder {
 public:
   H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(decoder)
+  H3C_MOVE_ONLY(decoder);
+
+  ~decoder() = default;
 
   enum class state : uint8_t { closed, headers, body, fin, error };
 

@@ -19,6 +19,8 @@ public:
 
   H3C_MOVE_ONLY(encoder);
 
+  ~encoder() = default;
+
   enum class state : uint8_t { settings, idle, error };
 
   H3C_EXPORT operator state() const noexcept; // NOLINT
@@ -40,6 +42,8 @@ public:
   H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
+
+  ~decoder() = default;
 
   enum class state : uint8_t { settings, active, error };
 

@@ -112,7 +112,9 @@ public:
   mutable_buffer() = default;
   H3C_EXPORT explicit mutable_buffer(size_t size);
 
-  H3C_MOVE_ONLY(mutable_buffer)
+  H3C_MOVE_ONLY(mutable_buffer);
+
+  ~mutable_buffer() = default;
 
   template <size_t Size>
   mutable_buffer(const char (&static_)[Size]) noexcept = delete;

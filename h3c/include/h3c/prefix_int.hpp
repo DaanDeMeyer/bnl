@@ -17,7 +17,9 @@ class encoder {
 public:
   explicit encoder(logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(encoder)
+  H3C_MOVE_ONLY(encoder);
+
+  ~encoder() = default;
 
   H3C_EXPORT size_t encoded_size(uint64_t value, uint8_t prefix) const noexcept;
 
@@ -34,7 +36,9 @@ class decoder {
 public:
   explicit decoder(logger *logger);
 
-  H3C_MOVE_ONLY(decoder)
+  H3C_MOVE_ONLY(decoder);
+
+  ~decoder() = default;
 
   H3C_EXPORT uint64_t decode(buffer &encoded,
                              uint8_t prefix,
