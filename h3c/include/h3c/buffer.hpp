@@ -109,8 +109,6 @@ private:
 
 class mutable_buffer : public buffer {
 public:
-  using buffer::buffer; // NOLINT
-
   mutable_buffer() = default;
   H3C_EXPORT explicit mutable_buffer(size_t size);
 
