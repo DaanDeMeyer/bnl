@@ -27,6 +27,8 @@ enum class error : uint32_t {
 
   not_implemented = UINT16_MAX + 1,
   incomplete,
+  idle,
+  unknown,
   varint_overflow,
   setting_overflow,
   malformed_header,

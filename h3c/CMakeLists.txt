@@ -9,6 +9,12 @@ endif()
 target_link_libraries(h3c PUBLIC fmt PRIVATE xxhash)
 target_include_directories(h3c PRIVATE src)
 target_sources(h3c PRIVATE
+  src/endpoint/stream/body.cpp
+  src/endpoint/stream/control.cpp
+  src/endpoint/stream/headers.cpp
+  src/endpoint/stream/request.cpp
+  src/endpoint/client.cpp
+  src/endpoint/server.cpp
   src/frame/decode.cpp
   src/frame/encode.cpp
   src/frame/frame.cpp
@@ -21,6 +27,7 @@ target_sources(h3c PRIVATE
   src/varint/encode.cpp
   src/buffer.cpp
   src/error.cpp
+  src/event.cpp
   src/header.cpp
   src/literal.cpp
   src/prefix_int.cpp
@@ -32,7 +39,9 @@ add_subdirectory(../h3c-log ../h3c-log)
 if(H3C_TEST)
   target_sources(h3c-test PRIVATE
     test/buffer.cpp
+    test/endpoint.cpp
     test/frame.cpp
+    test/handle.cpp
     test/huffman.cpp
     test/qpack.cpp
     test/varint.cpp

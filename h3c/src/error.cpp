@@ -41,6 +41,10 @@ std::string error_category_impl::message(int condition) const noexcept
       return "not implemented";
     case error::incomplete:
       return "incomplete";
+    case error::idle:
+      return "idle";
+    case error::unknown:
+      return "unknown";
     case error::varint_overflow:
       return "varint overflow";
     case error::setting_overflow:
