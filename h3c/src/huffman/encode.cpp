@@ -34,12 +34,12 @@ namespace h3c {
 
 huffman::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
 
-size_t huffman::encoder::encoded_size(const buffer &string) const noexcept
+size_t huffman::encoder::encoded_size(buffer_view string) const noexcept
 {
   size_t num_bits = 0;
 
-  for (size_t i = 0; i < string.size(); i++) {
-    num_bits += encode_table[string[i]].num_bits;
+  for (uint8_t character : string) {
+    num_bits += encode_table[character].num_bits;
   }
 
   // Pad the prefix of EOS (256).
@@ -92,13 +92,13 @@ symbol_encode(uint8_t *dest, size_t *rem_bits, const symbol &symbol)
 }
 
 size_t
-huffman::encoder::encode(uint8_t *dest, const buffer &string) const noexcept
+huffman::encoder::encode(uint8_t *dest, buffer_view string) const noexcept
 {
   uint8_t *begin = dest;
   size_t rem_bits = 8;
 
-  for (size_t i = 0; i < string.size(); i++) {
-    const symbol &symbol = encode_table[string[i]];
+  for (uint8_t character : string) {
+    const symbol &symbol = encode_table[character];
     dest += symbol_encode(dest, &rem_bits, symbol);
   }
 
@@ -113,7 +113,7 @@ huffman::encoder::encode(uint8_t *dest, const buffer &string) const noexcept
   return static_cast<size_t>(dest - begin);
 }
 
-buffer huffman::encoder::encode(const buffer &string) const
+buffer huffman::encoder::encode(buffer_view string) const
 {
   size_t encoded_size = this->encoded_size(string);
   mutable_buffer encoded(encoded_size);

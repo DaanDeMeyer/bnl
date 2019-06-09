@@ -10,7 +10,7 @@ literal::encoder::encoder(logger *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-size_t literal::encoder::encoded_size(const buffer &literal) const noexcept
+size_t literal::encoder::encoded_size(buffer_view literal) const noexcept
 {
   size_t huffman_encoded_size = huffman_.encoded_size(literal);
   return huffman_encoded_size < literal.size() ? huffman_encoded_size
@@ -18,7 +18,7 @@ size_t literal::encoder::encoded_size(const buffer &literal) const noexcept
 }
 
 size_t literal::encoder::encode(uint8_t *dest,
-                                const buffer &literal,
+                                buffer_view literal,
                                 uint8_t prefix) const noexcept
 {
   uint8_t *begin = dest;
@@ -38,14 +38,9 @@ size_t literal::encoder::encode(uint8_t *dest,
   return static_cast<size_t>(dest - begin);
 }
 
-buffer literal::encoder::encode(const buffer &literal, uint8_t prefix) const
+buffer literal::encoder::encode(buffer_view literal, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(literal);
-
-  if (encoded_size > literal.size()) {
-    return literal;
-  }
-
   mutable_buffer encoded(encoded_size);
 
   ASSERT(encoded_size == encode(encoded.data(), literal, prefix));

@@ -12,15 +12,16 @@ target_sources(h3c PRIVATE
   src/frame/decode.cpp
   src/frame/encode.cpp
   src/frame/frame.cpp
-  src/huffman/encode.cpp
   src/huffman/decode.cpp
-  src/qpack/encode.cpp
+  src/huffman/encode.cpp
   src/qpack/decode.cpp
+  src/qpack/encode.cpp
   src/util/string.cpp
   src/varint/decode.cpp
   src/varint/encode.cpp
   src/buffer.cpp
   src/error.cpp
+  src/header.cpp
   src/literal.cpp
   src/prefix_int.cpp
 )

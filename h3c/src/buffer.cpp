@@ -5,6 +5,45 @@
 
 namespace h3c {
 
+buffer_view::buffer_view(const char *data, size_t size) noexcept
+    : buffer_view(reinterpret_cast<const uint8_t *>(data), size)
+{}
+
+buffer_view::buffer_view(const uint8_t *data, size_t size) noexcept
+    : data_(data), size_(size)
+{}
+
+const uint8_t *buffer_view::data() const noexcept
+{
+  return data_;
+}
+
+size_t buffer_view::size() const noexcept
+{
+  return size_;
+}
+
+const uint8_t *buffer_view::begin() const noexcept
+{
+  return data_;
+}
+
+const uint8_t *buffer_view::end() const noexcept
+{
+  return data_ + size_;
+}
+
+bool operator==(buffer_view lhs, buffer_view rhs) noexcept
+{
+  return lhs.size() == rhs.size() &&
+         std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+bool operator!=(buffer_view lhs, buffer_view rhs) noexcept
+{
+  return !(lhs == rhs);
+}
+
 buffer::buffer() noexcept : type_(type::static_), static_() {} // NOLINT
 
 buffer::buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept // NOLINT
@@ -154,6 +193,11 @@ bool buffer::empty() const noexcept
   return size() == 0;
 }
 
+const uint8_t *buffer::begin() const noexcept
+{
+  return data();
+}
+
 const uint8_t *buffer::end() const noexcept
 {
   return data() + size();
@@ -227,6 +271,11 @@ buffer buffer::concat(const buffer &first, const buffer &second)
   std::copy_n(second.data(), second.size(), result.data() + first.size());
 
   return std::move(result);
+}
+
+buffer::operator buffer_view() const noexcept
+{
+  return { data(), size() };
 }
 
 buffer::buffer(size_t size) noexcept // NOLINT

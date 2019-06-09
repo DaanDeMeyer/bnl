@@ -28,14 +28,14 @@ public:
 
   H3C_EXPORT uint64_t count() const noexcept;
 
-  H3C_EXPORT size_t encoded_size(const header &header,
-                                 std::error_code &ec) const noexcept;
+  H3C_EXPORT size_t encoded_size(header_view header, std::error_code &ec) const
+      noexcept;
 
   H3C_EXPORT size_t encode(uint8_t *dest,
-                           const header &header,
+                           header_view header,
                            std::error_code &ec) noexcept;
 
-  H3C_EXPORT buffer encode(const header &header, std::error_code &ec);
+  H3C_EXPORT buffer encode(header_view header, std::error_code &ec);
 
 private:
   logger *logger_;

@@ -20,11 +20,11 @@ public:
 
   H3C_MOVE_ONLY(encoder)
 
-  H3C_EXPORT size_t encoded_size(const buffer &string) const noexcept;
+  H3C_EXPORT size_t encoded_size(buffer_view string) const noexcept;
 
-  H3C_EXPORT size_t encode(uint8_t *dest, const buffer &string) const noexcept;
+  H3C_EXPORT size_t encode(uint8_t *dest, buffer_view string) const noexcept;
 
-  H3C_EXPORT buffer encode(const buffer &string) const;
+  H3C_EXPORT buffer encode(buffer_view string) const;
 
 private:
   logger *logger_;

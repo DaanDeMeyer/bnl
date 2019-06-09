@@ -22,11 +22,11 @@ uint64_t qpack::encoder::count() const noexcept
   return count_;
 }
 
-size_t qpack::encoder::encoded_size(const header &header,
+size_t qpack::encoder::encoded_size(header_view header,
                                     std::error_code &ec) const noexcept
 {
-  const char *name = reinterpret_cast<const char *>(header.name.data());
-  size_t size = header.name.size();
+  const char *name = reinterpret_cast<const char *>(header.name().data());
+  size_t size = header.name().size();
 
   if (!util::is_lowercase(name, size)) {
     LOG_E("Header ({}) is not lowercase", fmt::string_view(name, size));
@@ -52,18 +52,18 @@ size_t qpack::encoder::encoded_size(const header &header,
     case static_table::index_type::header_only: {
       encoded_size += prefix_int_.encoded_size(index, 4);
 
-      size_t value_encoded_size = literal_.encoded_size(header.value);
+      size_t value_encoded_size = literal_.encoded_size(header.value());
       encoded_size += prefix_int_.encoded_size(value_encoded_size, 7);
       encoded_size += value_encoded_size;
       break;
     }
 
     case static_table::index_type::missing: {
-      size_t name_encoded_size = literal_.encoded_size(header.name);
+      size_t name_encoded_size = literal_.encoded_size(header.name());
       encoded_size += prefix_int_.encoded_size(name_encoded_size, 3);
       encoded_size += name_encoded_size;
 
-      size_t value_encoded_size = literal_.encoded_size(header.value);
+      size_t value_encoded_size = literal_.encoded_size(header.value());
       encoded_size += prefix_int_.encoded_size(value_encoded_size, 7);
       encoded_size += value_encoded_size;
       break;
@@ -82,7 +82,7 @@ static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
 size_t qpack::encoder::encode(uint8_t *dest,
-                              const header &header,
+                              header_view header,
                               std::error_code &ec) noexcept
 {
   ASSERT(dest != nullptr);
@@ -112,15 +112,15 @@ size_t qpack::encoder::encode(uint8_t *dest,
       dest += prefix_int_.encode(dest, index, 4);
 
       *dest = LITERAL_NO_PREFIX;
-      dest += literal_.encode(dest, header.value, 7);
+      dest += literal_.encode(dest, header.value(), 7);
       break;
 
     case qpack::static_table::index_type::missing:
       *dest = LITERAL_WITHOUT_NAME_REFERENCE_PREFIX;
-      dest += literal_.encode(dest, header.name, 3);
+      dest += literal_.encode(dest, header.name(), 3);
 
       *dest = LITERAL_NO_PREFIX;
-      dest += literal_.encode(dest, header.value, 7);
+      dest += literal_.encode(dest, header.value(), 7);
       break;
 
     default:
@@ -134,7 +134,7 @@ size_t qpack::encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-buffer qpack::encoder::encode(const header &header, std::error_code &ec)
+buffer qpack::encoder::encode(header_view header, std::error_code &ec)
 {
   size_t encoded_size = TRY(this->encoded_size(header, ec));
   mutable_buffer encoded(encoded_size);

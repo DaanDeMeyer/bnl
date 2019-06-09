@@ -117,9 +117,9 @@ static_table_raw = """\
 """
 
 find_index_template = """\
-static static_table::index_type find_index(const header &header, uint8_t *index)
+static static_table::index_type find_index(header_view header, uint8_t *index)
 {{
-  uint64_t name_hash = XXH64(header.name.data(), header.name.size(), 0);
+  uint64_t name_hash = XXH64(header.name().data(), header.name().size(), 0);
   uint64_t value_hash;
 
   switch (name_hash) {{
@@ -138,7 +138,7 @@ case {}U: // {}
 
 values_template = """\
 case {}U: // {}
-  value_hash = XXH64(header.value.data(), header.value.size(), 0);
+  value_hash = XXH64(header.value().data(), header.value().size(), 0);
   switch(value_hash) {{
     {}
   }}

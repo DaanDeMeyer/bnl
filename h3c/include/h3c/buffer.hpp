@@ -10,6 +10,30 @@
 
 namespace h3c {
 
+class buffer_view {
+public:
+  template <size_t Size>
+  buffer_view(const char (&data)[Size]) noexcept // NOLINT
+      : buffer_view(static_cast<const char *>(data), Size - 1)
+  {}
+
+  H3C_EXPORT buffer_view(const uint8_t *data, size_t size) noexcept;
+  H3C_EXPORT buffer_view(const char *data, size_t size) noexcept;
+
+  H3C_EXPORT const uint8_t *data() const noexcept;
+  H3C_EXPORT size_t size() const noexcept;
+
+  H3C_EXPORT const uint8_t *begin() const noexcept;
+  H3C_EXPORT const uint8_t *end() const noexcept;
+
+private:
+  const uint8_t *data_;
+  size_t size_;
+};
+
+H3C_EXPORT bool operator==(buffer_view lhs, buffer_view rhs) noexcept;
+H3C_EXPORT bool operator!=(buffer_view lhs, buffer_view rhs) noexcept;
+
 class buffer {
 public:
   H3C_EXPORT buffer() noexcept;
@@ -37,6 +61,7 @@ public:
   H3C_EXPORT size_t size() const noexcept;
   H3C_EXPORT bool empty() const noexcept;
 
+  H3C_EXPORT const uint8_t *begin() const noexcept;
   H3C_EXPORT const uint8_t *end() const noexcept;
 
   H3C_EXPORT buffer slice(size_t size) const noexcept;
@@ -48,6 +73,8 @@ public:
   H3C_EXPORT void reset(const uint8_t *position) noexcept;
 
   H3C_EXPORT static buffer concat(const buffer &first, const buffer &second);
+
+  H3C_EXPORT operator buffer_view() const noexcept; // NOLINT
 
 protected:
   H3C_EXPORT explicit buffer(size_t size) noexcept;
@@ -79,9 +106,6 @@ private:
     mutable std::shared_ptr<uint8_t> shared_;
   };
 };
-
-H3C_EXPORT bool operator==(const buffer &lhs, const buffer &rhs) noexcept;
-H3C_EXPORT bool operator!=(const buffer &lhs, const buffer &rhs) noexcept;
 
 class mutable_buffer : public buffer {
 public:
