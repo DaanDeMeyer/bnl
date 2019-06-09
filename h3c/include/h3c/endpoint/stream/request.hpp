@@ -62,8 +62,8 @@ public:
   encoder(const encoder &) = delete;
   encoder &operator=(const encoder &) = delete;
 
-  encoder(encoder &&) noexcept;
-  encoder &operator=(encoder &&) noexcept;
+  encoder(encoder && other) noexcept;
+  encoder &operator=(encoder && other) noexcept;
 
   H3C_EXPORT ~encoder() noexcept;
 

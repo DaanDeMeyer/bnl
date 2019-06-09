@@ -87,6 +87,41 @@ request::encoder::encoder(uint64_t id, logger *logger) noexcept
     : id_(id), logger_(logger), headers_(id, logger), body_(id, logger)
 {}
 
+request::encoder::encoder(encoder &&other) noexcept
+    : id_(other.id_),
+      logger_(other.logger_),
+      headers_(std::move(other.headers_)),
+      body_(std::move(other.body_)),
+      state_(other.state_),
+      handle_(other.handle_)
+{
+  other.handle_ = nullptr;
+
+  if (handle_ != nullptr) {
+    handle_->ref_ = this;
+  }
+}
+
+request::encoder &request::encoder::operator=(encoder &&other) noexcept
+{
+  if (&other != this) {
+    id_ = other.id_;
+    logger_ = other.logger_;
+    headers_ = std::move(other.headers_);
+    body_ = std::move(other.body_);
+    state_ = other.state_;
+
+    handle_ = other.handle_;
+    other.handle_ = nullptr;
+
+    if (handle_ != nullptr) {
+      handle_->ref_ = this;
+    }
+  }
+
+  return *this;
+}
+
 request::encoder::~encoder() noexcept
 {
   if (handle_ == nullptr) {
