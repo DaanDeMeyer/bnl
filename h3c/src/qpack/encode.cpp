@@ -52,19 +52,16 @@ size_t qpack::encoder::encoded_size(header_view header,
     case static_table::index_type::header_only: {
       encoded_size += prefix_int_.encoded_size(index, 4);
 
-      size_t value_encoded_size = literal_.encoded_size(header.value());
-      encoded_size += prefix_int_.encoded_size(value_encoded_size, 7);
+      size_t value_encoded_size = literal_.encoded_size(header.value(), 7);
       encoded_size += value_encoded_size;
       break;
     }
 
     case static_table::index_type::missing: {
-      size_t name_encoded_size = literal_.encoded_size(header.name());
-      encoded_size += prefix_int_.encoded_size(name_encoded_size, 3);
+      size_t name_encoded_size = literal_.encoded_size(header.name(), 3);
       encoded_size += name_encoded_size;
 
-      size_t value_encoded_size = literal_.encoded_size(header.value());
-      encoded_size += prefix_int_.encoded_size(value_encoded_size, 7);
+      size_t value_encoded_size = literal_.encoded_size(header.value(), 7);
       encoded_size += value_encoded_size;
       break;
     }

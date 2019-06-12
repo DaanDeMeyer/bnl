@@ -23,7 +23,8 @@ public:
 
   ~encoder() = default;
 
-  H3C_EXPORT size_t encoded_size(buffer_view literal) const noexcept;
+  H3C_EXPORT size_t encoded_size(buffer_view literal, uint8_t prefix) const
+      noexcept;
 
   H3C_EXPORT size_t encode(uint8_t *dest,
                            buffer_view literal,
