@@ -1,66 +1,81 @@
 #include <h3c/endpoint/stream/control.hpp>
 
 #include <util/error.hpp>
-#include <util/stream.hpp>
 
 namespace h3c {
 namespace stream {
 
-control::encoder::encoder(uint64_t id, logger *logger) noexcept
+control::sender::sender(uint64_t id, logger *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-control::encoder::operator state() const noexcept
+quic::data control::sender::send(std::error_code &ec) noexcept
 {
-  return state_;
-}
+  state_error_handler<sender::state> on_error(state_, ec);
 
-quic::data control::encoder::encode(std::error_code &ec) noexcept
-{
   switch (state_) {
 
     case state::settings: {
-      buffer encoded = STREAM_ENCODE_TRY(frame_.encode(settings_, ec));
+      buffer encoded = TRY(frame_.encode(settings_, ec));
       state_ = state::idle;
       return { id_, std::move(encoded), false };
     }
 
     case state::idle:
-      STREAM_ENCODE_THROW(error::idle);
+      THROW(error::idle);
 
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();
 }
 
-control::decoder::decoder(uint64_t id, logger *logger) noexcept
+control::receiver::receiver(uint64_t id, logger *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-control::decoder::operator state() const noexcept
-{
-  return state_;
-}
+control::receiver::~receiver() noexcept = default;
 
-event control::decoder::decode(quic::data &data, std::error_code &ec) noexcept
+void control::receiver::recv(quic::data data,
+                             event::handler handler,
+                             std::error_code &ec)
 {
-  STREAM_DECODE_START();
+  state_error_handler<receiver::state> on_error(state_, ec);
 
   if (data.fin) {
-    STREAM_DECODE_THROW(error::closed_critical_stream);
+    THROW_VOID(error::closed_critical_stream);
   }
+
+  buffers_.push(std::move(data.buffer));
+
+  while (true) {
+    event event = process(ec);
+    if (ec) {
+      if (ec == error::incomplete) {
+        ec = {};
+      }
+
+      break;
+    }
+
+    handler(std::move(event), ec);
+  }
+}
+
+event control::receiver::process(std::error_code &ec) noexcept
+{
+  buffers::discarder discarder(buffers_);
 
   switch (state_) {
 
     case state::settings: {
-      frame frame = STREAM_DECODE_TRY(frame_.decode(data.buffer, ec));
+      frame frame = TRY(frame_.decode(buffers_, ec));
 
       // First frame on the control stream has to be a SETTINGS frame.
       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-settings
       if (frame != frame::type::settings) {
-        STREAM_DECODE_THROW(error::missing_settings);
+        THROW(error::missing_settings);
       }
 
       state_ = state::active;
@@ -69,25 +84,25 @@ event control::decoder::decode(quic::data &data, std::error_code &ec) noexcept
     }
 
     case state::active: {
-      frame::type type = STREAM_DECODE_TRY(frame_.peek(data.buffer, ec));
+      frame frame = TRY(frame_.decode(buffers_, ec));
 
-      switch (type) {
+      switch (frame) {
         case frame::type::headers: // TODO: STANDARDIZE
         case frame::type::data:
         case frame::type::push_promise:
         case frame::type::duplicate_push:
-          STREAM_DECODE_THROW(error::wrong_stream);
+          THROW(error::wrong_stream);
         case frame::type::settings:
-          STREAM_DECODE_THROW(error::unexpected_frame);
+          THROW(error::unexpected_frame);
         default:
           break;
       }
 
-      STREAM_DECODE_THROW(error::unknown);
+      return process(frame, ec);
     }
 
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();

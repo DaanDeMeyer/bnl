@@ -1,13 +1,12 @@
 #include <h3c/endpoint/stream/request.hpp>
 
 #include <util/error.hpp>
-#include <util/stream.hpp>
 
 namespace h3c {
 namespace stream {
 
 request::handle::handle(uint64_t id,
-                        request::encoder *ref,
+                        request::sender *ref,
                         logger *logger) noexcept
     : id_(id), ref_(ref), logger_(logger)
 {}
@@ -83,11 +82,11 @@ void request::handle::fin(std::error_code &ec) noexcept
   return ref_->body_.fin(ec);
 }
 
-request::encoder::encoder(uint64_t id, logger *logger) noexcept
-    : id_(id), logger_(logger), headers_(id, logger), body_(id, logger)
+request::sender::sender(uint64_t id, logger *logger) noexcept
+    : id_(id), logger_(logger), headers_(logger), body_(logger)
 {}
 
-request::encoder::encoder(encoder &&other) noexcept
+request::sender::sender(sender &&other) noexcept
     : id_(other.id_),
       logger_(other.logger_),
       headers_(std::move(other.headers_)),
@@ -102,7 +101,7 @@ request::encoder::encoder(encoder &&other) noexcept
   }
 }
 
-request::encoder &request::encoder::operator=(encoder &&other) noexcept
+request::sender &request::sender::operator=(sender &&other) noexcept
 {
   if (&other != this) {
     id_ = other.id_;
@@ -122,7 +121,7 @@ request::encoder &request::encoder::operator=(encoder &&other) noexcept
   return *this;
 }
 
-request::encoder::~encoder() noexcept
+request::sender::~sender() noexcept
 {
   if (handle_ == nullptr) {
     return;
@@ -131,12 +130,7 @@ request::encoder::~encoder() noexcept
   handle_->ref_ = nullptr;
 }
 
-request::encoder::operator state() const noexcept
-{
-  return state_;
-}
-
-request::handle request::encoder::handle() noexcept
+request::handle request::sender::handle() noexcept
 {
   request::handle result(id_, this, logger_);
 
@@ -150,52 +144,62 @@ request::handle request::encoder::handle() noexcept
   return result;
 }
 
-quic::data request::encoder::encode(std::error_code &ec) noexcept
+bool request::sender::finished() const noexcept
 {
+  return state_ == state::fin;
+}
+
+quic::data request::sender::send(std::error_code &ec) noexcept
+{
+  state_error_handler<sender::state> on_error(state_, ec);
+
   switch (state_) {
 
     case state::headers: {
-      quic::data data = STREAM_ENCODE_TRY(headers_.encode(ec));
+      buffer encoded = TRY(headers_.encode(ec));
 
-      if (headers_ == headers::encoder::state::fin) {
+      if (headers_.finished()) {
         state_ = state::body;
       }
 
-      return data;
+      return { id_, std::move(encoded), false };
     }
 
     case state::body: {
-      quic::data data = STREAM_ENCODE_TRY(body_.encode(ec));
+      buffer encoded = TRY(body_.encode(ec));
 
-      if (body_ == body::encoder::state::fin) {
+      if (body_.finished()) {
         state_ = state::fin;
       }
 
-      return data;
+      return { id_, std::move(encoded), body_.finished() };
     }
 
     case state::fin:
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();
 }
 
-request::decoder::decoder(uint64_t id, logger *logger) noexcept
-    : id_(id),
-      logger_(logger),
-      frame_(logger),
-      headers_(id, logger),
-      body_(id, logger)
+request::receiver::receiver(uint64_t id, logger *logger) noexcept
+    : id_(id), logger_(logger), frame_(logger), headers_(logger), body_(logger)
 {}
 
-request::decoder::operator state() const noexcept
+request::receiver::~receiver() noexcept = default;
+
+bool request::receiver::closed() const noexcept
 {
-  return state_;
+  return state_ == state::closed;
 }
 
-void request::decoder::start(std::error_code &ec) noexcept
+bool request::receiver::finished() const noexcept
+{
+  return state_ == state::fin;
+}
+
+void request::receiver::start(std::error_code &ec) noexcept
 {
   if (state_ != state::closed) {
     THROW_VOID(error::internal_error);
@@ -204,76 +208,116 @@ void request::decoder::start(std::error_code &ec) noexcept
   state_ = state::headers;
 }
 
-event request::decoder::decode(quic::data &data, std::error_code &ec) noexcept
+const headers::decoder &request::receiver::headers() const noexcept
 {
-  STREAM_DECODE_START();
+  return headers_;
+}
 
-  // Use lambda to get around lack of copy assignment operator on `event`.
-  auto decode = [&]() -> event {
-    switch (state_) {
+void request::receiver::recv(quic::data data,
+                             event::handler handler,
+                             std::error_code &ec)
+{
+  state_error_handler<receiver::state> on_error(state_, ec);
 
-      case state::closed:
-        STREAM_DECODE_THROW(error::internal_error);
+  if (fin_received_) {
+    THROW_VOID(error::internal_error);
+  }
 
-      case state::headers: {
-        event event = STREAM_DECODE_TRY(headers_.decode(data, ec));
+  buffers_.push(std::move(data.buffer));
+  fin_received_ = data.fin;
 
-        bool empty = data.buffer.empty() && data.fin;
+  while (!finished()) {
+    event event = process(ec);
 
-        if (headers_ == headers::decoder::state::fin && empty) {
-          state_ = state::fin;
-        } else if (headers_ == headers::decoder::state::fin) {
-          state_ = state::body;
-        }
-
-        return event;
+    if (ec) {
+      if (ec == error::incomplete && fin_received_) {
+        ec = error::malformed_frame;
+      } else if (ec == error::incomplete) {
+        ec = {};
       }
 
-      case state::body: {
-        event event = STREAM_DECODE_TRY(body_.decode(data, ec));
+      break;
+    }
 
-        if (body_ == body::decoder::state::fin) {
-          state_ = state::fin;
-        }
+    handler(event, ec);
+  }
+}
 
-        return event;
+event request::receiver::process(std::error_code &ec) noexcept
+{
+  buffers::discarder discarder(buffers_);
+
+  switch (state_) {
+
+    case state::closed:
+      THROW(error::internal_error);
+
+    case state::headers: {
+      header header = headers_.decode(buffers_, ec);
+      if (ec) {
+        break;
       }
 
-      case state::fin:
-      case state::error:
-        NOTREACHED();
-    };
+      bool fin = buffers_.empty() && fin_received_;
 
-    NOTREACHED();
+      if (headers_.finished() && fin) {
+        state_ = state::fin;
+      } else if (headers_.finished()) {
+        state_ = state::body;
+      }
+
+      return { id_, headers_.finished(), std::move(header) };
+    }
+
+    case state::body: {
+      h3c::buffer body = body_.decode(buffers_, ec);
+      if (ec) {
+        break;
+      }
+
+      bool fin = buffers_.empty() && fin_received_;
+
+      if (fin) {
+        // We've processed all stream data but there still frame data left to be
+        // received.
+        if (body_.in_progress()) {
+          THROW(error::malformed_frame);
+        }
+
+        state_ = state::fin;
+      }
+
+      return { id_, fin, std::move(body) };
+    }
+
+    case state::fin:
+    case state::error:
+      THROW(error::internal_error);
   };
 
-  event event = STREAM_DECODE_TRY(decode());
-
   if (ec == error::unknown) {
-    frame::type type = STREAM_DECODE_TRY(frame_.peek(data.buffer, ec));
+    frame frame = TRY(frame_.decode(buffers_, ec));
 
-    switch (type) {
+    switch (frame) {
       case frame::type::headers:
-        if (state_ == stream::request::decoder::state::body) {
+        if (state_ == request::receiver::state::body) {
           // TODO: Implement trailing HEADERS
-          STREAM_DECODE_THROW(error::not_implemented);
+          THROW(error::not_implemented);
         }
         break;
       case frame::type::data:
-        STREAM_DECODE_THROW(error::unexpected_frame);
+        THROW(error::unexpected_frame);
       case frame::type::settings:
       case frame::type::max_push_id:
       case frame::type::cancel_push:
       case frame::type::goaway:
-        STREAM_DECODE_THROW(error::wrong_stream);
+        THROW(error::wrong_stream);
       default:
-        break;
+        return process(frame, ec);
     }
-
-    STREAM_DECODE_THROW(error::unknown);
   }
 
-  return event;
+  return {};
 }
 
 } // namespace stream

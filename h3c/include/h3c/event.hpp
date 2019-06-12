@@ -5,10 +5,14 @@
 #include <h3c/quic.hpp>
 #include <h3c/settings.hpp>
 
+#include <functional>
+
 namespace h3c {
 
 class event {
 public:
+  using handler = const std::function<void(event, std::error_code &ec)> &;
+
   enum class type { empty, settings, header, body, error };
 
   struct payload {

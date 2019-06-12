@@ -11,7 +11,7 @@ TEST_CASE("handle")
 
   SUBCASE("unique")
   {
-    h3c::stream::request::encoder request(id, &logger);
+    h3c::stream::request::sender request(id, &logger);
 
     h3c::stream::request::handle first = request.handle();
 
@@ -28,7 +28,7 @@ TEST_CASE("handle")
     h3c::stream::request::handle handle;
 
     {
-      h3c::stream::request::encoder request(id, &logger);
+      h3c::stream::request::sender request(id, &logger);
 
       handle = request.handle();
     }
@@ -38,7 +38,7 @@ TEST_CASE("handle")
 
   SUBCASE("move")
   {
-    h3c::stream::request::encoder request(id, &logger);
+    h3c::stream::request::sender request(id, &logger);
 
     h3c::stream::request::handle first = request.handle();
     REQUIRE(first.valid());

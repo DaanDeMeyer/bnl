@@ -1,13 +1,12 @@
 #include <h3c/endpoint/stream/headers.hpp>
 
 #include <util/error.hpp>
-#include <util/stream.hpp>
 
 namespace h3c {
 namespace stream {
 
-headers::encoder::encoder(uint64_t id, logger *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger), qpack_(logger)
+headers::encoder::encoder(logger *logger) noexcept
+    : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
 void headers::encoder::add(header_view header, std::error_code &ec)
@@ -29,26 +28,28 @@ void headers::encoder::fin(std::error_code &ec) noexcept
   state_ = state::frame;
 }
 
-headers::encoder::operator state() const noexcept
+bool headers::encoder::finished() const noexcept
 {
-  return state_;
+  return state_ == state::fin;
 }
 
-quic::data headers::encoder::encode(std::error_code &ec) noexcept
+buffer headers::encoder::encode(std::error_code &ec) noexcept
 {
+  state_error_handler<encoder::state> on_error(state_, ec);
+
   switch (state_) {
 
     case state::idle:
-      STREAM_ENCODE_THROW(error::idle);
+      THROW(error::idle);
 
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
 
-      buffer encoded = STREAM_ENCODE_TRY(frame_.encode(frame, ec));
+      buffer encoded = TRY(frame_.encode(frame, ec));
 
       state_ = state::qpack;
 
-      return { id_, std::move(encoded), false };
+      return encoded;
     }
 
     case state::qpack: {
@@ -57,29 +58,34 @@ quic::data headers::encoder::encode(std::error_code &ec) noexcept
 
       state_ = buffers_.empty() ? state::fin : state_;
 
-      return { id_, std::move(encoded), false };
+      return encoded;
     }
 
     case state::fin:
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();
 }
 
-headers::decoder::decoder(uint64_t id, logger *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger), qpack_(logger)
+headers::decoder::decoder(logger *logger) noexcept
+    : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
-headers::decoder::operator state() const noexcept
+bool headers::decoder::started() const noexcept
 {
-  return state_;
+  return state_ != state::frame;
 }
 
-event headers::decoder::decode(quic::data &data, std::error_code &ec) noexcept
+bool headers::decoder::finished() const noexcept
 {
-  STREAM_DECODE_START();
+  return state_ == state::fin;
+}
+
+header headers::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
+{
+  state_error_handler<decoder::state> on_error(state_, ec);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
@@ -87,38 +93,38 @@ event headers::decoder::decode(quic::data &data, std::error_code &ec) noexcept
   switch (state_) {
 
     case state::frame: {
-      frame::type type = STREAM_DECODE_TRY(frame_.peek(data.buffer, ec));
+      frame::type type = TRY(frame_.peek(encoded, ec));
 
       if (type != frame::type::headers) {
-        STREAM_DECODE_THROW(error::unknown);
+        THROW(error::unknown);
       }
 
-      frame frame = STREAM_DECODE_TRY(frame_.decode(data.buffer, ec));
+      frame frame = TRY(frame_.decode(encoded, ec));
 
       state_ = state::qpack;
       headers_size_ = frame.headers.size;
 
       if (headers_size_ == 0) {
-        STREAM_DECODE_THROW(error::malformed_frame);
+        THROW(error::malformed_frame);
       }
     }
 
     case state::qpack: {
-      header header = STREAM_DECODE_TRY(qpack_.decode(data.buffer, ec));
+      header header = TRY(qpack_.decode(encoded, ec));
 
       if (qpack_.count() > headers_size_) {
-        STREAM_DECODE_THROW(error::malformed_frame);
+        THROW(error::malformed_frame);
       }
 
       bool fin = qpack_.count() == headers_size_;
       state_ = fin ? state::fin : state_;
 
-      return { id_, fin, std::move(header) };
+      return header;
     }
 
     case state::fin:
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
 #pragma GCC diagnostic pop

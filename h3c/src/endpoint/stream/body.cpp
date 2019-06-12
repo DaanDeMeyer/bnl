@@ -1,13 +1,12 @@
 #include <h3c/endpoint/stream/body.hpp>
 
 #include <util/error.hpp>
-#include <util/stream.hpp>
 
 namespace h3c {
 namespace stream {
 
-body::encoder::encoder(uint64_t id, logger *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger)
+body::encoder::encoder(logger *logger) noexcept
+    : logger_(logger), frame_(logger)
 {}
 
 void body::encoder::add(buffer body, std::error_code &ec)
@@ -32,28 +31,30 @@ void body::encoder::fin(std::error_code &ec) noexcept
   }
 }
 
-body::encoder::operator state() const noexcept
+bool body::encoder::finished() const noexcept
 {
-  return state_;
+  return state_ == state::fin;
 }
 
-quic::data body::encoder::encode(std::error_code &ec) noexcept
+buffer body::encoder::encode(std::error_code &ec) noexcept
 {
   // TODO: Implement PRIORITY
+
+  state_error_handler<encoder::state> on_error(state_, ec);
 
   switch (state_) {
 
     case state::frame: {
       if (buffers_.empty()) {
-        STREAM_ENCODE_THROW(error::idle);
+        THROW(error::idle);
       }
 
       frame frame = frame::payload::data{ buffers_.front().size() };
-      buffer encoded = STREAM_ENCODE_TRY(frame_.encode(frame, ec));
+      buffer encoded = TRY(frame_.encode(frame, ec));
 
       state_ = state::data;
 
-      return { id_, std::move(encoded), false };
+      return encoded;
     }
 
     case state::data: {
@@ -62,29 +63,29 @@ quic::data body::encoder::encode(std::error_code &ec) noexcept
 
       state_ = fin_ && buffers_.empty() ? state::fin : state::frame;
 
-      return { id_, std::move(body), state_ == state::fin };
+      return body;
     }
 
     case state::fin:
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();
 }
 
-body::decoder::decoder(uint64_t id, logger *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger)
+body::decoder::decoder(logger *logger) noexcept
+    : logger_(logger), frame_(logger)
 {}
 
-body::decoder::operator state() const noexcept
+bool body::decoder::in_progress() const noexcept
 {
-  return state_;
+  return state_ == body::decoder::state::data;
 }
 
-event body::decoder::decode(quic::data &data, std::error_code &ec) noexcept
+buffer body::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
 {
-  STREAM_DECODE_START();
+  state_error_handler<decoder::state> on_error(state_, ec);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
@@ -92,61 +93,40 @@ event body::decoder::decode(quic::data &data, std::error_code &ec) noexcept
   switch (state_) {
 
     case state::frame: {
-      frame::type type = STREAM_DECODE_TRY(frame_.peek(data.buffer, ec));
+      frame::type type = TRY(frame_.peek(encoded, ec));
 
       if (type != frame::type::data) {
-        STREAM_DECODE_THROW(error::unknown);
+        THROW(error::unknown);
       }
 
-      frame frame = STREAM_DECODE_TRY(frame_.decode(data.buffer, ec));
+      frame frame = TRY(frame_.decode(encoded, ec));
 
       state_ = state::data;
       remaining_ = frame.data.size;
     }
 
     case state::data: {
-      if (data.buffer.empty()) {
-        STREAM_DECODE_THROW(error::incomplete);
+      if (encoded.empty()) {
+        THROW(error::incomplete);
       }
 
-      size_t body_part_size = data.buffer.size() < remaining_
-                                  ? data.buffer.size()
+      size_t body_part_size = encoded.size() < remaining_
+                                  ? encoded.size()
                                   : static_cast<size_t>(remaining_);
-      buffer body_part = data.buffer.slice(body_part_size);
+      buffer body_part = encoded.slice(body_part_size);
 
-      data.buffer.advance(body_part_size);
+      encoded += body_part_size;
       remaining_ -= body_part_size;
 
-      ASSERT(data.buffer.empty() || remaining_ == 0);
+      ASSERT(encoded.empty() || remaining_ == 0);
 
-      // We've processed all stream data but there still frame data left to be
-      // received.
-      if (data.fin && remaining_ != 0 && data.buffer.empty()) {
-        state_ = state::error;
-        STREAM_DECODE_THROW(error::malformed_frame);
-      }
+      state_ = remaining_ == 0 ? state::frame : state_;
 
-      // The stream has ended and we've received the remaining data of the last
-      // DATA frame.
-      if (data.fin && remaining_ == 0 && data.buffer.empty()) {
-        state_ = state::fin;
-
-        // The current frame is done but there's still data left on the stream.
-        // We try to read another frame.
-      } else if (remaining_ == 0 && !data.buffer.empty()) {
-        state_ = state::frame;
-      }
-
-      // If the current frame is not done and we haven't received stream fin, we
-      // stay in the `data` state to read more frame bytes when we receive more
-      // stream data.
-
-      return { id_, state_ == state::fin, std::move(body_part) };
+      return body_part;
     }
 
-    case state::fin:
     case state::error:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
 #pragma GCC diagnostic pop

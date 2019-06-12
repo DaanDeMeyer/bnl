@@ -13,24 +13,19 @@ namespace h3c {
 
 class logger;
 
-namespace qpack {
-class decoder;
-} // namespace qpack
-
 namespace stream {
 namespace request {
 
-class encoder;
+class sender;
 
 class handle {
 public:
   handle() = default;
   H3C_EXPORT explicit handle(uint64_t id,
-                             stream::request::encoder *ref,
+                             stream::request::sender *ref,
                              logger *logger) noexcept;
 
-  handle(const handle &) = delete;
-  handle &operator=(const handle &) = delete;
+  H3C_NO_COPY(handle);
 
   H3C_EXPORT handle(handle &&other) noexcept;
   H3C_EXPORT handle &operator=(handle &&other) noexcept;
@@ -48,34 +43,31 @@ public:
   H3C_EXPORT void fin(std::error_code &ec) noexcept;
 
 private:
-  friend request::encoder;
+  friend request::sender;
 
   uint64_t id_ = UINT64_MAX;
-  request::encoder *ref_ = nullptr;
+  request::sender *ref_ = nullptr;
   logger *logger_ = nullptr;
 };
 
-class encoder {
+class sender {
 public:
-  H3C_EXPORT encoder(uint64_t id, logger *logger) noexcept;
+  H3C_EXPORT sender(uint64_t id, logger *logger) noexcept;
 
-  encoder(const encoder &) = delete;
-  encoder &operator=(const encoder &) = delete;
+  H3C_NO_COPY(sender);
 
-  encoder(encoder && other) noexcept;
-  encoder &operator=(encoder && other) noexcept;
+  sender(sender &&other) noexcept;
+  sender &operator=(sender &&other) noexcept;
 
-  H3C_EXPORT ~encoder() noexcept;
-
-  enum state : uint8_t { headers, body, fin, error };
-
-  H3C_EXPORT operator state() const noexcept; // NOLINT
+  H3C_EXPORT ~sender() noexcept;
 
   H3C_EXPORT request::handle handle() noexcept;
 
-  H3C_EXPORT quic::data encode(std::error_code &ec) noexcept;
+  H3C_EXPORT bool finished() const noexcept;
 
-protected:
+  H3C_EXPORT quic::data send(std::error_code &ec) noexcept;
+
+private:
   friend request::handle;
 
   uint64_t id_;
@@ -84,27 +76,36 @@ protected:
   stream::headers::encoder headers_;
   stream::body::encoder body_;
 
+  enum state : uint8_t { headers, body, fin, error };
+
   state state_ = state::headers;
   request::handle *handle_ = nullptr;
 };
 
-class decoder {
+class H3C_EXPORT receiver {
 public:
-  H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
+  receiver(uint64_t id, logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(decoder);
+  H3C_MOVE_ONLY(receiver);
 
-  ~decoder() = default;
+  virtual ~receiver() noexcept;
 
-  enum class state : uint8_t { closed, headers, body, fin, error };
+  bool closed() const noexcept;
 
-  H3C_EXPORT operator state() const noexcept; // NOLINT
+  bool finished() const noexcept;
 
-  H3C_EXPORT void start(std::error_code &ec) noexcept;
+  void start(std::error_code &ec) noexcept;
 
-  H3C_EXPORT event decode(quic::data &data, std::error_code &ec) noexcept;
+  void recv(quic::data data, event::handler handler, std::error_code &ec);
 
 protected:
+  virtual event process(frame frame, std::error_code &ec) noexcept = 0;
+
+  const headers::decoder &headers() const noexcept;
+
+private:
+  event process(std::error_code &ec) noexcept;
+
   uint64_t id_;
   logger *logger_;
 
@@ -112,9 +113,12 @@ protected:
   stream::headers::decoder headers_;
   stream::body::decoder body_;
 
+  enum class state : uint8_t { closed, headers, body, fin, error };
+
   state state_ = state::closed;
 
-  buffer buffered_;
+  buffers buffers_;
+  bool fin_received_ = false;
 };
 
 } // namespace request

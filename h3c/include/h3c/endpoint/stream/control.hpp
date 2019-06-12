@@ -13,53 +13,54 @@ class logger;
 namespace stream {
 namespace control {
 
-class encoder {
+class sender {
 public:
-  H3C_EXPORT encoder(uint64_t id, logger *logger) noexcept;
+  H3C_EXPORT sender(uint64_t id, logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(encoder);
+  H3C_MOVE_ONLY(sender);
 
-  ~encoder() = default;
+  ~sender() = default;
 
-  enum class state : uint8_t { settings, idle, error };
+  H3C_EXPORT quic::data send(std::error_code &ec) noexcept;
 
-  H3C_EXPORT operator state() const noexcept; // NOLINT
-
-  H3C_EXPORT quic::data encode(std::error_code &ec) noexcept;
-
-protected:
+private:
   uint64_t id_;
   logger *logger_;
 
   frame::encoder frame_;
 
+  enum class state : uint8_t { settings, idle, error };
+
   state state_ = state::settings;
   settings settings_;
 };
 
-class decoder {
+class H3C_EXPORT receiver {
 public:
-  H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
+  receiver(uint64_t id, logger *logger) noexcept;
 
-  H3C_MOVE_ONLY(decoder);
+  H3C_MOVE_ONLY(receiver);
 
-  ~decoder() = default;
+  virtual ~receiver() noexcept;
 
-  enum class state : uint8_t { settings, active, error };
-
-  H3C_EXPORT operator state() const noexcept; // NOLINT
-
-  H3C_EXPORT event decode(quic::data &data, std::error_code &ec) noexcept;
+  void recv(quic::data data, event::handler handler, std::error_code &ec);
 
 protected:
+  virtual event process(frame frame, std::error_code &ec) = 0;
+
+private:
+  event process(std::error_code &ec) noexcept;
+
   uint64_t id_;
   logger *logger_;
 
   frame::decoder frame_;
 
+  enum class state : uint8_t { settings, active, error };
+
   state state_ = state::settings;
 
-  buffer buffered_;
+  buffers buffers_;
 };
 
 } // namespace control

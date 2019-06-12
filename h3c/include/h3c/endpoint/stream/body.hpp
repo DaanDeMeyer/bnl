@@ -15,7 +15,7 @@ namespace body {
 
 class encoder {
 public:
-  H3C_EXPORT encoder(uint64_t id, logger *logger) noexcept;
+  H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -24,18 +24,17 @@ public:
   H3C_EXPORT void add(buffer body, std::error_code &ec);
   H3C_EXPORT void fin(std::error_code &ec) noexcept;
 
-  enum class state : uint8_t { frame, data, fin, error };
+  bool finished() const noexcept;
 
-  H3C_EXPORT operator state() const noexcept; // NOLINT
-
-  H3C_EXPORT quic::data encode(std::error_code &ec) noexcept;
+  H3C_EXPORT buffer encode(std::error_code &ec) noexcept;
 
 private:
-  uint64_t id_;
   logger *logger_;
 
   frame::encoder frame_;
 
+  enum class state : uint8_t { frame, data, fin, error };
+  
   state state_ = state::frame;
   bool fin_ = false;
   std::queue<buffer> buffers_;
@@ -43,28 +42,25 @@ private:
 
 class decoder {
 public:
-  H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
+  H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
   ~decoder() = default;
 
-  enum class state : uint8_t { frame, data, fin, error };
+  bool in_progress() const noexcept;
 
-  H3C_EXPORT operator state() const noexcept; // NOLINT
-
-  H3C_EXPORT event decode(quic::data &data, std::error_code &ec) noexcept;
+  H3C_EXPORT buffer decode(buffers &encoded, std::error_code &ec) noexcept;
 
 private:
-  uint64_t id_;
-  const logger *logger_;
+  logger *logger_;
 
   frame::decoder frame_;
 
+  enum class state : uint8_t { frame, data, error };
+
   state state_ = state::frame;
   uint64_t remaining_ = 0;
-
-  buffer buffered_;
 };
 
 } // namespace body

@@ -67,8 +67,7 @@ static message transfer(Sender &sender, Receiver &receiver)
 
     REQUIRE(!ec);
 
-    do {
-      h3c::event event = receiver.recv(data, ec);
+    auto handler = [&decoded](h3c::event event, std::error_code &ec) {
       REQUIRE(!ec);
 
       switch (event) {
@@ -87,7 +86,11 @@ static message transfer(Sender &sender, Receiver &receiver)
         case h3c::event::type::error:
           REQUIRE(false);
       }
-    } while (!data.buffer.empty());
+    };
+
+    receiver.recv(std::move(data), handler, ec);
+
+    REQUIRE(!ec);
   }
 
   return decoded;

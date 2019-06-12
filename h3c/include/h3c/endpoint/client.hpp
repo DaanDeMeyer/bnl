@@ -23,47 +23,58 @@ public:
 
   H3C_EXPORT quic::data send(std::error_code &ec) noexcept;
 
-  H3C_EXPORT event recv(quic::data &data, std::error_code &ec) noexcept;
+  H3C_EXPORT void
+  recv(quic::data data, event::handler handler, std::error_code &ec);
 
   H3C_EXPORT stream::request::handle request(std::error_code &ec);
 
 private:
   struct control {
-    class encoder : public stream::control::encoder {
+    class sender : public stream::control::sender {
     public:
-      using stream::control::encoder::encoder;
-
-      quic::data encode(std::error_code &ec) noexcept;
+      H3C_EXPORT explicit sender(logger *logger) noexcept;
     };
 
-    class decoder : public stream::control::decoder {
+    class H3C_EXPORT receiver : public stream::control::receiver {
     public:
-      using stream::control::decoder::decoder;
+      explicit receiver(logger *logger) noexcept;
 
-      event decode(quic::data &data, std::error_code &ec) noexcept;
+      H3C_MOVE_ONLY(receiver);
+
+      ~receiver() noexcept final;
+
+    private:
+      event process(frame frame, std::error_code &ec) noexcept final;
+
+      logger *logger_;
     };
 
-    encoder encoder_;
-    decoder decoder_;
+    sender sender_;
+    receiver receiver_;
   };
 
   struct request {
-    class encoder : public stream::request::encoder {
+    class sender : public stream::request::sender {
     public:
-      using stream::request::encoder::encoder;
-
-      quic::data encode(std::error_code &ec) noexcept;
+      using stream::request::sender::sender;
     };
 
-    class decoder : public stream::request::decoder {
+    class H3C_EXPORT receiver : public stream::request::receiver {
     public:
-      using stream::request::decoder::decoder;
+      receiver(uint64_t id, logger *logger) noexcept;
 
-      event decode(quic::data &data, std::error_code &ec) noexcept;
+      H3C_MOVE_ONLY(receiver);
+
+      ~receiver() noexcept final;
+
+    private:
+      event process(frame frame, std::error_code &ec) noexcept final;
+
+      logger *logger_;
     };
 
-    encoder encoder_;
-    decoder decoder_;
+    sender sender_;
+    receiver receiver_;
   };
 
   logger *logger_;
@@ -76,9 +87,7 @@ private:
   client::control control_;
 
   std::map<uint64_t, struct request> requests_;
-
   uint64_t next_stream_id_ = 0;
-  buffer buffered_;
 };
 
 } // namespace h3c

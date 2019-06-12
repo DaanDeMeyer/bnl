@@ -1,76 +1,62 @@
 #include <h3c/endpoint/client.hpp>
 
-#include <util/endpoint.hpp>
 #include <util/error.hpp>
-#include <util/stream.hpp>
 
 static constexpr uint64_t CLIENT_STREAM_CONTROL_ID = 0x02;
 static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;
 
 namespace h3c {
 
-quic::data client::control::encoder::encode(std::error_code &ec) noexcept
+client::control::sender::sender(logger *logger) noexcept
+    : stream::control::sender(CLIENT_STREAM_CONTROL_ID, logger)
+{}
+
+client::control::receiver::receiver(logger *logger) noexcept
+    : stream::control::receiver(SERVER_STREAM_CONTROL_ID, logger),
+      logger_(logger)
+{}
+
+client::control::receiver::~receiver() noexcept = default;
+
+event client::control::receiver::process(frame frame,
+                                         std::error_code &ec) noexcept
 {
-  return stream::control::encoder::encode(ec);
-}
-
-event client::control::decoder::decode(quic::data &data,
-                                       std::error_code &ec) noexcept
-{
-  event event = stream::control::decoder::decode(data, ec);
-  if (ec != error::unknown) {
-    return event;
-  }
-
-  STREAM_DECODE_START();
-
-  frame frame = STREAM_DECODE_TRY(frame_.decode(data.buffer, ec));
-
   switch (frame) {
     case frame::type::cancel_push:
     case frame::type::goaway:
       // TODO: Implement CANCEL_PUSH
       // TODO: Implement GOAWAY
-      STREAM_DECODE_THROW(error::not_implemented);
-    case frame::type::settings:
+      THROW(error::not_implemented);
     case frame::type::max_push_id:
     case frame::type::priority:
-      STREAM_DECODE_THROW(error::unexpected_frame);
+      THROW(error::unexpected_frame);
     default:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();
 }
 
-quic::data client::request::encoder::encode(std::error_code &ec) noexcept
+client::request::receiver::receiver(uint64_t id, logger *logger) noexcept
+    : stream::request::receiver(id, logger), logger_(logger)
+{}
+
+client::request::receiver::~receiver() noexcept = default;
+
+event client::request::receiver::process(frame frame,
+                                         std::error_code &ec) noexcept
 {
-  return stream::request::encoder::encode(ec);
-}
-
-event client::request::decoder::decode(quic::data &data,
-                                       std::error_code &ec) noexcept
-{
-  event event = stream::request::decoder::decode(data, ec);
-  if (ec != error::unknown) {
-    return event;
-  }
-
-  STREAM_DECODE_START();
-
-  frame frame = STREAM_DECODE_TRY(frame_.decode(data.buffer, ec));
-
   switch (frame) {
     case frame::type::push_promise:
     case frame::type::duplicate_push:
       // TODO: Implement PUSH_PROMISE
       // TODO: Implement DUPLICATE_PUSH
-      STREAM_DECODE_THROW(error::not_implemented);
+      THROW(error::not_implemented);
     case frame::type::headers:
     case frame::type::priority:
-      STREAM_DECODE_THROW(error::unexpected_frame);
+      THROW(error::unexpected_frame);
     default:
-      NOTREACHED();
+      THROW(error::internal_error);
   }
 
   NOTREACHED();
@@ -78,92 +64,97 @@ event client::request::decoder::decode(quic::data &data,
 
 client::client(logger *logger)
     : logger_(logger),
-      control_{ client::control::encoder(CLIENT_STREAM_CONTROL_ID, logger),
-                client::control::decoder(SERVER_STREAM_CONTROL_ID, logger) }
+      control_{ client::control::sender(logger),
+                client::control::receiver(logger) }
 {}
 
 quic::data client::send(std::error_code &ec) noexcept
 {
-  client::control::encoder &control = control_.encoder_;
+  client::control::sender &control = control_.sender_;
 
-  quic::data data = ENDPOINT_TRY(control.encode(ec));
+  quic::data data = control.send(ec);
   if (ec != error::idle) {
     return data;
   }
 
   for (auto &entry : requests_) {
-    client::request::encoder &encoder = entry.second.encoder_;
+    client::request::sender &sender = entry.second.sender_;
 
-    if (encoder == client::request::encoder::state::fin) {
+    if (sender.finished()) {
       continue;
     }
 
-    data = ENDPOINT_TRY(encoder.encode(ec));
+    data = sender.send(ec);
     if (ec != error::idle) {
-      client::request::decoder &decoder = entry.second.decoder_;
+      if (!ec) {
+        client::request::receiver &receiver = entry.second.receiver_;
 
-      if (decoder == client::request::decoder::state::closed) {
-        // TODO: Handle error
-        decoder.start(ec);
+        if (receiver.closed()) {
+          // TODO: Handle error
+          receiver.start(ec);
+        }
       }
 
       return data;
     }
   }
 
-  ENDPOINT_THROW(error::idle);
+  THROW(error::idle);
 }
 
-event client::recv(quic::data &data, std::error_code &ec) noexcept
+void client::recv(quic::data data, event::handler handler, std::error_code &ec)
 {
   if (data.id == SERVER_STREAM_CONTROL_ID) {
-    client::control::decoder &control = control_.decoder_;
+    client::control::receiver &control = control_.receiver_;
 
-    event event = ENDPOINT_TRY(control.decode(data, ec));
+    auto control_handler = [this, &handler](event event, std::error_code &ec) {
+      switch (event) {
+        case event::type::settings:
+          settings_.remote = event.settings;
+          break;
+        default:
+          break;
+      }
 
-    switch (event) {
-      case event::type::settings:
-        settings_.remote = event.settings;
-        break;
-      default:
-        break;
-    }
+      handler(std::move(event), ec);
+    };
 
-    return event;
+    control.recv(std::move(data), control_handler, ec);
+
+    return;
   }
 
   auto match = requests_.find(data.id);
   if (match == requests_.end()) {
     // TODO: Better error
-    ENDPOINT_THROW(error::internal_error);
+    THROW_VOID(error::internal_error);
   }
 
-  client::request::decoder &request = match->second.decoder_;
+  client::request::receiver &request = match->second.receiver_;
 
-  event event = ENDPOINT_TRY(request.decode(data, ec));
+  auto request_handler = [&handler](event event, std::error_code &ec) {
+    handler(std::move(event), ec);
+  };
 
-  switch (request) {
-    case client::request::decoder::state::fin:
-      requests_.erase(data.id);
-      break;
-    default:
-      break;
+  uint64_t id = data.id;
+  request.recv(std::move(data), request_handler, ec);
+
+  if (request.finished()) {
+    requests_.erase(id);
   }
-
-  return event;
 }
 
 stream::request::handle client::request(std::error_code & /* ec */)
 {
   uint64_t id = next_stream_id_;
 
-  client::request::encoder encoder(id, logger_);
-  client::request::decoder decoder(id, logger_);
+  client::request::sender sender(id, logger_);
+  client::request::receiver receiver(id, logger_);
 
-  struct request request = { std::move(encoder), std::move(decoder) };
+  struct request request = { std::move(sender), std::move(receiver) };
   requests_.emplace(id, std::move(request));
 
-  stream::request::handle handle = requests_.at(id).encoder_.handle();
+  stream::request::handle handle = requests_.at(id).sender_.handle();
 
   next_stream_id_ += 4;
 

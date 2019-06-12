@@ -17,7 +17,7 @@ namespace headers {
 
 class encoder {
 public:
-  H3C_EXPORT encoder(uint64_t id, logger *logger) noexcept;
+  H3C_EXPORT explicit encoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -26,18 +26,17 @@ public:
   H3C_EXPORT void add(header_view header, std::error_code &ec);
   H3C_EXPORT void fin(std::error_code &ec) noexcept;
 
-  enum class state : uint8_t { idle, frame, qpack, fin, error };
+  bool finished() const noexcept;
 
-  H3C_EXPORT operator state() const noexcept; // NOLINT
-
-  H3C_EXPORT quic::data encode(std::error_code &ec) noexcept;
+  H3C_EXPORT buffer encode(std::error_code &ec) noexcept;
 
 private:
-  uint64_t id_;
   logger *logger_;
 
   frame::encoder frame_;
   qpack::encoder qpack_;
+
+  enum class state : uint8_t { idle, frame, qpack, fin, error };
 
   state state_ = state::idle;
   std::queue<buffer> buffers_;
@@ -45,29 +44,28 @@ private:
 
 class decoder {
 public:
-  H3C_EXPORT decoder(uint64_t id, logger *logger) noexcept;
+  H3C_EXPORT explicit decoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
   ~decoder() = default;
 
-  enum class state : uint8_t { frame, qpack, fin, error };
+  bool started() const noexcept;
 
-  H3C_EXPORT operator state() const noexcept; // NOLINT
+  bool finished() const noexcept;
 
-  H3C_EXPORT event decode(quic::data &data, std::error_code &ec) noexcept;
+  H3C_EXPORT header decode(buffers &encoded, std::error_code &ec) noexcept;
 
 private:
-  uint64_t id_;
   logger *logger_;
 
   frame::decoder frame_;
   qpack::decoder qpack_;
 
+  enum class state : uint8_t { frame, qpack, fin, error };
+
   state state_ = state::frame;
   uint64_t headers_size_ = 0;
-
-  buffer buffered_;
 };
 
 } // namespace headers
