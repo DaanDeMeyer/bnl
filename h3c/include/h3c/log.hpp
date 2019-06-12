@@ -1,5 +1,6 @@
 #pragma once
 
+#include <h3c/error.hpp>
 #include <h3c/export.hpp>
 
 #include <fmt/core.h>
@@ -48,6 +49,32 @@ public:
     impl_(level, file, function, line, format, fmt::make_format_args(args...));
   }
 
+  void log(const char *file,
+           const char *function,
+           int line,
+           std::error_code ec)
+  {
+    if (!impl_) {
+      return;
+    }
+
+    log::level level = log::level::error;
+
+    if (ec.category() == h3c::error_category()) {
+      switch (static_cast<h3c::error>(ec.value())) {
+        case error::idle:
+        case error::unknown:
+        case error::incomplete:
+          level = log::level::trace;
+        default:
+          break;
+      }
+    }
+
+    impl_(level, file, function, line, "{}",
+          fmt::make_format_args(ec.message()));
+  }
+
 private:
   std::function<api> impl_;
 };
@@ -60,7 +87,7 @@ private:
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 
 #define H3C_LOG(logger, level, format, ...)                                    \
-  if (logger != nullptr) {                                                                \
+  if (logger != nullptr) {                                                     \
     (logger)->log((level), __FILE__, static_cast<const char *>(__func__),      \
                   __LINE__, (format), ##__VA_ARGS__);                          \
   }                                                                            \

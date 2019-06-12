@@ -52,7 +52,9 @@
 #define THROW(err)                                                             \
   ec = err;                                                                    \
                                                                                \
-  LOG_E("{}", ec.message());                                                   \
+  if (logger_) {                                                               \
+    logger_->log(__FILE__, static_cast<const char *>(__func__), __LINE__, ec); \
+  }                                                                            \
                                                                                \
   return {};                                                                   \
   (void) 0
