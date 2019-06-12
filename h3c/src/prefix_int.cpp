@@ -4,7 +4,7 @@
 
 namespace h3c {
 
-prefix_int::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
+prefix_int::encoder::encoder(const logger *logger) noexcept : logger_(logger) {}
 
 size_t
 prefix_int::encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
@@ -67,7 +67,7 @@ buffer prefix_int::encoder::encode(uint64_t value, uint8_t prefix) const
   return std::move(encoded);
 }
 
-prefix_int::decoder::decoder(logger *logger) : logger_(logger) {}
+prefix_int::decoder::decoder(const logger *logger) : logger_(logger) {}
 
 uint64_t prefix_int::decoder::decode(buffer &encoded,
                                      uint8_t prefix,

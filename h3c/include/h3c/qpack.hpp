@@ -22,7 +22,7 @@ namespace qpack {
 
 class H3C_EXPORT encoder {
 public:
-  explicit encoder(logger *logger) noexcept;
+  explicit encoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -38,7 +38,7 @@ public:
   buffer encode(header_view header, std::error_code &ec);
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   prefix_int::encoder prefix_int_;
   literal::encoder literal_;
@@ -51,7 +51,7 @@ private:
 
 class H3C_EXPORT decoder {
 public:
-  explicit decoder(logger *logger);
+  explicit decoder(const logger *logger);
 
   H3C_MOVE_ONLY(decoder);
 
@@ -64,7 +64,7 @@ public:
   header decode(buffers &encoded, std::error_code &ec);
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   prefix_int::decoder prefix_int_;
   literal::decoder literal_;

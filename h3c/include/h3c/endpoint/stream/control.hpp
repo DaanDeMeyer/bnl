@@ -15,7 +15,7 @@ namespace control {
 
 class H3C_EXPORT sender {
 public:
-  sender(uint64_t id, logger *logger) noexcept;
+  sender(uint64_t id, const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(sender);
 
@@ -25,7 +25,7 @@ public:
 
 private:
   uint64_t id_;
-  logger *logger_;
+  const logger *logger_;
 
   frame::encoder frame_;
 
@@ -37,7 +37,7 @@ private:
 
 class H3C_EXPORT receiver {
 public:
-  receiver(uint64_t id, logger *logger) noexcept;
+  receiver(uint64_t id, const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(receiver);
 
@@ -52,7 +52,7 @@ private:
   event process(std::error_code &ec) noexcept;
 
   uint64_t id_;
-  logger *logger_;
+  const logger *logger_;
 
   frame::decoder frame_;
 

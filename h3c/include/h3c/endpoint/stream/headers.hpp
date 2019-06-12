@@ -17,7 +17,7 @@ namespace headers {
 
 class H3C_EXPORT encoder {
 public:
-  explicit encoder(logger *logger) noexcept;
+  explicit encoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -31,7 +31,7 @@ public:
   buffer encode(std::error_code &ec) noexcept;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   frame::encoder frame_;
   qpack::encoder qpack_;
@@ -44,7 +44,7 @@ private:
 
 class H3C_EXPORT decoder {
 public:
-  explicit decoder(logger *logger) noexcept;
+  explicit decoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
@@ -57,7 +57,7 @@ public:
   header decode(buffers &encoded, std::error_code &ec) noexcept;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   frame::decoder frame_;
   qpack::decoder qpack_;

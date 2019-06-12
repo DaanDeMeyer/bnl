@@ -6,7 +6,7 @@
 
 #include <util.hpp>
 
-static h3c::logger logger{ h3c::log::impl::fprintf() }; // NOLINT
+static h3c::log::impl::fprintf logger; // NOLINT
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"

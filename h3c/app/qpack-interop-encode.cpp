@@ -9,6 +9,11 @@
 
 #include <util.hpp>
 
+static h3c::log::impl::fprintf logger; // NOLINT
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
+
 static h3c::buffer id_encode(uint64_t id)
 {
   h3c::mutable_buffer encoded(sizeof(uint64_t));
@@ -43,16 +48,11 @@ void write(std::ostream &dest, const h3c::buffer &encoded)
              static_cast<int32_t>(encoded.size()));
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Waddress"
-
 int main(int argc, char *argv[])
 {
   if (argc < 3) {
     return 1;
   }
-
-  h3c::logger logger{ h3c::log::impl::fprintf() };
 
   std::ifstream input;
   input.exceptions(std::ifstream::failbit | std::ifstream::badbit);

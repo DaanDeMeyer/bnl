@@ -6,7 +6,7 @@
 
 namespace h3c {
 
-varint::decoder::decoder(logger *logger) noexcept : logger_(logger) {}
+varint::decoder::decoder(const logger *logger) noexcept : logger_(logger) {}
 
 uint64_t
 varint::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept

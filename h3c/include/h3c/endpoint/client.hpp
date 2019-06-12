@@ -15,7 +15,7 @@ class logger;
 
 class H3C_EXPORT client {
 public:
-  explicit client(logger *logger);
+  explicit client(const logger *logger);
 
   H3C_MOVE_ONLY(client);
 
@@ -31,12 +31,12 @@ private:
   struct control {
     class sender : public stream::control::sender {
     public:
-      explicit sender(logger *logger) noexcept;
+      explicit sender(const logger *logger) noexcept;
     };
 
     class receiver : public stream::control::receiver {
     public:
-      explicit receiver(logger *logger) noexcept;
+      explicit receiver(const logger *logger) noexcept;
 
       H3C_MOVE_ONLY(receiver);
 
@@ -45,7 +45,7 @@ private:
     private:
       event process(frame frame, std::error_code &ec) noexcept final;
 
-      logger *logger_;
+      const logger *logger_;
     };
 
     sender sender_;
@@ -60,7 +60,7 @@ private:
 
     class receiver : public stream::request::receiver {
     public:
-      receiver(uint64_t id, logger *logger) noexcept;
+      receiver(uint64_t id, const logger *logger) noexcept;
 
       H3C_MOVE_ONLY(receiver);
 
@@ -69,14 +69,14 @@ private:
     private:
       event process(frame frame, std::error_code &ec) noexcept final;
 
-      logger *logger_;
+      const logger *logger_;
     };
 
     sender sender_;
     receiver receiver_;
   };
 
-  logger *logger_;
+  const logger *logger_;
 
   struct {
     settings local;

@@ -16,7 +16,7 @@ namespace prefix_int {
 
 class H3C_EXPORT encoder {
 public:
-  explicit encoder(logger *logger) noexcept;
+  explicit encoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -29,12 +29,12 @@ public:
   buffer encode(uint64_t value, uint8_t prefix) const;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 };
 
 class H3C_EXPORT decoder {
 public:
-  explicit decoder(logger *logger);
+  explicit decoder(const logger *logger);
 
   H3C_MOVE_ONLY(decoder);
 
@@ -47,7 +47,7 @@ public:
   decode(buffers &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   template <typename Sequence>
   uint64_t

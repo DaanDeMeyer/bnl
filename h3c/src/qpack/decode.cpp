@@ -8,7 +8,7 @@
 namespace h3c {
 
 // TODO: Find out what is best for max header and max value size.
-qpack::decoder::decoder(logger *logger)
+qpack::decoder::decoder(const logger *logger)
     : logger_(logger), prefix_int_(logger), literal_(logger)
 {}
 

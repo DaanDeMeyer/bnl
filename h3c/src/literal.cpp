@@ -6,7 +6,7 @@
 
 namespace h3c {
 
-literal::encoder::encoder(logger *logger) noexcept
+literal::encoder::encoder(const logger *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
@@ -56,7 +56,7 @@ buffer literal::encoder::encode(buffer_view literal, uint8_t prefix) const
   return std::move(encoded);
 }
 
-literal::decoder::decoder(logger *logger) noexcept
+literal::decoder::decoder(const logger *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 

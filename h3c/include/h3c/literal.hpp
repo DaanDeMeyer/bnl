@@ -17,7 +17,7 @@ namespace literal {
 
 class H3C_EXPORT encoder {
 public:
-  explicit encoder(logger *logger) noexcept;
+  explicit encoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -31,7 +31,7 @@ public:
   buffer encode(buffer_view literal, uint8_t prefix) const;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   prefix_int::encoder prefix_int_;
   huffman::encoder huffman_;
@@ -39,7 +39,7 @@ private:
 
 class H3C_EXPORT decoder {
 public:
-  explicit decoder(logger *logger) noexcept;
+  explicit decoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
@@ -50,7 +50,7 @@ public:
   buffer decode(buffers &encoded, uint8_t prefix, std::error_code &ec) const;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   prefix_int::decoder prefix_int_;
   huffman::decoder huffman_;

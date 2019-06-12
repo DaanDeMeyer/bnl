@@ -21,7 +21,7 @@ static constexpr uint64_t max = (0x40ULL << 56U) - 1;
 
 class H3C_EXPORT encoder {
 public:
-  explicit encoder(logger *logger) noexcept;
+  explicit encoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -35,12 +35,12 @@ public:
   buffer encode(uint64_t varint, std::error_code &ec) const;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 };
 
 class H3C_EXPORT decoder {
 public:
-  explicit decoder(logger *logger) noexcept;
+  explicit decoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
@@ -51,7 +51,7 @@ public:
   uint64_t decode(buffers &encoded, std::error_code &ec) const noexcept;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   template <typename Sequence>
   uint64_t decode(Sequence &encoded, std::error_code &ec) const noexcept;

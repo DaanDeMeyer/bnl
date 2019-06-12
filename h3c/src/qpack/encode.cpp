@@ -13,7 +13,7 @@ static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 namespace h3c {
 
-qpack::encoder::encoder(logger *logger) noexcept
+qpack::encoder::encoder(const logger *logger) noexcept
     : logger_(logger), prefix_int_(logger), literal_(logger)
 {}
 

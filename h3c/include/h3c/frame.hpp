@@ -117,7 +117,7 @@ public:
 
 class H3C_EXPORT frame::encoder {
 public:
-  explicit encoder(logger *logger) noexcept;
+  explicit encoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
@@ -131,7 +131,7 @@ public:
   buffer encode(const frame &frame, std::error_code &ec) const;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   varint::encoder varint_;
 
@@ -140,7 +140,7 @@ private:
 
 class H3C_EXPORT frame::decoder {
 public:
-  explicit decoder(logger *logger) noexcept;
+  explicit decoder(const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
@@ -155,7 +155,7 @@ public:
   frame decode(buffers &encoded, std::error_code &ec) const noexcept;
 
 private:
-  logger *logger_;
+  const logger *logger_;
 
   varint::decoder varint_;
 

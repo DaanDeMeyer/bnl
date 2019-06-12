@@ -7,7 +7,7 @@ namespace stream {
 
 request::handle::handle(uint64_t id,
                         request::sender *ref,
-                        logger *logger) noexcept
+                        const logger *logger) noexcept
     : id_(id), ref_(ref), logger_(logger)
 {}
 
@@ -82,7 +82,7 @@ void request::handle::fin(std::error_code &ec) noexcept
   return ref_->body_.fin(ec);
 }
 
-request::sender::sender(uint64_t id, logger *logger) noexcept
+request::sender::sender(uint64_t id, const logger *logger) noexcept
     : id_(id), logger_(logger), headers_(logger), body_(logger)
 {}
 
@@ -183,7 +183,7 @@ quic::data request::sender::send(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-request::receiver::receiver(uint64_t id, logger *logger) noexcept
+request::receiver::receiver(uint64_t id, const logger *logger) noexcept
     : id_(id), logger_(logger), frame_(logger), headers_(logger), body_(logger)
 {}
 

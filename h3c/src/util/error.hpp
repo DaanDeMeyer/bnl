@@ -53,7 +53,8 @@
   ec = err;                                                                    \
                                                                                \
   if (logger_) {                                                               \
-    logger_->log(__FILE__, static_cast<const char *>(__func__), __LINE__, ec); \
+    logger_->operator()(__FILE__, static_cast<const char *>(__func__),         \
+                        __LINE__, ec);                                         \
   }                                                                            \
                                                                                \
   return {};                                                                   \

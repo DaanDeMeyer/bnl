@@ -9,14 +9,14 @@ namespace h3c {
 namespace log {
 namespace impl {
 
-class fprintf {
+class H3C_LOG_EXPORT fprintf : public h3c::logger {
 public:
-  H3C_LOG_EXPORT void operator()(log::level level,
-                                 const char *file,
-                                 const char *function,
-                                 int line,
-                                 const char *format,
-                                 const fmt::format_args &args);
+  void log(log::level level,
+           const char *file,
+           const char *function,
+           int line,
+           const char *format,
+           const fmt::format_args &args) const final;
 
 private:
   log::level level_ = log::level::trace;

@@ -5,7 +5,7 @@
 namespace h3c {
 namespace stream {
 
-headers::encoder::encoder(logger *logger) noexcept
+headers::encoder::encoder(const logger *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
@@ -69,7 +69,7 @@ buffer headers::encoder::encode(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-headers::decoder::decoder(logger *logger) noexcept
+headers::decoder::decoder(const logger *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
 {}
 

@@ -23,7 +23,7 @@ public:
   handle() = default;
   explicit handle(uint64_t id,
                              stream::request::sender *ref,
-                             logger *logger) noexcept;
+                             const logger *logger) noexcept;
 
   H3C_NO_COPY(handle);
 
@@ -47,12 +47,12 @@ private:
 
   uint64_t id_ = UINT64_MAX;
   request::sender *ref_ = nullptr;
-  logger *logger_ = nullptr;
+  const logger *logger_ = nullptr;
 };
 
 class H3C_EXPORT sender {
 public:
-  sender(uint64_t id, logger *logger) noexcept;
+  sender(uint64_t id, const logger *logger) noexcept;
 
   H3C_NO_COPY(sender);
 
@@ -71,7 +71,7 @@ private:
   friend request::handle;
 
   uint64_t id_;
-  logger *logger_;
+  const logger *logger_;
 
   stream::headers::encoder headers_;
   stream::body::encoder body_;
@@ -84,7 +84,7 @@ private:
 
 class H3C_EXPORT receiver {
 public:
-  receiver(uint64_t id, logger *logger) noexcept;
+  receiver(uint64_t id, const logger *logger) noexcept;
 
   H3C_MOVE_ONLY(receiver);
 
@@ -107,7 +107,7 @@ private:
   event process(std::error_code &ec) noexcept;
 
   uint64_t id_;
-  logger *logger_;
+  const logger *logger_;
 
   frame::decoder frame_;
   stream::headers::decoder headers_;

@@ -32,7 +32,7 @@ namespace h3c {
 
 #include "encode_generated.cpp"
 
-huffman::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
+huffman::encoder::encoder(const logger *logger) noexcept : logger_(logger) {}
 
 size_t huffman::encoder::encoded_size(buffer_view string) const noexcept
 {

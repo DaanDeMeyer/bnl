@@ -18,12 +18,12 @@ namespace h3c {
 namespace log {
 namespace impl {
 
-void fprintf::operator()(log::level level,
-                         const char *file,
-                         const char *function,
-                         int line,
-                         const char *format,
-                         const fmt::format_args &args)
+void fprintf::log(log::level level,
+                  const char *file,
+                  const char *function,
+                  int line,
+                  const char *format,
+                  const fmt::format_args &args) const
 {
   (void) function;
 

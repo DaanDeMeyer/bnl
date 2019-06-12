@@ -5,7 +5,7 @@
 namespace h3c {
 namespace stream {
 
-control::sender::sender(uint64_t id, logger *logger) noexcept
+control::sender::sender(uint64_t id, const logger *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
@@ -31,7 +31,7 @@ quic::data control::sender::send(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-control::receiver::receiver(uint64_t id, logger *logger) noexcept
+control::receiver::receiver(uint64_t id, const logger *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 

@@ -7,11 +7,11 @@ static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;
 
 namespace h3c {
 
-server::control::sender::sender(logger *logger) noexcept
+server::control::sender::sender(const logger *logger) noexcept
     : stream::control::sender(SERVER_STREAM_CONTROL_ID, logger)
 {}
 
-server::control::receiver::receiver(logger *logger) noexcept
+server::control::receiver::receiver(const logger *logger) noexcept
     : stream::control::receiver(CLIENT_STREAM_CONTROL_ID, logger),
       logger_(logger)
 {}
@@ -38,7 +38,7 @@ event server::control::receiver::process(frame frame,
   NOTREACHED();
 }
 
-server::request::receiver::receiver(uint64_t id, logger *logger) noexcept
+server::request::receiver::receiver(uint64_t id, const logger *logger) noexcept
     : stream::request::receiver(id, logger), logger_(logger)
 {}
 
@@ -66,7 +66,7 @@ event server::request::receiver::process(frame frame,
   NOTREACHED();
 }
 
-server::server(logger *logger)
+server::server(const logger *logger)
     : logger_(logger),
       control_{ server::control::sender(logger),
                 server::control::receiver(logger) }

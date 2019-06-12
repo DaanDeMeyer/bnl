@@ -5,8 +5,6 @@
 
 #include <fmt/core.h>
 
-#include <functional>
-
 namespace h3c {
 
 namespace log {
@@ -23,36 +21,22 @@ enum class level {
 
 class H3C_EXPORT logger {
 public:
-  using api = void(log::level level,
-                   const char *file,
-                   const char *function,
-                   int line,
-                   const char *format,
-                   const fmt::format_args &args);
-
-  explicit logger(std::function<api> impl = {}) : impl_(std::move(impl)) {}
-
   template <typename... Args>
-  void log(log::level level,
-           const char *file,
-           const char *function,
-           int line,
-           const char *format,
-           const Args &... args) const
+  void operator()(log::level level,
+                  const char *file,
+                  const char *function,
+                  int line,
+                  const char *format,
+                  const Args &... args) const
   {
-    if (!impl_) {
-      return;
-    }
-
-    impl_(level, file, function, line, format, fmt::make_format_args(args...));
+    log(level, file, function, line, format, fmt::make_format_args(args...));
   }
 
-  void log(const char *file, const char *function, int line, std::error_code ec)
+  void operator()(const char *file,
+                  const char *function,
+                  int line,
+                  std::error_code ec) const
   {
-    if (!impl_) {
-      return;
-    }
-
     log::level level = log::level::error;
 
     if (ec.category() == h3c::error_category()) {
@@ -66,12 +50,24 @@ public:
       }
     }
 
-    impl_(level, file, function, line, "{}",
-          fmt::make_format_args(ec.message()));
+    log(level, file, function, line, "{}", fmt::make_format_args(ec.message()));
   }
 
-private:
-  std::function<api> impl_;
+protected:
+  virtual void log(log::level level,
+                   const char *file,
+                   const char *function,
+                   int line,
+                   const char *format,
+                   const fmt::format_args &args) const
+  {
+    (void) level;
+    (void) file;
+    (void) function;
+    (void) line;
+    (void) format;
+    (void) args;
+  }
 };
 
 } // namespace h3c
@@ -83,8 +79,9 @@ private:
 
 #define H3C_LOG(logger, level, format, ...)                                    \
   if (logger != nullptr) {                                                     \
-    (logger)->log((level), __FILE__, static_cast<const char *>(__func__),      \
-                  __LINE__, (format), ##__VA_ARGS__);                          \
+    (logger)->operator()((level), __FILE__,                                    \
+                         static_cast<const char *>(__func__), __LINE__,        \
+                         (format), ##__VA_ARGS__);                             \
   }                                                                            \
   (void) 0
 

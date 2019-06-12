@@ -4,7 +4,7 @@
 
 namespace h3c {
 
-varint::encoder::encoder(logger *logger) noexcept : logger_(logger) {}
+varint::encoder::encoder(const logger *logger) noexcept : logger_(logger) {}
 
 size_t varint::encoder::encoded_size(uint64_t varint, std::error_code &ec) const
     noexcept

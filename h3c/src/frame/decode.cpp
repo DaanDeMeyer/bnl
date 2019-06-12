@@ -5,7 +5,7 @@
 
 namespace h3c {
 
-frame::decoder::decoder(logger *logger) noexcept
+frame::decoder::decoder(const logger *logger) noexcept
     : logger_(logger), varint_(logger)
 {}
 
