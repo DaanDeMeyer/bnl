@@ -161,8 +161,8 @@ size_t frame::encoder::encode(uint8_t *dest,
           frame.priority.element_dependency_type);
 
       uint8_t byte = 0;
-      byte |= static_cast<uint8_t>((prioritized_element_type << 6U));
-      byte |= static_cast<uint8_t>(element_dependency_type << 4U);
+      byte = static_cast<uint8_t>(byte | static_cast<uint8_t>((prioritized_element_type << 6U)));
+      byte = static_cast<uint8_t>(byte | static_cast<uint8_t>(element_dependency_type << 4U));
       byte &= 0xf0U;
 
       *dest++ = byte;

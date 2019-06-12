@@ -26,7 +26,7 @@ size_t literal::encoder::encode(uint8_t *dest,
   size_t encoded_size = this->encoded_size(literal);
 
   if (encoded_size < literal.size()) {
-    *dest |= static_cast<uint8_t>(1U << prefix);
+    *dest = static_cast<uint8_t>(*dest | static_cast<uint8_t>(1U << prefix));
     dest += prefix_int_.encode(dest, encoded_size, prefix);
     dest += huffman_.encode(dest, literal);
   } else {

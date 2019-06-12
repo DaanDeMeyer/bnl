@@ -59,12 +59,14 @@ symbol_encode(uint8_t *dest, size_t *rem_bits, const symbol &symbol)
   }
 
   if (num_bits <= *rem_bits) {
-    *dest |= static_cast<uint8_t>(code << (*rem_bits - num_bits));
+    *dest = static_cast<uint8_t>(
+        *dest | static_cast<uint8_t>(code << (*rem_bits - num_bits)));
     *rem_bits -= num_bits;
 
   } else /* num_bits > *rem_bits */ {
-
-    *dest++ |= static_cast<uint8_t>(code >> (num_bits - *rem_bits));
+    *dest = static_cast<uint8_t>(
+        *dest | static_cast<uint8_t>(code >> (num_bits - *rem_bits)));
+    dest++;
     num_bits -= *rem_bits;
 
     if ((num_bits & 0x7U) != 0U) {
@@ -106,8 +108,10 @@ huffman::encoder::encode(uint8_t *dest, buffer_view string) const noexcept
   if (rem_bits < 8) {
     // If rem_bits < 8, we should have at least 1 buffer space available.
     const symbol &symbol = encode_table[256];
-    *dest++ |= static_cast<uint8_t>(symbol.code >>
-                                    (symbol.num_bits - rem_bits));
+    *dest = static_cast<uint8_t>(
+        *dest |
+        static_cast<uint8_t>(symbol.code >> (symbol.num_bits - rem_bits)));
+    dest++;
   }
 
   return static_cast<size_t>(dest - begin);
