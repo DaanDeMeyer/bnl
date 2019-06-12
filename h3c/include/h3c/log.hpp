@@ -21,7 +21,7 @@ enum class level {
 
 } // namespace log
 
-class logger {
+class H3C_EXPORT logger {
 public:
   using api = void(log::level level,
                    const char *file,
@@ -30,9 +30,7 @@ public:
                    const char *format,
                    const fmt::format_args &args);
 
-  H3C_EXPORT explicit logger(std::function<api> impl = {})
-      : impl_(std::move(impl))
-  {}
+  explicit logger(std::function<api> impl = {}) : impl_(std::move(impl)) {}
 
   template <typename... Args>
   void log(log::level level,
@@ -49,10 +47,7 @@ public:
     impl_(level, file, function, line, format, fmt::make_format_args(args...));
   }
 
-  void log(const char *file,
-           const char *function,
-           int line,
-           std::error_code ec)
+  void log(const char *file, const char *function, int line, std::error_code ec)
   {
     if (!impl_) {
       return;

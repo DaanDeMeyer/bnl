@@ -15,7 +15,7 @@ namespace h3c {
 
 class logger;
 
-class frame {
+class H3C_EXPORT frame {
 public:
   class encoder;
   class decoder;
@@ -85,20 +85,18 @@ public:
 
   // We allow implicit conversions from a frame payload into a frame.
 
-  // clang-format off
-  H3C_EXPORT frame() noexcept;
-  H3C_EXPORT frame(frame::payload::data data) noexcept;                     // NOLINT
-  H3C_EXPORT frame(frame::payload::headers headers) noexcept;               // NOLINT
-  H3C_EXPORT frame(frame::payload::priority priority) noexcept;             // NOLINT
-  H3C_EXPORT frame(frame::payload::settings settings) noexcept;             // NOLINT
-  H3C_EXPORT frame(frame::payload::cancel_push cancel_push) noexcept;       // NOLINT
-  H3C_EXPORT frame(frame::payload::push_promise push_promise) noexcept;     // NOLINT
-  H3C_EXPORT frame(frame::payload::goaway goaway) noexcept;                 // NOLINT
-  H3C_EXPORT frame(frame::payload::max_push_id max_push_id) noexcept;       // NOLINT
-  H3C_EXPORT frame(frame::payload::duplicate_push duplicate_push) noexcept; // NOLINT
-  // clang-format on
+  frame() noexcept;
+  frame(frame::payload::data data) noexcept;                     // NOLINT
+  frame(frame::payload::headers headers) noexcept;               // NOLINT
+  frame(frame::payload::priority priority) noexcept;             // NOLINT
+  frame(frame::payload::settings settings) noexcept;             // NOLINT
+  frame(frame::payload::cancel_push cancel_push) noexcept;       // NOLINT
+  frame(frame::payload::push_promise push_promise) noexcept;     // NOLINT
+  frame(frame::payload::goaway goaway) noexcept;                 // NOLINT
+  frame(frame::payload::max_push_id max_push_id) noexcept;       // NOLINT
+  frame(frame::payload::duplicate_push duplicate_push) noexcept; // NOLINT
 
-  H3C_EXPORT operator type() const noexcept; // NOLINT
+  operator type() const noexcept; // NOLINT
 
 private:
   const type type_;
@@ -117,22 +115,20 @@ public:
   };
 };
 
-class frame::encoder {
+class H3C_EXPORT frame::encoder {
 public:
-  H3C_EXPORT explicit encoder(logger *logger) noexcept;
+  explicit encoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
   ~encoder() = default;
 
-  H3C_EXPORT size_t encoded_size(const frame &frame, std::error_code &ec) const
-      noexcept;
+  size_t encoded_size(const frame &frame, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT size_t encode(uint8_t *dest,
-                           const frame &frame,
-                           std::error_code &ec) const noexcept;
+  size_t
+  encode(uint8_t *dest, const frame &frame, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT buffer encode(const frame &frame, std::error_code &ec) const;
+  buffer encode(const frame &frame, std::error_code &ec) const;
 
 private:
   logger *logger_;
@@ -142,23 +138,21 @@ private:
   uint64_t payload_size(const frame &frame, std::error_code &ec) const noexcept;
 };
 
-class frame::decoder {
+class H3C_EXPORT frame::decoder {
 public:
-  H3C_EXPORT explicit decoder(logger *logger) noexcept;
+  explicit decoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
   ~decoder() = default;
 
-  H3C_EXPORT frame::type
-  peek(buffer &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(buffer &encoded, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT frame::type
-  peek(buffers &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(buffers &encoded, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT frame decode(buffer &encoded, std::error_code &ec) const noexcept;
+  frame decode(buffer &encoded, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT frame decode(buffers &encoded, std::error_code &ec) const noexcept;
+  frame decode(buffers &encoded, std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;

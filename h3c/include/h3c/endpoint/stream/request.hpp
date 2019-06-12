@@ -18,29 +18,29 @@ namespace request {
 
 class sender;
 
-class handle {
+class H3C_EXPORT handle {
 public:
   handle() = default;
-  H3C_EXPORT explicit handle(uint64_t id,
+  explicit handle(uint64_t id,
                              stream::request::sender *ref,
                              logger *logger) noexcept;
 
   H3C_NO_COPY(handle);
 
-  H3C_EXPORT handle(handle &&other) noexcept;
-  H3C_EXPORT handle &operator=(handle &&other) noexcept;
+  handle(handle &&other) noexcept;
+  handle &operator=(handle &&other) noexcept;
 
-  H3C_EXPORT ~handle() noexcept;
+  ~handle() noexcept;
 
-  H3C_EXPORT bool valid() const noexcept;
+  bool valid() const noexcept;
 
-  H3C_EXPORT uint64_t id() const noexcept;
+  uint64_t id() const noexcept;
 
-  H3C_EXPORT void header(header_view header, std::error_code &ec);
-  H3C_EXPORT void body(buffer body, std::error_code &ec);
+  void header(header_view header, std::error_code &ec);
+  void body(buffer body, std::error_code &ec);
 
-  H3C_EXPORT void start(std::error_code &ec) noexcept;
-  H3C_EXPORT void fin(std::error_code &ec) noexcept;
+  void start(std::error_code &ec) noexcept;
+  void fin(std::error_code &ec) noexcept;
 
 private:
   friend request::sender;
@@ -50,22 +50,22 @@ private:
   logger *logger_ = nullptr;
 };
 
-class sender {
+class H3C_EXPORT sender {
 public:
-  H3C_EXPORT sender(uint64_t id, logger *logger) noexcept;
+  sender(uint64_t id, logger *logger) noexcept;
 
   H3C_NO_COPY(sender);
 
   sender(sender &&other) noexcept;
   sender &operator=(sender &&other) noexcept;
 
-  H3C_EXPORT ~sender() noexcept;
+  ~sender() noexcept;
 
-  H3C_EXPORT request::handle handle() noexcept;
+  request::handle handle() noexcept;
 
-  H3C_EXPORT bool finished() const noexcept;
+  bool finished() const noexcept;
 
-  H3C_EXPORT quic::data send(std::error_code &ec) noexcept;
+  quic::data send(std::error_code &ec) noexcept;
 
 private:
   friend request::handle;

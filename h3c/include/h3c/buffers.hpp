@@ -6,31 +6,31 @@
 
 namespace h3c {
 
-class buffers {
+class H3C_EXPORT buffers {
 public:
   buffers() = default;
 
   class anchor;
   class discarder;
 
-  H3C_EXPORT size_t size() const noexcept;
-  H3C_EXPORT bool empty() const noexcept;
+  size_t size() const noexcept;
+  bool empty() const noexcept;
 
-  H3C_EXPORT uint8_t operator[](size_t index) const noexcept;
-  H3C_EXPORT uint8_t operator*() const noexcept;
+  uint8_t operator[](size_t index) const noexcept;
+  uint8_t operator*() const noexcept;
 
-  H3C_EXPORT buffer slice(size_t size) const;
+  buffer slice(size_t size) const;
 
-  H3C_EXPORT void push(buffer buffer);
+  void push(buffer buffer);
 
-  H3C_EXPORT void consume(size_t size) noexcept;
-  H3C_EXPORT buffers &operator+=(size_t size) noexcept;
+  void consume(size_t size) noexcept;
+  buffers &operator+=(size_t size) noexcept;
 
-  H3C_EXPORT size_t consumed() const noexcept;
+  size_t consumed() const noexcept;
 
-  H3C_EXPORT void undo(size_t size) noexcept;
+  void undo(size_t size) noexcept;
 
-  H3C_EXPORT void discard();
+  void discard();
 
 private:
   std::deque<buffer> buffers_;
@@ -38,18 +38,18 @@ private:
   buffer concat(size_t start, size_t end, size_t left) const;
 };
 
-class buffers::anchor {
+class H3C_EXPORT buffers::anchor {
 public:
-  H3C_EXPORT explicit anchor(buffers &buffers) noexcept;
+  explicit anchor(buffers &buffers) noexcept;
 
   H3C_NO_COPY(anchor);
   H3C_NO_MOVE(anchor);
 
-  H3C_EXPORT void relocate() noexcept;
+  void relocate() noexcept;
 
-  H3C_EXPORT void release() noexcept;
+  void release() noexcept;
 
-  H3C_EXPORT ~anchor() noexcept;
+  ~anchor() noexcept;
 
 private:
   buffers &buffers_;

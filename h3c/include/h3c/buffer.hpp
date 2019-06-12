@@ -10,21 +10,21 @@
 
 namespace h3c {
 
-class buffer_view {
+class H3C_EXPORT buffer_view {
 public:
   template <size_t Size>
   buffer_view(const char (&data)[Size]) noexcept // NOLINT
       : buffer_view(static_cast<const char *>(data), Size - 1)
   {}
 
-  H3C_EXPORT buffer_view(const uint8_t *data, size_t size) noexcept;
-  H3C_EXPORT buffer_view(const char *data, size_t size) noexcept;
+  buffer_view(const uint8_t *data, size_t size) noexcept;
+  buffer_view(const char *data, size_t size) noexcept;
 
-  H3C_EXPORT const uint8_t *data() const noexcept;
-  H3C_EXPORT size_t size() const noexcept;
+  const uint8_t *data() const noexcept;
+  size_t size() const noexcept;
 
-  H3C_EXPORT const uint8_t *begin() const noexcept;
-  H3C_EXPORT const uint8_t *end() const noexcept;
+  const uint8_t *begin() const noexcept;
+  const uint8_t *end() const noexcept;
 
 private:
   const uint8_t *data_;
@@ -34,9 +34,9 @@ private:
 H3C_EXPORT bool operator==(buffer_view lhs, buffer_view rhs) noexcept;
 H3C_EXPORT bool operator!=(buffer_view lhs, buffer_view rhs) noexcept;
 
-class buffer {
+class H3C_EXPORT buffer {
 public:
-  H3C_EXPORT buffer() noexcept;
+  buffer() noexcept;
 
   class anchor;
 
@@ -45,48 +45,48 @@ public:
       : buffer(static_cast<const char *>(static_), Size - 1)
   {}
 
-  H3C_EXPORT buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept;
-  H3C_EXPORT buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
+  buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept;
+  buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
 
-  H3C_EXPORT buffer(const buffer &other) noexcept;
-  H3C_EXPORT buffer &operator=(const buffer &other) noexcept;
+  buffer(const buffer &other) noexcept;
+  buffer &operator=(const buffer &other) noexcept;
 
-  H3C_EXPORT buffer(buffer &&other) noexcept;
-  H3C_EXPORT buffer &operator=(buffer &&other) noexcept;
+  buffer(buffer &&other) noexcept;
+  buffer &operator=(buffer &&other) noexcept;
 
-  H3C_EXPORT ~buffer() noexcept;
+  ~buffer() noexcept;
 
-  H3C_EXPORT const uint8_t *data() const noexcept;
-  H3C_EXPORT uint8_t operator[](size_t index) const noexcept;
-  H3C_EXPORT uint8_t operator*() const noexcept;
+  const uint8_t *data() const noexcept;
+  uint8_t operator[](size_t index) const noexcept;
+  uint8_t operator*() const noexcept;
 
-  H3C_EXPORT size_t size() const noexcept;
-  H3C_EXPORT bool empty() const noexcept;
+  size_t size() const noexcept;
+  bool empty() const noexcept;
 
-  H3C_EXPORT const uint8_t *begin() const noexcept;
-  H3C_EXPORT const uint8_t *end() const noexcept;
+  const uint8_t *begin() const noexcept;
+  const uint8_t *end() const noexcept;
 
-  H3C_EXPORT buffer slice(size_t size) const noexcept;
+  buffer slice(size_t size) const noexcept;
 
-  H3C_EXPORT void consume(size_t size) noexcept;
-  H3C_EXPORT buffer &operator+=(size_t size) noexcept;
+  void consume(size_t size) noexcept;
+  buffer &operator+=(size_t size) noexcept;
 
-  H3C_EXPORT size_t consumed() const noexcept;
+  size_t consumed() const noexcept;
 
-  H3C_EXPORT void undo(size_t size) noexcept;
+  void undo(size_t size) noexcept;
 
-  H3C_EXPORT static buffer concat(const buffer &first, const buffer &second);
+  static buffer concat(const buffer &first, const buffer &second);
 
-  H3C_EXPORT operator buffer_view() const noexcept; // NOLINT
+  operator buffer_view() const noexcept; // NOLINT
 
 protected:
-  H3C_EXPORT explicit buffer(size_t size) noexcept;
+  explicit buffer(size_t size) noexcept;
 
-  H3C_EXPORT uint8_t *data_mut() noexcept;
+  uint8_t *data_mut() noexcept;
 
 private:
-  H3C_EXPORT buffer(const char *static_, size_t size) noexcept;
-  H3C_EXPORT buffer(const uint8_t *data, size_t size) noexcept;
+  buffer(const char *static_, size_t size) noexcept;
+  buffer(const uint8_t *data, size_t size) noexcept;
 
   void upgrade() const noexcept;
 
@@ -110,18 +110,18 @@ private:
   };
 };
 
-class buffer::anchor {
+class H3C_EXPORT buffer::anchor {
 public:
-  H3C_EXPORT explicit anchor(buffer &buffer) noexcept;
+  explicit anchor(buffer &buffer) noexcept;
 
   H3C_NO_COPY(anchor);
   H3C_NO_MOVE(anchor);
 
-  H3C_EXPORT ~anchor() noexcept;
+  ~anchor() noexcept;
 
-  H3C_EXPORT void relocate() noexcept;
+  void relocate() noexcept;
 
-  H3C_EXPORT void release() noexcept;
+  void release() noexcept;
 
 private:
   buffer &buffer_;
@@ -130,11 +130,10 @@ private:
   size_t position_;
 };
 
-
-class mutable_buffer : public buffer {
+class H3C_EXPORT mutable_buffer : public buffer {
 public:
   mutable_buffer() = default;
-  H3C_EXPORT explicit mutable_buffer(size_t size);
+  explicit mutable_buffer(size_t size);
 
   H3C_MOVE_ONLY(mutable_buffer);
 
@@ -145,11 +144,11 @@ public:
 
   mutable_buffer slice(size_t) = delete;
 
-  H3C_EXPORT uint8_t *data() noexcept;
-  H3C_EXPORT uint8_t &operator[](size_t index) noexcept;
-  H3C_EXPORT uint8_t &operator*() noexcept;
+  uint8_t *data() noexcept;
+  uint8_t &operator[](size_t index) noexcept;
+  uint8_t &operator*() noexcept;
 
-  H3C_EXPORT uint8_t *end() noexcept;
+  uint8_t *end() noexcept;
 };
 
 } // namespace h3c

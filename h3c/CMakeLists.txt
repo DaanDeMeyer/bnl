@@ -1,7 +1,7 @@
 cddm_add_library(h3c CXX 11)
 
 # GCC 8.1.0 has Wconversion false positives.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
     CMAKE_CXX_COMPILER_VERSION STREQUAL "8.1.0")
   target_compile_options(h3c PRIVATE -Wno-conversion)
 endif()

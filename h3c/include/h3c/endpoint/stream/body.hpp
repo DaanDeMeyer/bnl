@@ -13,20 +13,20 @@ class logger;
 namespace stream {
 namespace body {
 
-class encoder {
+class H3C_EXPORT encoder {
 public:
-  H3C_EXPORT explicit encoder(logger *logger) noexcept;
+  explicit encoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
   ~encoder() = default;
 
-  H3C_EXPORT void add(buffer body, std::error_code &ec);
-  H3C_EXPORT void fin(std::error_code &ec) noexcept;
+  void add(buffer body, std::error_code &ec);
+  void fin(std::error_code &ec) noexcept;
 
   bool finished() const noexcept;
 
-  H3C_EXPORT buffer encode(std::error_code &ec) noexcept;
+  buffer encode(std::error_code &ec) noexcept;
 
 private:
   logger *logger_;
@@ -34,7 +34,7 @@ private:
   frame::encoder frame_;
 
   enum class state : uint8_t { frame, data, fin, error };
-  
+
   state state_ = state::frame;
   bool fin_ = false;
   std::queue<buffer> buffers_;
@@ -42,7 +42,7 @@ private:
 
 class decoder {
 public:
-  H3C_EXPORT explicit decoder(logger *logger) noexcept;
+  explicit decoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(decoder);
 
@@ -50,7 +50,7 @@ public:
 
   bool in_progress() const noexcept;
 
-  H3C_EXPORT buffer decode(buffers &encoded, std::error_code &ec) noexcept;
+  buffer decode(buffers &encoded, std::error_code &ec) noexcept;
 
 private:
   logger *logger_;

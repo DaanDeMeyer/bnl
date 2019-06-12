@@ -9,7 +9,7 @@
 
 namespace h3c {
 
-class event {
+class H3C_EXPORT event {
 public:
   using handler = const std::function<void(event, std::error_code &ec)> &;
 
@@ -22,22 +22,22 @@ public:
     using error = quic::error;
   };
 
-  H3C_EXPORT event() noexcept;
+  event() noexcept;
 
-  H3C_EXPORT event(uint64_t id, bool fin, payload::settings settings) noexcept;
-  H3C_EXPORT event(uint64_t id, bool fin, payload::header header) noexcept;
-  H3C_EXPORT event(uint64_t id, bool fin, payload::body body) noexcept;
-  H3C_EXPORT event(uint64_t id, bool fin, payload::error error) noexcept;
+  event(uint64_t id, bool fin, payload::settings settings) noexcept;
+  event(uint64_t id, bool fin, payload::header header) noexcept;
+  event(uint64_t id, bool fin, payload::body body) noexcept;
+  event(uint64_t id, bool fin, payload::error error) noexcept;
 
-  H3C_EXPORT event(const event &other) noexcept;
-  H3C_EXPORT event(event &&other) noexcept;
+  event(const event &other) noexcept;
+  event(event &&other) noexcept;
 
   event &operator=(const event &) = delete;
   event &operator=(event &&) = delete;
 
-  H3C_EXPORT ~event() noexcept;
+  ~event() noexcept;
 
-  H3C_EXPORT operator type() const noexcept; // NOLINT
+  operator type() const noexcept; // NOLINT
 
 private:
   const type type_;

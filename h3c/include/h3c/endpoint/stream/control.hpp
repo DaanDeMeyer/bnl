@@ -13,15 +13,15 @@ class logger;
 namespace stream {
 namespace control {
 
-class sender {
+class H3C_EXPORT sender {
 public:
-  H3C_EXPORT sender(uint64_t id, logger *logger) noexcept;
+  sender(uint64_t id, logger *logger) noexcept;
 
   H3C_MOVE_ONLY(sender);
 
   ~sender() = default;
 
-  H3C_EXPORT quic::data send(std::error_code &ec) noexcept;
+  quic::data send(std::error_code &ec) noexcept;
 
 private:
   uint64_t id_;

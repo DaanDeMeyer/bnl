@@ -14,7 +14,7 @@ class logger;
 
 namespace prefix_int {
 
-class encoder {
+class H3C_EXPORT encoder {
 public:
   explicit encoder(logger *logger) noexcept;
 
@@ -22,18 +22,17 @@ public:
 
   ~encoder() = default;
 
-  H3C_EXPORT size_t encoded_size(uint64_t value, uint8_t prefix) const noexcept;
+  size_t encoded_size(uint64_t value, uint8_t prefix) const noexcept;
 
-  H3C_EXPORT size_t encode(uint8_t *dest, uint64_t value, uint8_t prefix) const
-      noexcept;
+  size_t encode(uint8_t *dest, uint64_t value, uint8_t prefix) const noexcept;
 
-  H3C_EXPORT buffer encode(uint64_t value, uint8_t prefix) const;
+  buffer encode(uint64_t value, uint8_t prefix) const;
 
 private:
   logger *logger_;
 };
 
-class decoder {
+class H3C_EXPORT decoder {
 public:
   explicit decoder(logger *logger);
 
@@ -41,13 +40,11 @@ public:
 
   ~decoder() = default;
 
-  H3C_EXPORT uint64_t decode(buffer &encoded,
-                             uint8_t prefix,
-                             std::error_code &ec) const noexcept;
+  uint64_t
+  decode(buffer &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT uint64_t decode(buffers &encoded,
-                             uint8_t prefix,
-                             std::error_code &ec) const noexcept;
+  uint64_t
+  decode(buffers &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;

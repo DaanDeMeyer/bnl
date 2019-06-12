@@ -13,29 +13,28 @@ namespace h3c {
 
 class logger;
 
-class client {
+class H3C_EXPORT client {
 public:
-  H3C_EXPORT explicit client(logger *logger);
+  explicit client(logger *logger);
 
   H3C_MOVE_ONLY(client);
 
   ~client() = default;
 
-  H3C_EXPORT quic::data send(std::error_code &ec) noexcept;
+  quic::data send(std::error_code &ec) noexcept;
 
-  H3C_EXPORT void
-  recv(quic::data data, event::handler handler, std::error_code &ec);
+  void recv(quic::data data, event::handler handler, std::error_code &ec);
 
-  H3C_EXPORT stream::request::handle request(std::error_code &ec);
+  stream::request::handle request(std::error_code &ec);
 
 private:
   struct control {
     class sender : public stream::control::sender {
     public:
-      H3C_EXPORT explicit sender(logger *logger) noexcept;
+      explicit sender(logger *logger) noexcept;
     };
 
-    class H3C_EXPORT receiver : public stream::control::receiver {
+    class receiver : public stream::control::receiver {
     public:
       explicit receiver(logger *logger) noexcept;
 
@@ -59,7 +58,7 @@ private:
       using stream::request::sender::sender;
     };
 
-    class H3C_EXPORT receiver : public stream::request::receiver {
+    class receiver : public stream::request::receiver {
     public:
       receiver(uint64_t id, logger *logger) noexcept;
 

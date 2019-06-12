@@ -15,7 +15,7 @@ class logger;
 
 namespace literal {
 
-class encoder {
+class H3C_EXPORT encoder {
 public:
   explicit encoder(logger *logger) noexcept;
 
@@ -23,14 +23,12 @@ public:
 
   ~encoder() = default;
 
-  H3C_EXPORT size_t encoded_size(buffer_view literal, uint8_t prefix) const
-      noexcept;
+  size_t encoded_size(buffer_view literal, uint8_t prefix) const noexcept;
 
-  H3C_EXPORT size_t encode(uint8_t *dest,
-                           buffer_view literal,
-                           uint8_t prefix) const noexcept;
+  size_t
+  encode(uint8_t *dest, buffer_view literal, uint8_t prefix) const noexcept;
 
-  H3C_EXPORT buffer encode(buffer_view literal, uint8_t prefix) const;
+  buffer encode(buffer_view literal, uint8_t prefix) const;
 
 private:
   logger *logger_;
@@ -39,7 +37,7 @@ private:
   huffman::encoder huffman_;
 };
 
-class decoder {
+class H3C_EXPORT decoder {
 public:
   explicit decoder(logger *logger) noexcept;
 
@@ -47,13 +45,9 @@ public:
 
   ~decoder() = default;
 
-  H3C_EXPORT buffer decode(buffer &encoded,
-                           uint8_t prefix,
-                           std::error_code &ec) const;
+  buffer decode(buffer &encoded, uint8_t prefix, std::error_code &ec) const;
 
-  H3C_EXPORT buffer decode(buffers &encoded,
-                           uint8_t prefix,
-                           std::error_code &ec) const;
+  buffer decode(buffers &encoded, uint8_t prefix, std::error_code &ec) const;
 
 private:
   logger *logger_;

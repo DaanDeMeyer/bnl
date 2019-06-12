@@ -20,24 +20,22 @@ class logger;
 
 namespace qpack {
 
-class encoder {
+class H3C_EXPORT encoder {
 public:
-  H3C_EXPORT explicit encoder(logger *logger) noexcept;
+  explicit encoder(logger *logger) noexcept;
 
   H3C_MOVE_ONLY(encoder);
 
   ~encoder() = default;
 
-  H3C_EXPORT uint64_t count() const noexcept;
+  uint64_t count() const noexcept;
 
-  H3C_EXPORT size_t encoded_size(header_view header, std::error_code &ec) const
-      noexcept;
+  size_t encoded_size(header_view header, std::error_code &ec) const noexcept;
 
-  H3C_EXPORT size_t encode(uint8_t *dest,
-                           header_view header,
-                           std::error_code &ec) noexcept;
+  size_t
+  encode(uint8_t *dest, header_view header, std::error_code &ec) noexcept;
 
-  H3C_EXPORT buffer encode(header_view header, std::error_code &ec);
+  buffer encode(header_view header, std::error_code &ec);
 
 private:
   logger *logger_;
@@ -51,19 +49,19 @@ private:
   uint64_t count_ = 0;
 };
 
-class decoder {
+class H3C_EXPORT decoder {
 public:
-  H3C_EXPORT explicit decoder(logger *logger);
+  explicit decoder(logger *logger);
 
   H3C_MOVE_ONLY(decoder);
 
   ~decoder() = default;
 
-  H3C_EXPORT uint64_t count() const noexcept;
+  uint64_t count() const noexcept;
 
-  H3C_EXPORT header decode(buffer &encoded, std::error_code &ec);
+  header decode(buffer &encoded, std::error_code &ec);
 
-  H3C_EXPORT header decode(buffers &encoded, std::error_code &ec);
+  header decode(buffers &encoded, std::error_code &ec);
 
 private:
   logger *logger_;
