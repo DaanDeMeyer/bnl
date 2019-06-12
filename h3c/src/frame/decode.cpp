@@ -9,60 +9,26 @@ frame::decoder::decoder(logger *logger) noexcept
     : logger_(logger), varint_(logger)
 {}
 
-#define TRY_VARINT_DECODE(value)                                               \
-  {                                                                            \
-    const uint8_t *before = encoded.data();                                    \
-    (value) = DECODE_TRY(varint_.decode(encoded, ec));                         \
-                                                                               \
-    size_t varint_encoded_size = static_cast<size_t>(encoded.data() - before); \
-                                                                               \
-    if (varint_encoded_size > payload_encoded_size) {                          \
-      LOG_E("Frame payload's actual length exceeds its advertised length");    \
-      DECODE_THROW(error::malformed_frame);                                    \
-    }                                                                          \
-                                                                               \
-    payload_encoded_size -= varint_encoded_size;                               \
-  }                                                                            \
-  (void) 0
-
-#define TRY_UINT8_DECODE(value)                                                \
-  if (encoded.empty()) {                                                       \
-    DECODE_THROW(error::incomplete);                                           \
-  }                                                                            \
-                                                                               \
-  if (payload_encoded_size == 0) {                                             \
-    LOG_E("Frame payload's actual length exceeds its advertised length");      \
-    DECODE_THROW(error::malformed_frame);                                      \
-  }                                                                            \
-                                                                               \
-  (value) = *encoded;                                                          \
-                                                                               \
-  encoded.advance(1);                                                          \
-  payload_encoded_size--;                                                      \
-  (void) 0
-
-#define TRY_SETTING_DECODE(setting, value)                                     \
-  {                                                                            \
-    uint64_t encoded_value = 0;                                                \
-    TRY_VARINT_DECODE(encoded_value);                                          \
-                                                                               \
-    if (encoded_value > setting::max) {                                        \
-      LOG_E("Value of {} ({}) exceeds maximum ({})", #setting, encoded_value,  \
-            setting::max);                                                     \
-      DECODE_THROW(error::malformed_frame);                                    \
-    }                                                                          \
-                                                                               \
-    (value) = static_cast<decltype(value)>(encoded_value);                     \
-  }                                                                            \
-  (void) 0
-
 frame::type
 frame::decoder::peek(buffer &encoded, std::error_code &ec) const noexcept
 {
-  DECODE_START();
+  return peek<buffer>(encoded, ec);
+}
+
+frame::type
+frame::decoder::peek(buffers &encoded, std::error_code &ec) const noexcept
+{
+  return peek<buffers>(encoded, ec);
+}
+
+template <typename Sequence>
+frame::type
+frame::decoder::peek(Sequence &encoded, std::error_code &ec) const noexcept
+{
+  typename Sequence::anchor anchor(encoded);
 
   while (true) {
-    uint64_t type = DECODE_TRY(varint_.decode(encoded, ec));
+    uint64_t type = TRY(varint_.decode(encoded, ec));
 
     switch (type) {
       case util::to_underlying(frame::type::data):
@@ -74,10 +40,9 @@ frame::decoder::peek(buffer &encoded, std::error_code &ec) const noexcept
       case util::to_underlying(frame::type::goaway):
       case util::to_underlying(frame::type::max_push_id):
       case util::to_underlying(frame::type::duplicate_push):
-        DECODE_RESET();
         return static_cast<frame::type>(type);
       default:
-        break;
+        continue;
     }
   }
 
@@ -87,11 +52,71 @@ frame::decoder::peek(buffer &encoded, std::error_code &ec) const noexcept
 frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const
     noexcept
 {
-  while (true) {
-    DECODE_START();
+  return decode<buffer>(encoded, ec);
+}
 
-    uint64_t type = DECODE_TRY(varint_.decode(encoded, ec));
-    uint64_t payload_encoded_size = DECODE_TRY(varint_.decode(encoded, ec));
+frame frame::decoder::decode(buffers &encoded, std::error_code &ec) const
+    noexcept
+{
+  return decode<buffers>(encoded, ec);
+}
+
+#define TRY_VARINT_DECODE(value)                                               \
+  {                                                                            \
+    size_t before = encoded.consumed();                                        \
+    (value) = TRY(varint_.decode(encoded, ec));                                \
+                                                                               \
+    size_t varint_encoded_size = encoded.consumed() - before;                  \
+                                                                               \
+    if (varint_encoded_size > payload_encoded_size) {                          \
+      LOG_E("Frame payload's actual length exceeds its advertised length");    \
+      THROW(error::malformed_frame);                                           \
+    }                                                                          \
+                                                                               \
+    payload_encoded_size -= varint_encoded_size;                               \
+  }                                                                            \
+  (void) 0
+
+#define TRY_UINT8_DECODE(value)                                                \
+  if (encoded.empty()) {                                                       \
+    THROW(error::incomplete);                                                  \
+  }                                                                            \
+                                                                               \
+  if (payload_encoded_size == 0) {                                             \
+    LOG_E("Frame payload's actual length exceeds its advertised length");      \
+    THROW(error::malformed_frame);                                             \
+  }                                                                            \
+                                                                               \
+  (value) = *encoded;                                                          \
+                                                                               \
+  encoded += 1;                                                                \
+  payload_encoded_size--;                                                      \
+  (void) 0
+
+#define TRY_SETTING_DECODE(setting, value)                                     \
+  {                                                                            \
+    uint64_t encoded_value = 0;                                                \
+    TRY_VARINT_DECODE(encoded_value);                                          \
+                                                                               \
+    if (encoded_value > setting::max) {                                        \
+      LOG_E("Value of {} ({}) exceeds maximum ({})", #setting, encoded_value,  \
+            setting::max);                                                     \
+      THROW(error::malformed_frame);                                           \
+    }                                                                          \
+                                                                               \
+    (value) = static_cast<decltype(value)>(encoded_value);                     \
+  }                                                                            \
+  (void) 0
+
+template <typename Sequence>
+frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
+    noexcept
+{
+  typename Sequence::anchor anchor(encoded);
+
+  while (true) {
+    uint64_t type = TRY(varint_.decode(encoded, ec));
+    uint64_t payload_encoded_size = TRY(varint_.decode(encoded, ec));
 
     bool is_unknown_frame_type = false;
 
@@ -220,23 +245,26 @@ frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const
           is_unknown_frame_type = true;
 
           // TODO: Error on unreasonable unknown frame payload size.
-          encoded.advance(static_cast<size_t>(payload_encoded_size));
+          encoded += static_cast<size_t>(payload_encoded_size);
 
           payload_encoded_size = 0;
           return {};
       }
     };
 
-    frame frame = DECODE_TRY(payload_decode());
+    frame frame = TRY(payload_decode());
 
     if (payload_encoded_size > 0) {
       LOG_E("Frame payload's advertised length exceeds its actual length");
-      DECODE_THROW(error::malformed_frame);
+      THROW(error::malformed_frame);
     }
 
     if (!is_unknown_frame_type) {
+      anchor.release();
       return frame;
     }
+
+    anchor.relocate();
   }
 
   NOTREACHED();

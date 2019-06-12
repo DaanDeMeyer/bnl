@@ -63,6 +63,8 @@ public:
 
   H3C_EXPORT header decode(buffer &encoded, std::error_code &ec);
 
+  H3C_EXPORT header decode(buffers &encoded, std::error_code &ec);
+
 private:
   logger *logger_;
 
@@ -73,6 +75,9 @@ private:
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
+
+  template <typename Sequence>
+  header decode(Sequence &encoded, std::error_code &ec);
 };
 
 } // namespace qpack

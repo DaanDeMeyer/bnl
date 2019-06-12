@@ -1,6 +1,7 @@
 #pragma once
 
 #include <h3c/buffer.hpp>
+#include <h3c/buffers.hpp>
 #include <h3c/export.hpp>
 #include <h3c/util/class.hpp>
 
@@ -50,8 +51,14 @@ public:
   H3C_EXPORT uint64_t decode(buffer &encoded, std::error_code &ec) const
       noexcept;
 
+  H3C_EXPORT uint64_t decode(buffers &encoded, std::error_code &ec) const
+      noexcept;
+
 private:
   logger *logger_;
+
+  template <typename Sequence>
+  uint64_t decode(Sequence &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace varint

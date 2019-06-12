@@ -39,36 +39,50 @@ buffer huffman::decoder::decode(buffer &encoded,
                                 size_t encoded_size,
                                 std::error_code &ec) const
 {
+  return decode<buffer>(encoded, encoded_size, ec);
+}
+
+buffer huffman::decoder::decode(buffers &encoded,
+                                size_t encoded_size,
+                                std::error_code &ec) const
+{
+  return decode<buffers>(encoded, encoded_size, ec);
+}
+
+template <typename Sequence>
+buffer huffman::decoder::decode(Sequence &encoded,
+                                size_t encoded_size,
+                                std::error_code &ec) const
+{
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size, ec));
   mutable_buffer decoded(decoded_size);
 
+  uint8_t *dest = decoded.data();
   uint8_t state = 0;
 
   for (size_t i = 0; i < encoded_size; ++i) {
     const node &first = decode_table[state][encoded[i] >> 4U];
 
     if ((first.flags & util::to_underlying(decode_flag::symbol)) != 0) {
-      *decoded = first.symbol;
-      decoded += 1;
+      *dest++ = first.symbol;
     }
 
     const node &second = decode_table[first.state][encoded[i] & 0xfU];
 
     if ((second.flags & util::to_underlying(decode_flag::symbol)) != 0) {
-      *decoded = second.symbol;
-      decoded += 1;
+      *dest++ = second.symbol;
     }
 
     state = second.state;
   }
 
-  encoded.advance(encoded_size);
-  decoded.reset();
+  encoded += encoded_size;
 
   return std::move(decoded);
 }
 
-size_t huffman::decoder::decoded_size(const buffer &encoded,
+template <typename Sequence>
+size_t huffman::decoder::decoded_size(Sequence &encoded,
                                       size_t encoded_size,
                                       std::error_code &ec) const noexcept
 {
@@ -81,7 +95,7 @@ size_t huffman::decoder::decoded_size(const buffer &encoded,
   bool accept = false;
 
   for (size_t i = 0; i < encoded_size; i++) {
-    const node &first = decode_table[state][encoded.data()[i] >> 4U];
+    const node &first = decode_table[state][encoded[i] >> 4U];
 
     if ((first.flags & util::to_underlying(decode_flag::failed)) != 0) {
       THROW(error::qpack_decompression_failed);
@@ -91,7 +105,7 @@ size_t huffman::decoder::decoded_size(const buffer &encoded,
       decoded_size++;
     }
 
-    const node &second = decode_table[first.state][encoded.data()[i] & 0xfU];
+    const node &second = decode_table[first.state][encoded[i] & 0xfU];
 
     if ((second.flags & util::to_underlying(decode_flag::failed)) != 0) {
       THROW(error::qpack_decompression_failed);

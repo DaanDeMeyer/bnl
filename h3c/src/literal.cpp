@@ -56,23 +56,43 @@ buffer literal::decoder::decode(buffer &encoded,
                                 uint8_t prefix,
                                 std::error_code &ec) const
 {
-  DECODE_START();
+  return decode<buffer>(encoded, prefix, ec);
+}
+
+buffer literal::decoder::decode(buffers &encoded,
+                                uint8_t prefix,
+                                std::error_code &ec) const
+{
+  return decode<buffers>(encoded, prefix, ec);
+}
+
+template <typename Sequence>
+buffer literal::decoder::decode(Sequence &encoded,
+                                uint8_t prefix,
+                                std::error_code &ec) const
+{
+  typename Sequence::anchor anchor(encoded);
 
   if (encoded.empty()) {
-    DECODE_THROW(error::incomplete);
+    THROW(error::incomplete);
   }
 
   bool is_huffman_encoded = (static_cast<uint8_t>(*encoded >> prefix) // NOLINT
                              & 0x01) != 0;
-  size_t literal_encoded_size = DECODE_TRY(
+  size_t literal_encoded_size = TRY(
       static_cast<size_t>(prefix_int_.decode(encoded, prefix, ec)));
 
+  buffer literal;
+
   if (is_huffman_encoded) {
-    return DECODE_TRY(huffman_.decode(encoded, literal_encoded_size, ec));
+    literal = TRY(huffman_.decode(encoded, literal_encoded_size, ec));
+  } else {
+    literal = encoded.slice(literal_encoded_size);
+    encoded += literal_encoded_size;
   }
 
-  buffer literal = encoded.slice(literal_encoded_size);
-  encoded.advance(literal_encoded_size);
+  anchor.release();
+
   return literal;
 }
 

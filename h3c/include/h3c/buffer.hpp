@@ -38,6 +38,8 @@ class buffer {
 public:
   H3C_EXPORT buffer() noexcept;
 
+  class anchor;
+
   template <size_t Size>
   buffer(const char (&static_)[Size]) noexcept // NOLINT
       : buffer(static_cast<const char *>(static_), Size - 1)
@@ -66,11 +68,12 @@ public:
 
   H3C_EXPORT buffer slice(size_t size) const noexcept;
 
-  H3C_EXPORT void advance(size_t size) noexcept;
-  H3C_EXPORT buffer &operator+=(size_t size);
+  H3C_EXPORT void consume(size_t size) noexcept;
+  H3C_EXPORT buffer &operator+=(size_t size) noexcept;
 
-  H3C_EXPORT void reset() noexcept;
-  H3C_EXPORT void reset(const uint8_t *position) noexcept;
+  H3C_EXPORT size_t consumed() const noexcept;
+
+  H3C_EXPORT void undo(size_t size) noexcept;
 
   H3C_EXPORT static buffer concat(const buffer &first, const buffer &second);
 
@@ -106,6 +109,27 @@ private:
     mutable std::shared_ptr<uint8_t> shared_;
   };
 };
+
+class buffer::anchor {
+public:
+  H3C_EXPORT explicit anchor(buffer &buffer) noexcept;
+
+  H3C_NO_COPY(anchor);
+  H3C_NO_MOVE(anchor);
+
+  H3C_EXPORT ~anchor() noexcept;
+
+  H3C_EXPORT void relocate() noexcept;
+
+  H3C_EXPORT void release() noexcept;
+
+private:
+  buffer &buffer_;
+
+  bool released_ = false;
+  size_t position_;
+};
+
 
 class mutable_buffer : public buffer {
 public:

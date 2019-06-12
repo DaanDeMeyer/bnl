@@ -4,6 +4,7 @@ BasedOnStyle: LLVM
 Language: Cpp
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
 BinPackParameters: false
 BreakBeforeBraces: Custom
 BraceWrapping:

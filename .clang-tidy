@@ -3,6 +3,7 @@ Checks:
 '
 *,
 -bugprone-exception-escape,
+-cert-dcl21-cpp,
 -cppcoreguidelines-avoid-c-arrays,
 -cppcoreguidelines-avoid-magic-numbers,
 -cppcoreguidelines-macro-usage,

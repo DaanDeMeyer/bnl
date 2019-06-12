@@ -50,11 +50,18 @@ public:
                            uint8_t prefix,
                            std::error_code &ec) const;
 
+  H3C_EXPORT buffer decode(buffers &encoded,
+                           uint8_t prefix,
+                           std::error_code &ec) const;
+
 private:
   logger *logger_;
 
   prefix_int::decoder prefix_int_;
   huffman::decoder huffman_;
+
+  template <typename Sequence>
+  buffer decode(Sequence &encoded, uint8_t prefix, std::error_code &ec) const;
 };
 
 } // namespace literal

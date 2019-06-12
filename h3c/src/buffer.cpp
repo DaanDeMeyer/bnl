@@ -238,29 +238,27 @@ buffer buffer::slice(size_t size) const noexcept
   return {};
 }
 
-void buffer::advance(size_t size) noexcept
+void buffer::consume(size_t size) noexcept
 {
   assert(size <= this->size());
   position_ += size;
 }
 
-buffer &buffer::operator+=(size_t size)
+buffer &buffer::operator+=(size_t size) noexcept
 {
-  advance(size);
+  consume(size);
   return *this;
 }
 
-void buffer::reset() noexcept
+size_t buffer::consumed() const noexcept
 {
-  position_ = 0;
+  return position_;
 }
 
-void buffer::reset(const uint8_t *position) noexcept
+void buffer::undo(size_t size) noexcept
 {
-  const uint8_t *data = this->data() - position_;
-  assert(position >= data);
-  assert(position <= data + size_);
-  position_ = static_cast<size_t>(position - data);
+  assert(size <= consumed());
+  position_ -= size;
 }
 
 buffer buffer::concat(const buffer &first, const buffer &second)
@@ -352,15 +350,25 @@ void buffer::destroy() noexcept
   size_ = 0;
 }
 
-bool operator==(const buffer &lhs, const buffer &rhs) noexcept
+buffer::anchor::anchor(buffer &buffer) noexcept
+    : buffer_(buffer), position_(buffer.position_)
+{}
+
+void buffer::anchor::relocate() noexcept
 {
-  return lhs.size() == rhs.size() &&
-         std::equal(lhs.data(), lhs.end(), rhs.data());
+  position_ = buffer_.position_;
 }
 
-bool operator!=(const buffer &lhs, const buffer &rhs) noexcept
+void buffer::anchor::release() noexcept
 {
-  return !(lhs == rhs);
+  released_ = true;
+}
+
+buffer::anchor::~anchor() noexcept
+{
+  if (!released_) {
+    buffer_.position_ = position_;
+  }
 }
 
 mutable_buffer::mutable_buffer(size_t size) : buffer(size) {}

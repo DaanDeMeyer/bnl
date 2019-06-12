@@ -1,35 +1,52 @@
 #include <h3c/varint.hpp>
 
+#include <h3c/buffers.hpp>
+
 #include <util/error.hpp>
 
 namespace h3c {
 
 varint::decoder::decoder(logger *logger) noexcept : logger_(logger) {}
 
+uint64_t
+varint::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
+{
+  return decode<buffer>(encoded, ec);
+}
+
+uint64_t
+varint::decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
+{
+  return decode<buffers>(encoded, ec);
+}
+
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
 
-static uint8_t uint8_decode(buffer &encoded)
+template <typename Sequence>
+static uint8_t uint8_decode(Sequence &encoded)
 {
   uint8_t result = encoded[0] & 0x3fU;
 
-  encoded.advance(sizeof(uint8_t));
+  encoded += sizeof(uint8_t);
 
   return result;
 }
 
-static uint16_t uint16_decode(buffer &encoded)
+template <typename Sequence>
+static uint16_t uint16_decode(Sequence &encoded)
 {
   uint16_t result = static_cast<uint16_t>(
       static_cast<uint16_t>(static_cast<uint16_t>(encoded[0]) << 8U) |
       static_cast<uint16_t>(static_cast<uint16_t>(encoded[1]) << 0U));
 
-  encoded.advance(sizeof(uint16_t));
+  encoded += sizeof(uint16_t);
 
   return result & 0x3fffU;
 }
 
-static uint32_t uint32_decode(buffer &encoded)
+template <typename Sequence>
+static uint32_t uint32_decode(Sequence &encoded)
 {
 
   uint32_t result = static_cast<uint32_t>(encoded[0]) << 24U |
@@ -37,12 +54,13 @@ static uint32_t uint32_decode(buffer &encoded)
                     static_cast<uint32_t>(encoded[2]) << 8U |
                     static_cast<uint32_t>(encoded[3]) << 0U;
 
-  encoded.advance(sizeof(uint32_t));
+  encoded += sizeof(uint32_t);
 
   return result & 0x3fffffffU;
 }
 
-static uint64_t uint64_decode(buffer &encoded)
+template <typename Sequence>
+static uint64_t uint64_decode(Sequence &encoded)
 {
   uint64_t result = static_cast<uint64_t>(encoded[0]) << 56U |
                     static_cast<uint64_t>(encoded[1]) << 48U |
@@ -53,13 +71,15 @@ static uint64_t uint64_decode(buffer &encoded)
                     static_cast<uint64_t>(encoded[6]) << 8U |
                     static_cast<uint64_t>(encoded[7]) << 0U;
 
-  encoded.advance(sizeof(uint64_t));
+  encoded += sizeof(uint64_t);
 
   return result & 0x3fffffffffffffffU;
 }
 
+template <typename Sequence>
 uint64_t
-varint::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
+varint::decoder::decode(Sequence &encoded, std::error_code &ec) const
+    noexcept
 {
   if (encoded.empty()) {
     THROW(error::incomplete);

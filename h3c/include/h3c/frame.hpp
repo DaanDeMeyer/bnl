@@ -153,12 +153,23 @@ public:
   H3C_EXPORT frame::type
   peek(buffer &encoded, std::error_code &ec) const noexcept;
 
+  H3C_EXPORT frame::type
+  peek(buffers &encoded, std::error_code &ec) const noexcept;
+
   H3C_EXPORT frame decode(buffer &encoded, std::error_code &ec) const noexcept;
+
+  H3C_EXPORT frame decode(buffers &encoded, std::error_code &ec) const noexcept;
 
 private:
   logger *logger_;
 
   varint::decoder varint_;
+
+  template <typename Sequence>
+  frame::type peek(Sequence &encoded, std::error_code &ec) const noexcept;
+
+  template <typename Sequence>
+  frame decode(Sequence &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace h3c

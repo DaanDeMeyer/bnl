@@ -26,6 +26,7 @@ target_sources(h3c PRIVATE
   src/varint/decode.cpp
   src/varint/encode.cpp
   src/buffer.cpp
+  src/buffers.cpp
   src/error.cpp
   src/event.cpp
   src/header.cpp
@@ -39,6 +40,7 @@ add_subdirectory(../h3c-log ../h3c-log)
 if(H3C_TEST)
   target_sources(h3c-test PRIVATE
     test/buffer.cpp
+    test/buffers.cpp
     test/endpoint.cpp
     test/frame.cpp
     test/handle.cpp
@@ -63,4 +65,3 @@ cddm_add_common(h3c-qpack-interop-decode CXX 11 bin)
 target_link_libraries(h3c-qpack-interop-decode PRIVATE h3c h3c-log)
 target_include_directories(h3c-qpack-interop-decode PRIVATE app)
 target_sources(h3c-qpack-interop-decode PRIVATE app/qpack-interop-decode.cpp)
-

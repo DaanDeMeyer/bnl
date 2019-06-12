@@ -26,7 +26,7 @@ uint64_t id_decode(h3c::buffer &encoded, std::error_code &ec)
                 static_cast<uint64_t>(encoded[6]) << 8U |
                 static_cast<uint64_t>(encoded[7]) << 0U;
 
-  encoded.advance(sizeof(uint64_t));
+  encoded += sizeof(uint64_t);
 
   return id;
 }
@@ -42,7 +42,7 @@ size_t size_decode(h3c::buffer &encoded, std::error_code &ec)
                         static_cast<uint32_t>(encoded[2]) << 8U |
                         static_cast<uint32_t>(encoded[3]) << 0U;
 
-  encoded.advance(sizeof(uint32_t));
+  encoded += sizeof(uint32_t);
 
   return encoded_size;
 }
@@ -80,15 +80,17 @@ int main(int argc, char *argv[])
 
   // Read input
 
-  h3c::mutable_buffer encoded;
+  h3c::buffer encoded;
 
   try {
     input.seekg(0, std::ios::end);
     std::streamsize size = input.tellg();
     input.seekg(0, std::ios::beg);
 
-    encoded = h3c::mutable_buffer(static_cast<size_t>(size));
-    input.read(reinterpret_cast<char *>(encoded.data()), size);
+    h3c::mutable_buffer buffer(static_cast<size_t>(size));
+    input.read(reinterpret_cast<char *>(buffer.data()), size);
+
+    encoded = std::move(buffer);
   } catch (const std::ios_base::failure &e) {
     H3C_LOG_ERROR(&logger, "Error reading input: {}", e.what());
     return 1;

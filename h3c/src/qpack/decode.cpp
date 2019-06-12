@@ -51,25 +51,38 @@ static instruction qpack_instruction_type(uint8_t byte)
 
 header qpack::decoder::decode(buffer &encoded, std::error_code &ec)
 {
+  return decode<buffer>(encoded, ec);
+}
+
+header qpack::decoder::decode(buffers &encoded, std::error_code &ec)
+{
+  return decode<buffers>(encoded, ec);
+}
+
+template <typename Sequence>
+header qpack::decoder::decode(Sequence &encoded, std::error_code &ec)
+{
   header header;
 
-  DECODE_START();
+  typename Sequence::anchor anchor(encoded);
 
   if (encoded.empty()) {
-    DECODE_THROW(error::incomplete);
+    THROW(error::incomplete);
   }
 
   if (state_ == state::prefix) {
     if (encoded.size() < QPACK_PREFIX_ENCODED_SIZE) {
-      DECODE_THROW(error::incomplete);
+      THROW(error::incomplete);
     }
 
-    encoded.advance(QPACK_PREFIX_ENCODED_SIZE);
-    count_ += DECODE_SIZE();
+    encoded += QPACK_PREFIX_ENCODED_SIZE;
+    count_ += QPACK_PREFIX_ENCODED_SIZE;
     state_ = state::header;
 
-    DECODE_COMMIT();
+    anchor.relocate();
   }
+
+  size_t before = encoded.consumed();
 
   switch (qpack_instruction_type(*encoded)) {
 
@@ -78,15 +91,15 @@ header qpack::decoder::decode(buffer &encoded, std::error_code &ec)
       // table.
       if ((*encoded & 0x40U) == 0) {
         LOG_E("'S' bit not set in indexed header field");
-        DECODE_THROW(error::qpack_decompression_failed);
+        THROW(error::qpack_decompression_failed);
       }
 
-      uint8_t index = DECODE_TRY(
+      uint8_t index = TRY(
           static_cast<uint8_t>(prefix_int_.decode(encoded, 6, ec)));
 
       if (!qpack::static_table::find_header_value(index, &header)) {
         LOG_E("Indexed header field ({}) not found in static table", index);
-        DECODE_THROW(error::qpack_decompression_failed);
+        THROW(error::qpack_decompression_failed);
       }
       break;
     }
@@ -96,42 +109,44 @@ header qpack::decoder::decode(buffer &encoded, std::error_code &ec)
       // table.
       if ((*encoded & 0x10U) == 0) {
         LOG_E("'S' bit not set in literal with name reference");
-        DECODE_THROW(error::qpack_decompression_failed);
+        THROW(error::qpack_decompression_failed);
       }
 
-      uint8_t index = DECODE_TRY(
+      uint8_t index = TRY(
           static_cast<uint8_t>(prefix_int_.decode(encoded, 4, ec)));
 
       if (!static_table::find_header_only(index, &header)) {
         LOG_E("Header name reference ({}) not found in static table", index);
-        DECODE_THROW(error::qpack_decompression_failed);
+        THROW(error::qpack_decompression_failed);
       }
 
-      header.value = DECODE_TRY(literal_.decode(encoded, 7, ec));
+      header.value = TRY(literal_.decode(encoded, 7, ec));
       break;
     }
 
     case instruction::literal_without_name_reference: {
-      header.name = DECODE_TRY(literal_.decode(encoded, 3, ec));
+      header.name = TRY(literal_.decode(encoded, 3, ec));
 
       const char *name = reinterpret_cast<const char *>(header.name.data());
       size_t size = header.name.size();
 
       if (!util::is_lowercase(name, size)) {
         LOG_E("Header ({}) is not lowercase", fmt::string_view(name, size));
-        DECODE_THROW(error::malformed_header);
+        THROW(error::malformed_header);
       }
 
-      header.value = DECODE_TRY(literal_.decode(encoded, 7, ec));
+      header.value = TRY(literal_.decode(encoded, 7, ec));
       break;
     }
 
     case instruction::unknown:
       LOG_E("Unexpected header block instruction prefix ({})", *encoded);
-      DECODE_THROW(error::qpack_decompression_failed);
+      THROW(error::qpack_decompression_failed);
   }
 
-  count_ += DECODE_SIZE();
+  count_ += encoded.consumed() - before;
+
+  anchor.release();
 
   return header;
 }

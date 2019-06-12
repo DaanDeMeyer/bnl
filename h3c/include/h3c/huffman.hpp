@@ -1,6 +1,7 @@
 #pragma once
 
 #include <h3c/buffer.hpp>
+#include <h3c/buffers.hpp>
 #include <h3c/export.hpp>
 #include <h3c/util/class.hpp>
 
@@ -44,10 +45,19 @@ public:
                            size_t encoded_size,
                            std::error_code &ec) const;
 
+  H3C_EXPORT buffer decode(buffers &encoded,
+                           size_t encoded_size,
+                           std::error_code &ec) const;
+
 private:
   logger *logger_;
 
-  size_t decoded_size(const buffer &encoded,
+  template <typename Sequence>
+  buffer
+  decode(Sequence &encoded, size_t encoded_size, std::error_code &ec) const;
+
+  template <typename Sequence>
+  size_t decoded_size(Sequence &encoded,
                       size_t encoded_size,
                       std::error_code &ec) const noexcept;
 };

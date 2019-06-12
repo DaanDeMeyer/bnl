@@ -1,6 +1,7 @@
 #pragma once
 
 #include <h3c/buffer.hpp>
+#include <h3c/buffers.hpp>
 #include <h3c/export.hpp>
 #include <h3c/util/class.hpp>
 
@@ -44,10 +45,19 @@ public:
                              uint8_t prefix,
                              std::error_code &ec) const noexcept;
 
+  H3C_EXPORT uint64_t decode(buffers &encoded,
+                             uint8_t prefix,
+                             std::error_code &ec) const noexcept;
+
 private:
   logger *logger_;
 
-  uint8_t uint8_decode(buffer &encoded, std::error_code &ec) const noexcept;
+  template <typename Sequence>
+  uint64_t
+  decode(Sequence &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
+
+  template <typename Sequence>
+  uint8_t uint8_decode(Sequence &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace prefix_int
