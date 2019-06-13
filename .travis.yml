@@ -9,7 +9,7 @@ sudo: true
 notifications:
   email: false
 
-env: H3C_TIDY=ON
+env: BNL_TIDY=ON
 
 matrix:
   fast_finish: true
@@ -44,7 +44,7 @@ matrix:
 
     - os: osx
       osx_image: xcode10
-      env: CC=clang CXX=clang++ H3C_TIDY=OFF
+      env: CC=clang CXX=clang++ BNL_TIDY=OFF
 
 # Install newer CMake
 install:
@@ -67,9 +67,9 @@ script:
       -S .
       -DCMAKE_BUILD_TYPE=Debug
       -DBUILD_SHARED_LIBS=ON
-      -DH3C_TEST=ON
-      -DH3C_WARNINGS_AS_ERRORS=ON
-      -DH3C_TIDY=$H3C_TIDY
-      -DH3C_SANITIZERS=ON
+      -DBNL_TEST=ON
+      -DBNL_WARNINGS_AS_ERRORS=ON
+      -DBNL_TIDY=$BNL_TIDY
+      -DBNL_SANITIZERS=ON
   - cmake --build build --parallel 2
   - build/test

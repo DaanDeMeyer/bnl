@@ -40,7 +40,7 @@ install:
 before_build:
   # Set MSVC's enviroment variables.
   - call %VCVARSALL% %PLATFORM%
-  # Build h3c as a shared library to verify all the necessary symbols are
+  # Build bnl as a shared library to verify all the necessary symbols are
   # exported from the dll's.
   - cmake
       -B build
@@ -48,15 +48,19 @@ before_build:
       -G Ninja
       -DCMAKE_BUILD_TYPE=Debug
       -DBUILD_SHARED_LIBS=ON
-      -DH3C_TEST=ON
-      -DH3C_WARNINGS_AS_ERRORS=ON
-      -DH3C_TIDY=ON
+      -DBNL_TEST=ON
+      -DBNL_WARNINGS_AS_ERRORS=ON
+      -DBNL_TIDY=ON
 
 build_script: cmake --build build --parallel 2
 
 before_test:
-  # Make sure the tests and examples can find the h3c dll.
-  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\h3c\lib;%PATH%
+  # Make sure the tests and examples can find the necessary dll's.
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bin;%PATH%
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\core\lib;%PATH%
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\http3\lib;%PATH%
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\log\lib;%PATH%
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\util\lib;%PATH%
 
 test_script:
   - build\test

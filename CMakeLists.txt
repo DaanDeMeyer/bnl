@@ -2,30 +2,30 @@
 # dependencies at configure time.
 cmake_minimum_required(VERSION 3.14)
 
-project(h3c
+project(bnl
   VERSION 0.0.1
-  DESCRIPTION "A cross-platform C99 HTTP/3 library"
-  HOMEPAGE_URL "https://github.com/DaanDeMeyer/h3c"
-  LANGUAGES C
+  DESCRIPTION "Binary Networking Library"
+  HOMEPAGE_URL "https://github.com/DaanDeMeyer/bnl"
+  LANGUAGES CXX
 )
 
-option(H3C_TEST "Build tests.")
-
-if(H3C_TEST)
-  enable_language(CXX)
-endif()
+option(BNL_TEST "Build tests.")
 
 include(external/CMakeLists.txt)
+include(external/cddm.cmake)
 
-if(H3C_TEST)
-  # h3c uses the doctest testing framework. All tests are grouped inside a
-  # single executable. Use `target_sources(h3c-test PRIVATE <file>)` to add
+if(BNL_TEST)
+  # bnl uses the doctest testing framework. All tests are grouped inside a
+  # single executable. Use `target_sources(bnl-test PRIVATE <file>)` to add
   # new tests. Tests are executed by running the build/test executable.
-  add_executable(h3c-test)
+  add_executable(bnl-test)
 
-  cddm_add_common(h3c-test CXX 11 "")
-  target_link_libraries(h3c-test PRIVATE doctest_with_main)
-  set_target_properties(h3c-test PROPERTIES OUTPUT_NAME test)
+  cddm_add_common(bnl-test "")
+  target_link_libraries(bnl-test PRIVATE doctest_with_main)
+  set_target_properties(bnl-test PROPERTIES OUTPUT_NAME test)
 endif()
 
-add_subdirectory(h3c)
+add_subdirectory(bnl/core)
+add_subdirectory(bnl/util)
+add_subdirectory(bnl/log)
+add_subdirectory(bnl/http3)

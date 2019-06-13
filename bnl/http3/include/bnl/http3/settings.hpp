@@ -1,0 +1,43 @@
+#pragma once
+
+#include <bnl/http3/export.hpp>
+#include <bnl/http3/varint.hpp>
+
+#include <cstdint>
+
+namespace bnl {
+namespace http3 {
+
+namespace setting {
+
+namespace max_header_list_size {
+static constexpr uint64_t id = 0x6U;
+static constexpr uint64_t max = varint::max;
+} // namespace max_header_list_size
+
+namespace num_placeholders {
+static constexpr uint64_t id = 0x9U;
+static constexpr uint64_t max = varint::max;
+} // namespace num_placeholders
+
+namespace qpack_max_table_capacity {
+static constexpr uint64_t id = 0x1U;
+static constexpr uint64_t max = (1U << 30U) - 1;
+} // namespace qpack_max_table_capacity
+
+namespace qpack_blocked_streams {
+static constexpr uint64_t id = 0x7U;
+static constexpr uint64_t max = (1U << 16U) - 1;
+} // namespace qpack_blocked_streams
+
+} // namespace setting
+
+struct BNL_HTTP3_EXPORT settings {
+  uint64_t max_header_list_size = varint::max;
+  uint64_t num_placeholders = 0;
+  uint32_t qpack_max_table_capacity = 0;
+  uint16_t qpack_blocked_streams = 0;
+};
+
+} // namespace http3
+} // namespace bnl

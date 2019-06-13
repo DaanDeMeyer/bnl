@@ -1,16 +1,5 @@
 include(FetchContent)
 
-## cddm ##
-
-FetchContent_Declare(
-  cddm
-  URL https://github.com/DaanDeMeyer/cddm/archive/master.tar.gz
-)
-
-FetchContent_MakeAvailable(cddm)
-
-include(${cddm_SOURCE_DIR}/cddm.cmake)
-
 ## doctest ##
 
 FetchContent_Declare(
@@ -30,7 +19,7 @@ FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   # https://github.com/fmtlib/fmt/pull/1134
-  GIT_TAG 29c10fbf6e51d2a204f7c24c90d7ccec86cc659a
+  GIT_TAG cbbee1b38569c6394cc1169b5c49fd2640035012
 )
 
 option(FMT_INSTALL "" ON)
