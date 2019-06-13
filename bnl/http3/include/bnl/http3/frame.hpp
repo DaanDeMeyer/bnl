@@ -161,6 +161,9 @@ private:
 
   template <typename Sequence>
   frame decode(Sequence &encoded, std::error_code &ec) const noexcept;
+
+  template <typename Sequence>
+  uint8_t uint8_decode(Sequence &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace http3

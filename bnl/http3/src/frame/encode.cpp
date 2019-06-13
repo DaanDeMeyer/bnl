@@ -11,15 +11,6 @@ frame::encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), varint_(logger)
 {}
 
-#define TRY_SETTING_SIZE(setting, value)                                       \
-  if ((value) > setting::max) {                                                \
-    THROW(error::setting_overflow);                                            \
-  }                                                                            \
-                                                                               \
-  payload_size += TRY(varint_.encoded_size(setting::id, ec));                  \
-  payload_size += TRY(varint_.encoded_size(value, ec));                        \
-  (void) 0
-
 uint64_t frame::encoder::payload_size(const frame &frame,
                                       std::error_code &ec) const noexcept
 {
@@ -55,14 +46,10 @@ uint64_t frame::encoder::payload_size(const frame &frame,
     }
 
     case frame::type::settings:
-      TRY_SETTING_SIZE(setting::max_header_list_size,
-                       frame.settings.max_header_list_size);
-      TRY_SETTING_SIZE(setting::num_placeholders,
-                       frame.settings.num_placeholders);
-      TRY_SETTING_SIZE(setting::qpack_max_table_capacity,
-                       frame.settings.qpack_max_table_capacity);
-      TRY_SETTING_SIZE(setting::qpack_blocked_streams,
-                       frame.settings.qpack_blocked_streams);
+      for (auto setting : frame.settings.array()) {
+        payload_size += TRY(varint_.encoded_size(setting.first, ec));
+        payload_size += TRY(varint_.encoded_size(setting.second, ec));
+      }
       break;
 
     case frame::type::push_promise: {
@@ -132,11 +119,6 @@ size_t frame::encoder::encoded_size(const frame &frame,
   return encoded_size;
 }
 
-#define TRY_SETTING_ENCODE(setting, value)                                     \
-  dest += TRY(varint_.encode(dest, setting::id, ec));                          \
-  dest += TRY(varint_.encode(dest, (value), ec));                              \
-  (void) 0
-
 size_t frame::encoder::encode(uint8_t *dest,
                               const frame &frame,
                               std::error_code &ec) const noexcept
@@ -184,14 +166,10 @@ size_t frame::encoder::encode(uint8_t *dest,
       dest += TRY(varint_.encode(dest, frame.cancel_push.push_id, ec));
       break;
     case frame::type::settings:
-      TRY_SETTING_ENCODE(setting::max_header_list_size,
-                         frame.settings.max_header_list_size);
-      TRY_SETTING_ENCODE(setting::num_placeholders,
-                         frame.settings.num_placeholders);
-      TRY_SETTING_ENCODE(setting::qpack_max_table_capacity,
-                         frame.settings.qpack_max_table_capacity);
-      TRY_SETTING_ENCODE(setting::qpack_blocked_streams,
-                         frame.settings.qpack_blocked_streams);
+      for (auto setting : frame.settings.array()) {
+        dest += TRY(varint_.encode(dest, setting.first, ec));
+        dest += TRY(varint_.encode(dest, setting.second, ec));
+      }
       break;
     case frame::type::push_promise:
       dest += TRY(varint_.encode(dest, frame.push_promise.push_id, ec));

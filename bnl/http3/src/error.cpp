@@ -44,8 +44,6 @@ std::string error_category_impl::message(int condition) const noexcept
       return "unknown";
     case error::varint_overflow:
       return "varint overflow";
-    case error::setting_overflow:
-      return "setting overflow";
     case error::malformed_header:
       return "malformed header";
     case error::stream_closed:

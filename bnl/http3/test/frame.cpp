@@ -138,19 +138,6 @@ TEST_CASE("frame")
     REQUIRE(encoded.empty());
   }
 
-  SUBCASE("encode: setting overflow")
-  {
-    http3::frame::payload::settings settings;
-    settings.qpack_max_table_capacity = 1U << 30U; // overflows
-
-    http3::frame frame = settings;
-
-    buffer encoded = encoder.encode(frame, ec);
-
-    REQUIRE(ec == http3::error::setting_overflow);
-    REQUIRE(encoded.empty());
-  }
-
   SUBCASE("decode: incomplete")
   {
     http3::frame frame = http3::frame::payload::duplicate_push{ 50 };

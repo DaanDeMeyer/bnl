@@ -31,7 +31,6 @@ enum class error : uint32_t {
   idle,
   unknown,
   varint_overflow,
-  setting_overflow,
   malformed_header,
   stream_closed
 };
