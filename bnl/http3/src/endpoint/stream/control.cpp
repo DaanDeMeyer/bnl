@@ -12,7 +12,7 @@ control::sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-quic::data control::sender::send(std::error_code &ec) noexcept
+transport::data control::sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -40,7 +40,7 @@ control::receiver::receiver(uint64_t id, const log::api *logger) noexcept
 
 control::receiver::~receiver() noexcept = default;
 
-void control::receiver::recv(quic::data data,
+void control::receiver::recv(transport::data data,
                              event::handler handler,
                              std::error_code &ec)
 {

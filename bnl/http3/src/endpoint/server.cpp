@@ -72,11 +72,11 @@ server::server(const log::api *logger)
                 server::control::receiver(logger) }
 {}
 
-quic::data server::send(std::error_code &ec) noexcept
+transport::data server::send(std::error_code &ec) noexcept
 {
   server::control::sender &control = control_.sender_;
 
-  quic::data data = control.send(ec);
+  transport::data data = control.send(ec);
   if (ec != error::idle) {
     return data;
   }
@@ -103,7 +103,9 @@ quic::data server::send(std::error_code &ec) noexcept
   THROW(error::idle);
 }
 
-void server::recv(quic::data data, event::handler handler, std::error_code &ec)
+void server::recv(transport::data data,
+                  event::handler handler,
+                  std::error_code &ec)
 {
   if (data.id == CLIENT_STREAM_CONTROL_ID) {
     server::control::receiver &control = control_.receiver_;

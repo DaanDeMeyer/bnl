@@ -73,7 +73,7 @@ public:
 
   bool finished() const noexcept;
 
-  quic::data send(std::error_code &ec) noexcept;
+  transport::data send(std::error_code &ec) noexcept;
 
 private:
   friend request::handle;
@@ -108,7 +108,7 @@ public:
 
   void start(std::error_code &ec) noexcept;
 
-  void recv(quic::data data, event::handler handler, std::error_code &ec);
+  void recv(transport::data data, event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) noexcept = 0;

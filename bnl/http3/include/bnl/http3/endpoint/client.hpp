@@ -2,7 +2,7 @@
 
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
-#include <bnl/http3/quic.hpp>
+#include <bnl/http3/transport.hpp>
 
 #include <bnl/http3/endpoint/stream/control.hpp>
 #include <bnl/http3/endpoint/stream/request.hpp>
@@ -21,9 +21,9 @@ class BNL_HTTP3_EXPORT client {
 public:
   explicit client(const log::api *logger);
 
-  quic::data send(std::error_code &ec) noexcept;
+  transport::data send(std::error_code &ec) noexcept;
 
-  void recv(quic::data data, event::handler handler, std::error_code &ec);
+  void recv(transport::data data, event::handler handler, std::error_code &ec);
 
   stream::request::handle request(std::error_code &ec);
 

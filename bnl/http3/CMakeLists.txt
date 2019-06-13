@@ -11,7 +11,6 @@ target_link_libraries(bnl-http3
   PRIVATE bnl-util xxhash
 )
 
-target_include_directories(bnl-http3 PRIVATE src)
 target_sources(bnl-http3 PRIVATE
   src/codec/frame/decode.cpp
   src/codec/frame/encode.cpp
@@ -61,7 +60,6 @@ foreach(ACTION encode decode)
     OUTPUT_NAME qpack-interop-${ACTION}
   )
 
-  target_include_directories(bnl-http3-qpack-interop-${ACTION} PRIVATE app)
   target_sources(bnl-http3-qpack-interop-${ACTION} PRIVATE
     app/qpack-interop-${ACTION}.cpp
   )

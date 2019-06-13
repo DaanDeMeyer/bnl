@@ -8,7 +8,7 @@
 
 namespace bnl {
 namespace http3 {
-namespace quic {
+namespace transport {
 
 struct BNL_HTTP3_EXPORT data {
   data() = default;
@@ -33,6 +33,6 @@ struct BNL_HTTP3_EXPORT error {
   uint64_t code = 0;
 };
 
-} // namespace quic
+} // namespace transport
 } // namespace http3
 } // namespace bnl

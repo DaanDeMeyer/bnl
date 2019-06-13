@@ -152,7 +152,7 @@ bool request::sender::finished() const noexcept
   return state_ == state::fin;
 }
 
-quic::data request::sender::send(std::error_code &ec) noexcept
+transport::data request::sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -216,7 +216,7 @@ const headers::decoder &request::receiver::headers() const noexcept
   return headers_;
 }
 
-void request::receiver::recv(quic::data data,
+void request::receiver::recv(transport::data data,
                              event::handler handler,
                              std::error_code &ec)
 {

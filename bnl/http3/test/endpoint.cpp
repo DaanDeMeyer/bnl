@@ -64,7 +64,7 @@ static message transfer(Sender &sender, Receiver &receiver)
   std::error_code ec;
 
   while (true) {
-    http3::quic::data data = sender.send(ec);
+    http3::transport::data data = sender.send(ec);
     if (ec == http3::error::idle) {
       break;
     }

@@ -2,7 +2,7 @@
 
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/header.hpp>
-#include <bnl/http3/quic.hpp>
+#include <bnl/http3/transport.hpp>
 #include <bnl/http3/settings.hpp>
 
 #include <bnl/buffer.hpp>
@@ -23,7 +23,7 @@ public:
     using settings = http3::settings;
     using header = http3::header;
     using body = buffer;
-    using error = quic::error;
+    using error = transport::error;
   };
 
   event() noexcept;
