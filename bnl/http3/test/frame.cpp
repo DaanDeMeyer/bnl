@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 
 #include <bnl/http3/error.hpp>
-#include <bnl/http3/frame.hpp>
+
+#include <bnl/http3/codec/frame.hpp>
+
 #include <bnl/log.hpp>
 
 using namespace bnl;

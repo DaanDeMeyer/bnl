@@ -13,26 +13,26 @@ target_link_libraries(bnl-http3
 
 target_include_directories(bnl-http3 PRIVATE src)
 target_sources(bnl-http3 PRIVATE
-  src/endpoint/stream/body.cpp
+  src/codec/frame/decode.cpp
+  src/codec/frame/encode.cpp
+  src/codec/frame/frame.cpp
+  src/codec/huffman/decode.cpp
+  src/codec/huffman/encode.cpp
+  src/codec/qpack/decode.cpp
+  src/codec/qpack/encode.cpp
+  src/codec/varint/decode.cpp
+  src/codec/varint/encode.cpp
+  src/codec/body.cpp
+  src/codec/headers.cpp
+  src/codec/literal.cpp
+  src/codec/prefix_int.cpp
   src/endpoint/stream/control.cpp
-  src/endpoint/stream/headers.cpp
   src/endpoint/stream/request.cpp
   src/endpoint/client.cpp
   src/endpoint/server.cpp
-  src/frame/decode.cpp
-  src/frame/encode.cpp
-  src/frame/frame.cpp
-  src/huffman/decode.cpp
-  src/huffman/encode.cpp
-  src/qpack/decode.cpp
-  src/qpack/encode.cpp
-  src/varint/decode.cpp
-  src/varint/encode.cpp
-  src/error.cpp
   src/event.cpp
+  src/error.cpp
   src/header.cpp
-  src/literal.cpp
-  src/prefix_int.cpp
 )
 
 if(BNL_TEST)

@@ -24,9 +24,10 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <bnl/http3/huffman.hpp>
+#include <bnl/http3/codec/huffman.hpp>
 
 #include <bnl/http3/error.hpp>
+
 #include <bnl/util/error.hpp>
 
 namespace bnl {

@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 
 #include <bnl/http3/error.hpp>
-#include <bnl/http3/huffman.hpp>
+
+#include <bnl/http3/codec/huffman.hpp>
+
 #include <bnl/log.hpp>
 
 #include <random>

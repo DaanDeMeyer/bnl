@@ -1,10 +1,12 @@
 #pragma once
 
-#include <bnl/buffer.hpp>
-#include <bnl/buffers.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/settings.hpp>
-#include <bnl/http3/varint.hpp>
+
+#include <bnl/http3/codec/varint.hpp>
+
+#include <bnl/buffer.hpp>
+#include <bnl/buffers.hpp>
 
 #include <cstddef>
 #include <cstdint>

@@ -1,11 +1,13 @@
 #pragma once
 
-#include <bnl/buffers.hpp>
-#include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
-#include <bnl/http3/frame.hpp>
 #include <bnl/http3/header.hpp>
-#include <bnl/http3/qpack.hpp>
+
+#include <bnl/http3/codec/frame.hpp>
+#include <bnl/http3/codec/qpack.hpp>
+
+#include <bnl/buffer.hpp>
+#include <bnl/buffers.hpp>
 
 #include <queue>
 

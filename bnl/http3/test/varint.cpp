@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 
 #include <bnl/http3/error.hpp>
-#include <bnl/http3/varint.hpp>
+
+#include <bnl/http3/codec/varint.hpp>
+
 #include <bnl/log.hpp>
 
 static constexpr uint8_t VARINT_UINT8_HEADER = 0x00;

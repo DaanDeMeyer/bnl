@@ -1,6 +1,7 @@
-#include <bnl/http3/varint.hpp>
+#include <bnl/http3/codec/varint.hpp>
 
 #include <bnl/http3/error.hpp>
+
 #include <bnl/util/error.hpp>
 
 namespace bnl {

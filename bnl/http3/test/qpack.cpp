@@ -1,7 +1,9 @@
 #include <doctest/doctest.h>
 
 #include <bnl/http3/error.hpp>
-#include <bnl/http3/qpack.hpp>
+
+#include <bnl/http3/codec/qpack.hpp>
+
 #include <bnl/log.hpp>
 
 #include <algorithm>

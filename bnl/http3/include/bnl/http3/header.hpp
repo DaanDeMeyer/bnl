@@ -1,7 +1,8 @@
 #pragma once
 
-#include <bnl/buffer.hpp>
 #include <bnl/http3/export.hpp>
+
+#include <bnl/buffer.hpp>
 
 namespace bnl {
 namespace http3 {

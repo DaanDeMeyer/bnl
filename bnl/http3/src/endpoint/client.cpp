@@ -1,6 +1,7 @@
 #include <bnl/http3/endpoint/client.hpp>
 
 #include <bnl/http3/error.hpp>
+
 #include <bnl/util/error.hpp>
 
 static constexpr uint64_t CLIENT_STREAM_CONTROL_ID = 0x02;

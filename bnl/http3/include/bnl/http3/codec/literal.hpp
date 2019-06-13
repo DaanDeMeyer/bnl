@@ -1,9 +1,12 @@
 #pragma once
 
-#include <bnl/buffer.hpp>
 #include <bnl/http3/export.hpp>
-#include <bnl/http3/huffman.hpp>
-#include <bnl/http3/prefix_int.hpp>
+
+#include <bnl/http3/codec/huffman.hpp>
+#include <bnl/http3/codec/prefix_int.hpp>
+
+#include <bnl/buffer.hpp>
+#include <bnl/buffers.hpp>
 
 #include <cstddef>
 #include <cstdint>

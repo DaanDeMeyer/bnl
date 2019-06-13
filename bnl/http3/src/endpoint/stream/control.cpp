@@ -1,6 +1,7 @@
 #include <bnl/http3/endpoint/stream/control.hpp>
 
 #include <bnl/http3/error.hpp>
+
 #include <bnl/util/error.hpp>
 
 namespace bnl {

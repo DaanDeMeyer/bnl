@@ -1,7 +1,7 @@
 #include <doctest/doctest.h>
 
 #include <bnl/http3/endpoint/stream/request.hpp>
-#include <bnl/http3/qpack.hpp>
+
 #include <bnl/log.hpp>
 
 using namespace bnl;

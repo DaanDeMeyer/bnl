@@ -1,10 +1,11 @@
 #pragma once
 
-#include <bnl/http3/endpoint/stream/control.hpp>
-#include <bnl/http3/endpoint/stream/request.hpp>
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/quic.hpp>
+
+#include <bnl/http3/endpoint/stream/control.hpp>
+#include <bnl/http3/endpoint/stream/request.hpp>
 
 #include <map>
 

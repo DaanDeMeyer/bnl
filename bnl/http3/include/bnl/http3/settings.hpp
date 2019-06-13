@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bnl/http3/export.hpp>
-#include <bnl/http3/varint.hpp>
 
 #include <array>
 #include <cstdint>
@@ -20,7 +19,7 @@ static constexpr uint64_t qpack_blocked_streams = 0x7U;
 } // namespace setting
 
 struct BNL_HTTP3_EXPORT settings {
-  uint64_t max_header_list_size = varint::max;
+  uint64_t max_header_list_size = (0x40ULL << 56U) - 1;
   uint64_t num_placeholders = 0;
   uint64_t qpack_max_table_capacity = 0;
   uint64_t qpack_blocked_streams = 0;

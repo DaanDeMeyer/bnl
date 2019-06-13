@@ -1,8 +1,10 @@
 #include <doctest/doctest.h>
 
+#include <bnl/http3/error.hpp>
+
 #include <bnl/http3/endpoint/client.hpp>
 #include <bnl/http3/endpoint/server.hpp>
-#include <bnl/http3/error.hpp>
+
 #include <bnl/log.hpp>
 
 #include <array>
