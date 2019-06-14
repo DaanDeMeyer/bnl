@@ -17,7 +17,7 @@ class BNL_HTTP3_EXPORT event {
 public:
   using handler = const std::function<void(event, std::error_code &ec)> &;
 
-  enum class type { empty, settings, header, body, error };
+  enum class type { settings, header, body, error };
 
   struct payload {
     using settings = http3::settings;

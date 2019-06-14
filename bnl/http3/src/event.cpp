@@ -6,7 +6,8 @@
 namespace bnl {
 namespace http3 {
 
-event::event() noexcept : type_(event::type::empty), id(0), fin(false) // NOLINT
+event::event() noexcept // NOLINT
+    : type_(event::type::error), id(0), fin(false), error()
 {}
 
 event::event(uint64_t id, // NOLINT
@@ -31,8 +32,6 @@ event::event(const event &other) noexcept // NOLINT
     : type_(other.type_), id(other.id), fin(other.fin)
 {
   switch (type_) {
-    case event::type::empty:
-      break;
     case event::type::settings:
       new (&settings) payload::settings(other.settings);
       break;
@@ -52,8 +51,6 @@ event::event(event &&other) noexcept // NOLINT
     : type_(other.type_), id(other.id), fin(other.fin)
 {
   switch (type_) {
-    case event::type::empty:
-      break;
     case event::type::settings:
       new (&settings) payload::settings(other.settings);
       break;
@@ -72,8 +69,6 @@ event::event(event &&other) noexcept // NOLINT
 event::~event() noexcept
 {
   switch (type_) {
-    case event::type::empty:
-      break;
     case event::type::settings:
       settings.~settings();
       break;

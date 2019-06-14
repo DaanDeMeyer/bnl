@@ -75,7 +75,6 @@ static message transfer(Sender &sender, Receiver &receiver)
       REQUIRE(!ec);
 
       switch (event) {
-        case http3::event::type::empty:
         case http3::event::type::settings:
           break;
 
