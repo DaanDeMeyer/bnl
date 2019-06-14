@@ -68,13 +68,15 @@ client::client(const log::api *logger)
                 client::control::receiver(logger) }
 {}
 
-transport::data client::send(std::error_code &ec) noexcept
+quic::event client::send(std::error_code &ec) noexcept
 {
   client::control::sender &control = control_.sender_;
 
-  transport::data data = control.send(ec);
-  if (ec != error::idle) {
-    return data;
+  {
+    quic::event quic = control.send(ec);
+    if (ec != error::idle) {
+      return quic;
+    }
   }
 
   for (auto &entry : requests_) {
@@ -84,7 +86,7 @@ transport::data client::send(std::error_code &ec) noexcept
       continue;
     }
 
-    data = sender.send(ec);
+    quic::event quic = sender.send(ec);
     if (ec != error::idle) {
       if (!ec) {
         client::request::receiver &receiver = entry.second.receiver_;
@@ -95,21 +97,20 @@ transport::data client::send(std::error_code &ec) noexcept
         }
       }
 
-      return data;
+      return quic;
     }
   }
 
   THROW(error::idle);
 }
 
-void client::recv(transport::data data,
-                  event::handler handler,
-                  std::error_code &ec)
+void client::recv(quic::event quic, event::handler handler, std::error_code &ec)
 {
-  if (data.id == SERVER_STREAM_CONTROL_ID) {
+  if (quic.id == SERVER_STREAM_CONTROL_ID) {
     client::control::receiver &control = control_.receiver_;
 
-    auto control_handler = [this, &handler](event event, std::error_code &ec) {
+    auto control_handler = [this, &handler](http3::event event,
+                                            std::error_code &ec) {
       switch (event) {
         case event::type::settings:
           settings_.remote = event.settings;
@@ -121,12 +122,12 @@ void client::recv(transport::data data,
       handler(std::move(event), ec);
     };
 
-    control.recv(std::move(data), control_handler, ec);
+    control.recv(std::move(quic), control_handler, ec);
 
     return;
   }
 
-  auto match = requests_.find(data.id);
+  auto match = requests_.find(quic.id);
   if (match == requests_.end()) {
     // TODO: Better error
     THROW_VOID(error::internal_error);
@@ -138,8 +139,8 @@ void client::recv(transport::data data,
     handler(std::move(event), ec);
   };
 
-  uint64_t id = data.id;
-  request.recv(std::move(data), request_handler, ec);
+  uint64_t id = quic.id;
+  request.recv(std::move(quic), request_handler, ec);
 
   if (request.finished()) {
     requests_.erase(id);

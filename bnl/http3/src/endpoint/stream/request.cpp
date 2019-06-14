@@ -152,7 +152,7 @@ bool request::sender::finished() const noexcept
   return state_ == state::fin;
 }
 
-transport::data request::sender::send(std::error_code &ec) noexcept
+quic::event request::sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -165,7 +165,7 @@ transport::data request::sender::send(std::error_code &ec) noexcept
         state_ = state::body;
       }
 
-      return { id_, std::move(encoded), false };
+      return { id_, false, std::move(encoded) };
     }
 
     case state::body: {
@@ -175,7 +175,7 @@ transport::data request::sender::send(std::error_code &ec) noexcept
         state_ = state::fin;
       }
 
-      return { id_, std::move(encoded), body_.finished() };
+      return { id_, body_.finished(), std::move(encoded) };
     }
 
     case state::fin:
@@ -216,21 +216,23 @@ const headers::decoder &request::receiver::headers() const noexcept
   return headers_;
 }
 
-void request::receiver::recv(transport::data data,
+void request::receiver::recv(quic::event quic,
                              event::handler handler,
                              std::error_code &ec)
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
+  // TODO: Handle `quic::event::type::error`.
+
   if (fin_received_) {
     THROW_VOID(error::internal_error);
   }
 
-  buffers_.push(std::move(data.buffer));
-  fin_received_ = data.fin;
+  buffers_.push(std::move(quic.data));
+  fin_received_ = quic.fin;
 
   while (!finished()) {
-    event event = process(ec);
+    http3::event event = process(ec);
 
     if (ec) {
       if (ec == error::incomplete && fin_received_) {

@@ -1,9 +1,11 @@
 #pragma once
 
-#include <bnl/http3/export.hpp>
+#include <bnl/core/export.hpp>
+
 #include <bnl/http3/header.hpp>
-#include <bnl/http3/transport.hpp>
 #include <bnl/http3/settings.hpp>
+
+#include <bnl/quic/event.hpp>
 
 #include <bnl/buffer.hpp>
 
@@ -13,7 +15,7 @@
 namespace bnl {
 namespace http3 {
 
-class BNL_HTTP3_EXPORT event {
+class BNL_CORE_EXPORT event {
 public:
   using handler = const std::function<void(event, std::error_code &ec)> &;
 
@@ -23,7 +25,7 @@ public:
     using settings = http3::settings;
     using header = http3::header;
     using body = buffer;
-    using error = transport::error;
+    using error = quic::event::payload::error;
   };
 
   event() noexcept;

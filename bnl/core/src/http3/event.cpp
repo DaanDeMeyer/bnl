@@ -1,8 +1,5 @@
 #include <bnl/http3/event.hpp>
 
-#include <bnl/http3/error.hpp>
-#include <bnl/util/enum.hpp>
-
 namespace bnl {
 namespace http3 {
 

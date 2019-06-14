@@ -12,7 +12,7 @@ control::sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-transport::data control::sender::send(std::error_code &ec) noexcept
+quic::event control::sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -21,7 +21,7 @@ transport::data control::sender::send(std::error_code &ec) noexcept
     case state::settings: {
       buffer encoded = TRY(frame_.encode(settings_, ec));
       state_ = state::idle;
-      return { id_, std::move(encoded), false };
+      return { id_, false, std::move(encoded) };
     }
 
     case state::idle:
@@ -40,20 +40,22 @@ control::receiver::receiver(uint64_t id, const log::api *logger) noexcept
 
 control::receiver::~receiver() noexcept = default;
 
-void control::receiver::recv(transport::data data,
+void control::receiver::recv(quic::event quic,
                              event::handler handler,
                              std::error_code &ec)
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
-  if (data.fin) {
+  // TODO: Handle `quic::event::type::error`.
+
+  if (quic.fin) {
     THROW_VOID(error::closed_critical_stream);
   }
 
-  buffers_.push(std::move(data.buffer));
+  buffers_.push(std::move(quic.data));
 
   while (true) {
-    event event = process(ec);
+    http3::event event = process(ec);
     if (ec) {
       if (ec == error::incomplete) {
         ec = {};

@@ -29,9 +29,7 @@ target_sources(bnl-http3 PRIVATE
   src/endpoint/stream/request.cpp
   src/endpoint/client.cpp
   src/endpoint/server.cpp
-  src/event.cpp
   src/error.cpp
-  src/header.cpp
 )
 
 if(BNL_TEST)

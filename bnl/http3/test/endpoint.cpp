@@ -64,10 +64,12 @@ static message transfer(Sender &sender, Receiver &receiver)
   std::error_code ec;
 
   while (true) {
-    http3::transport::data data = sender.send(ec);
+    quic::event quic = sender.send(ec);
     if (ec == http3::error::idle) {
       break;
     }
+
+    REQUIRE(quic == quic::event::type::data);
 
     REQUIRE(!ec);
 
@@ -91,7 +93,7 @@ static message transfer(Sender &sender, Receiver &receiver)
       }
     };
 
-    receiver.recv(std::move(data), handler, ec);
+    receiver.recv(std::move(quic), handler, ec);
 
     REQUIRE(!ec);
   }

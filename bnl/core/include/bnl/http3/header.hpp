@@ -1,13 +1,13 @@
 #pragma once
 
-#include <bnl/http3/export.hpp>
+#include <bnl/core/export.hpp>
 
 #include <bnl/buffer.hpp>
 
 namespace bnl {
 namespace http3 {
 
-class BNL_HTTP3_EXPORT header_view {
+class BNL_CORE_EXPORT header_view {
 public:
   header_view(buffer_view name, buffer_view value);
 
@@ -19,18 +19,16 @@ private:
   buffer_view value_;
 };
 
-struct BNL_HTTP3_EXPORT header {
+struct BNL_CORE_EXPORT header {
   buffer name;
   buffer value;
 
   operator header_view() const noexcept; // NOLINT
 };
 
-BNL_HTTP3_EXPORT bool
-operator==(header_view first, header_view second) noexcept;
+BNL_CORE_EXPORT bool operator==(header_view first, header_view second) noexcept;
 
-BNL_HTTP3_EXPORT bool
-operator!=(header_view first, header_view second) noexcept;
+BNL_CORE_EXPORT bool operator!=(header_view first, header_view second) noexcept;
 
 } // namespace http3
 } // namespace bnl

@@ -2,9 +2,10 @@
 
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
-#include <bnl/http3/quic.hpp>
 
 #include <bnl/http3/codec/frame.hpp>
+
+#include <bnl/quic/event.hpp>
 
 #include <bnl/buffers.hpp>
 
@@ -22,7 +23,7 @@ class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
 
-  transport::data send(std::error_code &ec) noexcept;
+  quic::event send(std::error_code &ec) noexcept;
 
 private:
   uint64_t id_;
@@ -48,7 +49,8 @@ public:
 
   virtual ~receiver() noexcept;
 
-  void recv(transport::data data, event::handler handler, std::error_code &ec);
+  void
+  recv(quic::event quic, http3::event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) = 0;
