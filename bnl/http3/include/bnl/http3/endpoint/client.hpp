@@ -22,10 +22,10 @@ class BNL_HTTP3_EXPORT client {
 public:
   explicit client(const log::api *logger);
 
-  quic::event send(std::error_code &ec) noexcept;
+  quic::data send(std::error_code &ec) noexcept;
 
   void
-  recv(quic::event quic, http3::event::handler handler, std::error_code &ec);
+  recv(quic::data data, http3::event::handler handler, std::error_code &ec);
 
   stream::request::handle request(std::error_code &ec);
 

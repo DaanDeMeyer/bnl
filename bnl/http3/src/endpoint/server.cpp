@@ -72,15 +72,13 @@ server::server(const log::api *logger)
                 server::control::receiver(logger) }
 {}
 
-quic::event server::send(std::error_code &ec) noexcept
+quic::data server::send(std::error_code &ec) noexcept
 {
   server::control::sender &control = control_.sender_;
 
-  {
-    quic::event quic = control.send(ec);
-    if (ec != error::idle) {
-      return quic;
-    }
+  quic::data data = control.send(ec);
+  if (ec != error::idle) {
+    return data;
   }
 
   for (auto &entry : requests_) {
@@ -91,29 +89,26 @@ quic::event server::send(std::error_code &ec) noexcept
       continue;
     }
 
-    quic::event quic = request.send(ec);
+    data = request.send(ec);
 
     if (request.finished()) {
       requests_.erase(id);
     }
 
     if (ec != error::idle) {
-      return quic;
+      return data;
     }
   }
 
   THROW(error::idle);
 }
 
-void server::recv(quic::event quic,
-                  event::handler handler,
-                  std::error_code &ec)
+void server::recv(quic::data data, event::handler handler, std::error_code &ec)
 {
-  if (quic.id == CLIENT_STREAM_CONTROL_ID) {
+  if (data.id == CLIENT_STREAM_CONTROL_ID) {
     server::control::receiver &control = control_.receiver_;
 
-    auto control_handler = [this, &handler](http3::event event,
-                                            std::error_code &ec) {
+    auto control_handler = [this, &handler](event event, std::error_code &ec) {
       switch (event) {
         case event::type::settings:
           settings_.remote = event.settings;
@@ -125,29 +120,29 @@ void server::recv(quic::event quic,
       handler(std::move(event), ec);
     };
 
-    control.recv(std::move(quic), control_handler, ec);
+    control.recv(std::move(data), control_handler, ec);
 
     return;
   }
 
-  auto match = requests_.find(quic.id);
+  auto match = requests_.find(data.id);
   if (match == requests_.end()) {
-    server::request::sender sender(quic.id, logger_);
-    server::request::receiver receiver(quic.id, logger_);
+    server::request::sender sender(data.id, logger_);
+    server::request::receiver receiver(data.id, logger_);
 
     TRY_VOID(receiver.start(ec));
 
-    requests_.emplace(quic.id,
+    requests_.emplace(data.id,
                       request{ std::move(sender), std::move(receiver) });
   }
 
-  server::request::receiver &request = requests_.at(quic.id).receiver_;
+  server::request::receiver &request = requests_.at(data.id).receiver_;
 
   auto request_handler = [&handler](event event, std::error_code &ec) {
     handler(std::move(event), ec);
   };
 
-  request.recv(std::move(quic), request_handler, ec);
+  request.recv(std::move(data), request_handler, ec);
 }
 
 stream::request::handle

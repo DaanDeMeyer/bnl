@@ -12,7 +12,7 @@ control::sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-quic::event control::sender::send(std::error_code &ec) noexcept
+quic::data control::sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -40,7 +40,7 @@ control::receiver::receiver(uint64_t id, const log::api *logger) noexcept
 
 control::receiver::~receiver() noexcept = default;
 
-void control::receiver::recv(quic::event quic,
+void control::receiver::recv(quic::data data,
                              event::handler handler,
                              std::error_code &ec)
 {
@@ -48,14 +48,14 @@ void control::receiver::recv(quic::event quic,
 
   // TODO: Handle `quic::event::type::error`.
 
-  if (quic.fin) {
+  if (data.fin) {
     THROW_VOID(error::closed_critical_stream);
   }
 
-  buffers_.push(std::move(quic.data));
+  buffers_.push(std::move(data.buffer));
 
   while (true) {
-    http3::event event = process(ec);
+    event event = process(ec);
     if (ec) {
       if (ec == error::incomplete) {
         ec = {};

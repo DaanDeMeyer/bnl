@@ -23,7 +23,7 @@ class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
 
-  quic::event send(std::error_code &ec) noexcept;
+  quic::data send(std::error_code &ec) noexcept;
 
 private:
   uint64_t id_;
@@ -50,7 +50,7 @@ public:
   virtual ~receiver() noexcept;
 
   void
-  recv(quic::event quic, http3::event::handler handler, std::error_code &ec);
+  recv(quic::data data, http3::event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) = 0;

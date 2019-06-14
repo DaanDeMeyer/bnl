@@ -68,15 +68,13 @@ client::client(const log::api *logger)
                 client::control::receiver(logger) }
 {}
 
-quic::event client::send(std::error_code &ec) noexcept
+quic::data client::send(std::error_code &ec) noexcept
 {
   client::control::sender &control = control_.sender_;
 
-  {
-    quic::event quic = control.send(ec);
-    if (ec != error::idle) {
-      return quic;
-    }
+  quic::data data = control.send(ec);
+  if (ec != error::idle) {
+    return data;
   }
 
   for (auto &entry : requests_) {
@@ -86,7 +84,7 @@ quic::event client::send(std::error_code &ec) noexcept
       continue;
     }
 
-    quic::event quic = sender.send(ec);
+    data = sender.send(ec);
     if (ec != error::idle) {
       if (!ec) {
         client::request::receiver &receiver = entry.second.receiver_;
@@ -97,20 +95,19 @@ quic::event client::send(std::error_code &ec) noexcept
         }
       }
 
-      return quic;
+      return data;
     }
   }
 
   THROW(error::idle);
 }
 
-void client::recv(quic::event quic, event::handler handler, std::error_code &ec)
+void client::recv(quic::data data, event::handler handler, std::error_code &ec)
 {
-  if (quic.id == SERVER_STREAM_CONTROL_ID) {
+  if (data.id == SERVER_STREAM_CONTROL_ID) {
     client::control::receiver &control = control_.receiver_;
 
-    auto control_handler = [this, &handler](http3::event event,
-                                            std::error_code &ec) {
+    auto control_handler = [this, &handler](event event, std::error_code &ec) {
       switch (event) {
         case event::type::settings:
           settings_.remote = event.settings;
@@ -122,12 +119,12 @@ void client::recv(quic::event quic, event::handler handler, std::error_code &ec)
       handler(std::move(event), ec);
     };
 
-    control.recv(std::move(quic), control_handler, ec);
+    control.recv(std::move(data), control_handler, ec);
 
     return;
   }
 
-  auto match = requests_.find(quic.id);
+  auto match = requests_.find(data.id);
   if (match == requests_.end()) {
     // TODO: Better error
     THROW_VOID(error::internal_error);
@@ -139,8 +136,8 @@ void client::recv(quic::event quic, event::handler handler, std::error_code &ec)
     handler(std::move(event), ec);
   };
 
-  uint64_t id = quic.id;
-  request.recv(std::move(quic), request_handler, ec);
+  uint64_t id = data.id;
+  request.recv(std::move(data), request_handler, ec);
 
   if (request.finished()) {
     requests_.erase(id);
