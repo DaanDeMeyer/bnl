@@ -25,10 +25,15 @@ target_sources(bnl-http3 PRIVATE
   src/codec/headers.cpp
   src/codec/literal.cpp
   src/codec/prefix_int.cpp
-  src/endpoint/stream/control.cpp
-  src/endpoint/stream/request.cpp
-  src/endpoint/client.cpp
-  src/endpoint/server.cpp
+  src/endpoint/client/control.cpp
+  src/endpoint/client/request.cpp
+  src/endpoint/server/control.cpp
+  src/endpoint/server/request.cpp
+  src/endpoint/shared/control.cpp
+  src/endpoint/shared/request.cpp
+  src/endpoint/handle.cpp
+  src/client.cpp
+  src/server.cpp
   src/error.cpp
 )
 

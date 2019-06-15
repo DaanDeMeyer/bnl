@@ -2,8 +2,8 @@
 
 #include <bnl/http3/error.hpp>
 
-#include <bnl/http3/endpoint/client.hpp>
-#include <bnl/http3/endpoint/server.hpp>
+#include <bnl/http3/client.hpp>
+#include <bnl/http3/server.hpp>
 
 #include <bnl/log.hpp>
 
@@ -38,7 +38,8 @@ bool operator!=(const message &first, const message &second)
   return !(first == second);
 }
 
-static void start(http3::stream::request::handle &handle, const message &message)
+static void
+start(http3::endpoint::handle &handle, const message &message)
 {
   std::error_code ec;
 
@@ -114,7 +115,7 @@ TEST_CASE("endpoint")
                         { ":path", "index.html" } },
                       { "abcde" } };
 
-  http3::stream::request::handle handle = client.request(ec);
+  http3::endpoint::handle handle = client.request(ec);
   REQUIRE(!ec);
 
   start(handle, request);

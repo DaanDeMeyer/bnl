@@ -2,6 +2,8 @@
 
 #include <bnl/core/export.hpp>
 
+#include <bnl/class/macro.hpp>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -50,8 +52,7 @@ public:
   buffer(const buffer &other) noexcept;
   buffer &operator=(const buffer &other) noexcept;
 
-  buffer(buffer &&other) noexcept;
-  buffer &operator=(buffer &&other) noexcept;
+  BNL_CUSTOM_MOVE(buffer);
 
   ~buffer() noexcept;
 
@@ -113,11 +114,8 @@ class BNL_CORE_EXPORT buffer::anchor {
 public:
   explicit anchor(buffer &buffer) noexcept;
 
-  anchor(const anchor &) = delete;
-  anchor &operator=(const anchor &) = delete;
-
-  anchor(anchor &&) = delete;
-  anchor &operator=(anchor &&) = delete;
+  BNL_NO_COPY(anchor);
+  BNL_NO_MOVE(anchor);
 
   ~anchor() noexcept;
 
@@ -137,13 +135,7 @@ public:
   mutable_buffer() = default;
   explicit mutable_buffer(size_t size);
 
-  mutable_buffer(const mutable_buffer &) = delete;
-  mutable_buffer &operator=(const mutable_buffer &) = delete;
-
-  mutable_buffer(mutable_buffer &&) = default;
-  mutable_buffer &operator=(mutable_buffer &&) = default;
-
-  ~mutable_buffer() = default;
+  BNL_MOVE_ONLY(mutable_buffer);
 
   template <size_t Size>
   mutable_buffer(const char (&static_)[Size]) noexcept = delete;

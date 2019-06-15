@@ -1,4 +1,4 @@
-#include <bnl/http3/endpoint/stream/request.hpp>
+#include <bnl/http3/endpoint/shared/request.hpp>
 
 #include <bnl/http3/error.hpp>
 
@@ -6,84 +6,8 @@
 
 namespace bnl {
 namespace http3 {
-namespace stream {
-
-request::handle::handle(uint64_t id,
-                        request::sender *ref,
-                        const log::api *logger) noexcept
-    : id_(id), ref_(ref), logger_(logger)
-{}
-
-request::handle::handle(handle &&other) noexcept : handle()
-{
-  operator=(std::move(other));
-}
-
-request::handle &request::handle::operator=(handle &&other) noexcept
-{
-  std::swap(ref_, other.ref_);
-
-  if (ref_ != nullptr) {
-    ref_->handle_ = this;
-  }
-
-  return *this;
-}
-
-request::handle::~handle() noexcept
-{
-  if (ref_ == nullptr) {
-    return;
-  }
-
-  ref_->handle_ = nullptr;
-}
-
-bool request::handle::valid() const noexcept
-{
-  return ref_ != nullptr;
-}
-
-uint64_t request::handle::id() const noexcept
-{
-  return id_;
-}
-
-void request::handle::header(header_view header, std::error_code &ec)
-{
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
-  return ref_->headers_.add(header, ec);
-}
-
-void request::handle::start(std::error_code &ec) noexcept
-{
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
-  return ref_->headers_.fin(ec);
-}
-
-void request::handle::body(buffer body, std::error_code &ec)
-{
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
-  return ref_->body_.add(std::move(body), ec);
-}
-
-void request::handle::fin(std::error_code &ec) noexcept
-{
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
-  return ref_->body_.fin(ec);
-}
+namespace endpoint {
+namespace shared {
 
 request::sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), headers_(logger), body_(logger)
@@ -133,9 +57,9 @@ request::sender::~sender() noexcept
   handle_->ref_ = nullptr;
 }
 
-request::handle request::sender::handle() noexcept
+endpoint::handle request::sender::handle() noexcept
 {
-  request::handle result(id_, this, logger_);
+  endpoint::handle result(id_, this, logger_);
 
   if (handle_ != nullptr) {
     // Invalidate previous handle.
@@ -325,6 +249,7 @@ event request::receiver::process(std::error_code &ec) noexcept
   return {};
 }
 
-} // namespace stream
+} // namespace shared
+} // namespace endpoint
 } // namespace http3
 } // namespace bnl

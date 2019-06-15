@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <bnl/http3/endpoint/stream/request.hpp>
+#include <bnl/http3/endpoint/shared/request.hpp>
 
 #include <bnl/log.hpp>
 
@@ -13,13 +13,13 @@ TEST_CASE("handle")
 
   SUBCASE("unique")
   {
-    http3::stream::request::sender request(id, &logger);
+    http3::endpoint::shared::request::sender request(id, &logger);
 
-    http3::stream::request::handle first = request.handle();
+    http3::endpoint::handle first = request.handle();
 
     REQUIRE(first.valid());
 
-    http3::stream::request::handle second = request.handle();
+    http3::endpoint::handle second = request.handle();
 
     REQUIRE(!first.valid());
     REQUIRE(second.valid());
@@ -27,10 +27,10 @@ TEST_CASE("handle")
 
   SUBCASE("scope")
   {
-    http3::stream::request::handle handle;
+    http3::endpoint::handle handle;
 
     {
-      http3::stream::request::sender request(id, &logger);
+      http3::endpoint::shared::request::sender request(id, &logger);
 
       handle = request.handle();
     }
@@ -40,15 +40,15 @@ TEST_CASE("handle")
 
   SUBCASE("move")
   {
-    http3::stream::request::sender request(id, &logger);
+    http3::endpoint::shared::request::sender request(id, &logger);
 
-    http3::stream::request::handle first = request.handle();
+    http3::endpoint::handle first = request.handle();
     REQUIRE(first.valid());
 
-    http3::stream::request::handle second = std::move(first);
+    http3::endpoint::handle second = std::move(first);
     REQUIRE(second.valid());
 
-    http3::stream::request::handle third(std::move(second));
+    http3::endpoint::handle third(std::move(second));
     REQUIRE(third.valid());
   }
 }

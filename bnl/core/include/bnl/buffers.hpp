@@ -1,7 +1,10 @@
 #pragma once
 
 #include <bnl/buffer.hpp>
+
 #include <bnl/core/export.hpp>
+
+#include <bnl/class/macro.hpp>
 
 #include <deque>
 
@@ -43,11 +46,8 @@ class BNL_CORE_EXPORT buffers::anchor {
 public:
   explicit anchor(buffers &buffers) noexcept;
 
-  anchor(const anchor &) = delete;
-  anchor &operator=(const anchor &) = delete;
-
-  anchor(anchor &&) = delete;
-  anchor &operator=(anchor &&) = delete;
+  BNL_NO_COPY(anchor);
+  BNL_NO_MOVE(anchor);
 
   ~anchor() noexcept;
 
@@ -66,11 +66,8 @@ class BNL_CORE_EXPORT buffers::discarder {
 public:
   explicit discarder(buffers &buffers) noexcept;
 
-  discarder(const discarder &) = delete;
-  discarder &operator=(const discarder &) = delete;
-
-  discarder(discarder &&) = delete;
-  discarder &operator=(discarder &&) = delete;
+  BNL_NO_COPY(discarder);
+  BNL_NO_MOVE(discarder);
 
   ~discarder() noexcept;
 

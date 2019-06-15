@@ -6,7 +6,6 @@
 
 namespace bnl {
 namespace http3 {
-namespace stream {
 
 headers::encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
@@ -135,6 +134,5 @@ header headers::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-} // namespace stream
 } // namespace http3
 } // namespace bnl

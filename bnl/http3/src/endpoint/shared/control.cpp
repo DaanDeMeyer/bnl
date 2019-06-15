@@ -1,4 +1,4 @@
-#include <bnl/http3/endpoint/stream/control.hpp>
+#include <bnl/http3/endpoint/shared/control.hpp>
 
 #include <bnl/http3/error.hpp>
 
@@ -6,7 +6,8 @@
 
 namespace bnl {
 namespace http3 {
-namespace stream {
+namespace endpoint {
+namespace shared {
 
 control::sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
@@ -39,6 +40,11 @@ control::receiver::receiver(uint64_t id, const log::api *logger) noexcept
 {}
 
 control::receiver::~receiver() noexcept = default;
+
+uint64_t control::receiver::id() const noexcept
+{
+  return id_;
+}
 
 void control::receiver::recv(quic::data data,
                              event::handler handler,
@@ -113,6 +119,7 @@ event control::receiver::process(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-} // namespace stream
+} // namespace shared
+} // namespace endpoint
 } // namespace http3
 } // namespace bnl

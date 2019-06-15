@@ -8,6 +8,8 @@
 #include <bnl/buffer.hpp>
 #include <bnl/buffers.hpp>
 
+#include <bnl/class/macro.hpp>
+
 #include <cstddef>
 #include <cstdint>
 
@@ -23,6 +25,8 @@ namespace literal {
 class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
+
+  BNL_MOVE_ONLY(encoder);
 
   size_t encoded_size(buffer_view literal, uint8_t prefix) const noexcept;
 
@@ -41,6 +45,8 @@ private:
 class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
+
+  BNL_MOVE_ONLY(decoder);
 
   buffer decode(buffer &encoded, uint8_t prefix, std::error_code &ec) const;
 

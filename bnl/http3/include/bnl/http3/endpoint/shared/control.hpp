@@ -9,6 +9,8 @@
 
 #include <bnl/buffers.hpp>
 
+#include <bnl/class/macro.hpp>
+
 namespace bnl {
 
 namespace log {
@@ -16,12 +18,15 @@ class api;
 }
 
 namespace http3 {
-namespace stream {
+namespace endpoint {
+namespace shared {
 namespace control {
 
 class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
+
+  BNL_MOVE_ONLY(sender);
 
   quic::data send(std::error_code &ec) noexcept;
 
@@ -41,16 +46,14 @@ class BNL_HTTP3_EXPORT receiver {
 public:
   receiver(uint64_t id, const log::api *logger) noexcept;
 
-  receiver(const receiver &) = default;
-  receiver &operator=(const receiver &) = default;
-
-  receiver(receiver &&) = default;
-  receiver &operator=(receiver &&) = default;
+  BNL_NO_COPY(receiver);
+  BNL_DEFAULT_MOVE(receiver);
 
   virtual ~receiver() noexcept;
 
-  void
-  recv(quic::data data, http3::event::handler handler, std::error_code &ec);
+  uint64_t id() const noexcept;
+
+  void recv(quic::data data, event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) = 0;
@@ -71,6 +74,7 @@ private:
 };
 
 } // namespace control
-} // namespace stream
+} // namespace shared
+} // namespace endpoint
 } // namespace http3
 } // namespace bnl

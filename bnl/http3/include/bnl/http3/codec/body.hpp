@@ -7,6 +7,8 @@
 #include <bnl/buffer.hpp>
 #include <bnl/buffers.hpp>
 
+#include <bnl/class/macro.hpp>
+
 #include <queue>
 
 namespace bnl {
@@ -16,12 +18,13 @@ class api;
 }
 
 namespace http3 {
-namespace stream {
 namespace body {
 
 class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
+
+  BNL_MOVE_ONLY(encoder);
 
   void add(buffer body, std::error_code &ec);
   void fin(std::error_code &ec) noexcept;
@@ -46,6 +49,8 @@ class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
 
+  BNL_MOVE_ONLY(decoder);
+
   bool in_progress() const noexcept;
 
   buffer decode(buffers &encoded, std::error_code &ec) noexcept;
@@ -62,6 +67,5 @@ private:
 };
 
 } // namespace body
-} // namespace stream
 } // namespace http3
 } // namespace bnl

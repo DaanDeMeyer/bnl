@@ -6,6 +6,8 @@
 #include <bnl/http3/codec/literal.hpp>
 #include <bnl/http3/codec/prefix_int.hpp>
 
+#include <bnl/class/macro.hpp>
+
 #include <bnl/buffer.hpp>
 #include <bnl/buffers.hpp>
 
@@ -29,6 +31,8 @@ namespace qpack {
 class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
+
+  BNL_MOVE_ONLY(encoder);
 
   uint64_t count() const noexcept;
 
@@ -54,6 +58,8 @@ private:
 class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger);
+
+  BNL_MOVE_ONLY(decoder);
 
   uint64_t count() const noexcept;
 

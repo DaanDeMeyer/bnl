@@ -2,6 +2,8 @@
 
 #include <bnl/core/export.hpp>
 
+#include <bnl/class/macro.hpp>
+
 #include <fmt/core.h>
 
 #include <system_error>
@@ -22,11 +24,8 @@ class BNL_CORE_EXPORT api {
 public:
   api() = default;
 
-  api(const api &) = default;
-  api &operator=(const api &) = default;
-
-  api(api &&) = default;
-  api &operator=(api &&) = default;
+  BNL_DEFAULT_COPY(api);
+  BNL_DEFAULT_MOVE(api);
 
   virtual ~api() noexcept;
 
