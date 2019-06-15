@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 
 namespace bnl {
@@ -37,18 +38,24 @@ BNL_CORE_EXPORT bool operator!=(buffer_view lhs, buffer_view rhs) noexcept;
 
 class BNL_CORE_EXPORT buffer {
 public:
-  buffer() noexcept;
-
   class anchor;
+
+  buffer() noexcept;
 
   template <size_t Size>
   buffer(const char (&static_)[Size]) noexcept // NOLINT
       : buffer(static_cast<const char *>(static_), Size - 1)
   {}
 
-  buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept;
+  // Use a templated constructor to avoid an ambiguous overload that occurs
+  // because `buffer` provides constructors for both `std::unique_ptr` and
+  // `std::shared_ptr`.
+  template <typename Deleter>
+  buffer(std::unique_ptr<uint8_t[], Deleter> data, size_t size) noexcept;
+
   buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
 
+public:
   buffer(const buffer &other) noexcept;
   buffer &operator=(const buffer &other) noexcept;
 
@@ -101,14 +108,38 @@ private:
   size_t size_ = 0;
   size_t position_ = 0;
 
+  using deleter = std::function<void(uint8_t *)>;
+
   union {
     const char *static_;
     std::array<uint8_t, SSO_THRESHOLD> sso_;
-    mutable std::unique_ptr<uint8_t[]> unique_;
+    // Type erase `std::unique_ptr` deleter so any kind of deleter can be stored
+    // in `buffer`.
+    mutable std::unique_ptr<uint8_t[], deleter> unique_;
     // `std::shared_ptr<uint8_t[]>` requires C++17.
     mutable std::shared_ptr<uint8_t> shared_;
   };
 };
+
+template <typename Deleter>
+buffer::buffer(std::unique_ptr<uint8_t[], Deleter> data, // NOLINT
+               size_t size) noexcept
+    : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
+{
+  switch (type_) {
+    case type::sso:
+      new (&sso_) decltype(sso_)();
+      for (size_t i = 0; i < size; i++) {
+        sso_[i] = data[i];
+      }
+      break;
+    case type::unique:
+      new (&unique_) decltype(unique_)(std::move(data));
+      break;
+    default:
+      break;
+  }
+}
 
 class BNL_CORE_EXPORT buffer::anchor {
 public:

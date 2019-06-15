@@ -46,23 +46,6 @@ bool operator!=(buffer_view lhs, buffer_view rhs) noexcept
 
 buffer::buffer() noexcept : type_(type::static_), static_() {} // NOLINT
 
-buffer::buffer(std::unique_ptr<uint8_t[]> data, size_t size) noexcept // NOLINT
-    : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
-{
-  switch (type_) {
-    case type::sso:
-      new (&sso_) decltype(sso_)();
-      std::copy_n(data.get(), size, sso_.data());
-      break;
-    case type::unique:
-      new (&unique_) decltype(unique_)(std::move(data));
-      break;
-    default:
-      assert(false);
-      break;
-  }
-}
-
 buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
     : type_(size <= SSO_THRESHOLD ? type::sso : type::shared), size_(size)
 {
@@ -284,7 +267,8 @@ buffer::buffer(size_t size) noexcept // NOLINT
       new (&sso_) decltype(sso_)();
       break;
     case type::unique:
-      new (&unique_) decltype(unique_)(new uint8_t[size]);
+      new (&unique_) decltype(unique_)(
+          std::unique_ptr<uint8_t[]>(new uint8_t[size]));
       break;
     default:
       assert(false);
@@ -324,10 +308,9 @@ void buffer::upgrade() const noexcept
 {
   assert(type_ == type::unique);
 
-  std::unique_ptr<uint8_t[]> temp = std::move(unique_);
+  std::unique_ptr<uint8_t[], deleter> temp = std::move(unique_);
   unique_.~unique_ptr();
-  new (&shared_) decltype(shared_)(temp.release(),
-                                   std::default_delete<uint8_t[]>());
+  new (&shared_) decltype(shared_)(temp.release(), temp.get_deleter());
   type_ = type::shared;
 }
 
