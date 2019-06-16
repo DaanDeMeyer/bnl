@@ -86,7 +86,7 @@ TEST_CASE("qpack")
 
   SUBCASE("decode: qpack decompression failed (indexed header field)")
   {
-    mutable_buffer data(4);
+    buffer_mut data(4);
     data[0] = 0;    // prefix
     data[1] = 0;    // prefix
     data[2] = 0xff; // 0xff = indexed header field
@@ -103,7 +103,7 @@ TEST_CASE("qpack")
 
   SUBCASE("decode: qpack decompression failed (literal with name reference)")
   {
-    mutable_buffer data(4);
+    buffer_mut data(4);
     data[0] = 0;    // prefix
     data[1] = 0;    // prefix
     data[2] = 0x5f; // 0x5f = literal with name reference

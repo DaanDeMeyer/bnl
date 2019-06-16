@@ -64,7 +64,7 @@ prefix_int::encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const
 buffer prefix_int::encoder::encode(uint64_t value, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(value, prefix);
-  mutable_buffer encoded(encoded_size);
+  buffer_mut encoded(encoded_size);
 
   ASSERT(encoded_size == encode(encoded.data(), value, prefix));
 

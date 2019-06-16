@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     std::streamsize size = input.tellg();
     input.seekg(0, std::ios::beg);
 
-    mutable_buffer buffer(static_cast<size_t>(size));
+    buffer_mut buffer(static_cast<size_t>(size));
     input.read(reinterpret_cast<char *>(buffer.data()), size);
 
     encoded = std::move(buffer);

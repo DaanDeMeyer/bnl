@@ -31,9 +31,9 @@ private:
 BNL_CORE_EXPORT bool operator==(buffer_view lhs, buffer_view rhs) noexcept;
 BNL_CORE_EXPORT bool operator!=(buffer_view lhs, buffer_view rhs) noexcept;
 
-class BNL_CORE_EXPORT mutable_buffer_view {
+class BNL_CORE_EXPORT buffer_view_mut {
 public:
-  mutable_buffer_view(uint8_t *data, size_t size) noexcept;
+  buffer_view_mut(uint8_t *data, size_t size) noexcept;
 
   uint8_t *data() noexcept;
   size_t size() const noexcept;

@@ -43,31 +43,31 @@ bool operator!=(buffer_view lhs, buffer_view rhs) noexcept
   return !(lhs == rhs);
 }
 
-mutable_buffer_view::mutable_buffer_view(uint8_t *data, size_t size) noexcept
+buffer_view_mut::buffer_view_mut(uint8_t *data, size_t size) noexcept
     : data_(data), size_(size)
 {}
 
-uint8_t *mutable_buffer_view::data() noexcept
+uint8_t *buffer_view_mut::data() noexcept
 {
   return data_;
 }
 
-size_t mutable_buffer_view::size() const noexcept
+size_t buffer_view_mut::size() const noexcept
 {
   return size_;
 }
 
-uint8_t *mutable_buffer_view::begin() noexcept
+uint8_t *buffer_view_mut::begin() noexcept
 {
   return data();
 }
 
-uint8_t *mutable_buffer_view::end() noexcept
+uint8_t *buffer_view_mut::end() noexcept
 {
   return data() + size();
 }
 
-mutable_buffer_view::operator buffer_view() const noexcept
+buffer_view_mut::operator buffer_view() const noexcept
 {
   return { data_, size() };
 }

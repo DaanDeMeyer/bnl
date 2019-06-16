@@ -19,7 +19,7 @@ using namespace bnl;
 
 static buffer id_encode(uint64_t id)
 {
-  mutable_buffer encoded(sizeof(uint64_t));
+  buffer_mut encoded(sizeof(uint64_t));
 
   encoded[0] = static_cast<uint8_t>(id >> 56U);
   encoded[1] = static_cast<uint8_t>(id >> 48U);
@@ -35,7 +35,7 @@ static buffer id_encode(uint64_t id)
 
 static buffer size_encode(uint32_t encoded_size)
 {
-  mutable_buffer encoded(sizeof(uint32_t));
+  buffer_mut encoded(sizeof(uint32_t));
 
   encoded[0] = static_cast<uint8_t>(encoded_size >> 24U);
   encoded[1] = static_cast<uint8_t>(encoded_size >> 16U);
@@ -147,10 +147,10 @@ int main(int argc, char *argv[])
       return 1;
     }
 
-    mutable_buffer name(i);
+    buffer_mut name(i);
     std::copy_n(line.substr(0, i).data(), name.size(), name.data());
 
-    mutable_buffer value(line.size() - (i + 1));
+    buffer_mut value(line.size() - (i + 1));
     std::copy_n(line.substr(i + 1).data(), value.size(), value.data());
 
     headers.emplace_back(http3::header{ std::move(name), std::move(value) });

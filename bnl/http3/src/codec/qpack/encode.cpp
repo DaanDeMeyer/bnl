@@ -136,7 +136,7 @@ size_t qpack::encoder::encode(uint8_t *dest,
 buffer qpack::encoder::encode(header_view header, std::error_code &ec)
 {
   size_t encoded_size = TRY(this->encoded_size(header, ec));
-  mutable_buffer encoded(encoded_size);
+  buffer_mut encoded(encoded_size);
 
   ASSERT(encoded_size == TRY(encode(encoded.data(), header, ec)));
 

@@ -58,7 +58,7 @@ buffer huffman::decoder::decode(Sequence &encoded,
                                 std::error_code &ec) const
 {
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size, ec));
-  mutable_buffer decoded(decoded_size);
+  buffer_mut decoded(decoded_size);
 
   uint8_t *dest = decoded.data();
   uint8_t state = 0;

@@ -194,7 +194,7 @@ size_t frame::encoder::encode(uint8_t *dest,
 buffer frame::encoder::encode(const frame &frame, std::error_code &ec) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame, ec));
-  mutable_buffer encoded(encoded_size);
+  buffer_mut encoded(encoded_size);
 
   ASSERT(encoded_size == TRY(encode(encoded.data(), frame, ec)));
 

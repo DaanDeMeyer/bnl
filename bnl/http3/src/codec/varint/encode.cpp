@@ -109,7 +109,7 @@ size_t varint::encoder::encode(uint8_t *dest,
 buffer varint::encoder::encode(uint64_t varint, std::error_code &ec) const
 {
   size_t encoded_size = this->encoded_size(varint, ec);
-  mutable_buffer encoded(encoded_size);
+  buffer_mut encoded(encoded_size);
 
   ASSERT(encoded_size == TRY(encode(encoded.data(), varint, ec)));
 

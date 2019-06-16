@@ -207,7 +207,7 @@ void buffer::undo(size_t size) noexcept
 
 buffer buffer::concat(const buffer &first, const buffer &second)
 {
-  mutable_buffer result(first.size() + second.size());
+  buffer_mut result(first.size() + second.size());
 
   std::copy_n(first.data(), first.size(), result.data());
   std::copy_n(second.data(), second.size(), result.data() + first.size());
@@ -315,29 +315,29 @@ buffer::anchor::~anchor() noexcept
   }
 }
 
-mutable_buffer::mutable_buffer(size_t size) : buffer(size) {}
+buffer_mut::buffer_mut(size_t size) : buffer(size) {}
 
-uint8_t *mutable_buffer::data() noexcept
+uint8_t *buffer_mut::data() noexcept
 {
   return data_mut();
 }
 
-uint8_t &mutable_buffer::operator[](size_t index) noexcept
+uint8_t &buffer_mut::operator[](size_t index) noexcept
 {
   return *(data() + index);
 }
 
-uint8_t &mutable_buffer::operator*() noexcept
+uint8_t &buffer_mut::operator*() noexcept
 {
   return *data();
 }
 
-uint8_t *mutable_buffer::end() noexcept
+uint8_t *buffer_mut::end() noexcept
 {
   return data() + size();
 }
 
-mutable_buffer::operator mutable_buffer_view() noexcept
+buffer_mut::operator buffer_view_mut() noexcept
 {
   return { data(), size() };
 }

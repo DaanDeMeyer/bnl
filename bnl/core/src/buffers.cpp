@@ -132,7 +132,7 @@ buffer buffers::concat(size_t start, size_t end, size_t left) const
 
   size += left;
 
-  mutable_buffer result(size);
+  buffer_mut result(size);
   size_t offset = 0;
 
   for (size_t i = start; i < end; i++) {

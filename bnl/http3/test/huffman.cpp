@@ -19,7 +19,7 @@ static buffer random_string(size_t length)
   static std::mt19937 rg{ std::random_device{}() };
   static std::uniform_int_distribution<size_t> pick(0, sizeof(characters) - 1);
 
-  mutable_buffer buffer(length);
+  buffer_mut buffer(length);
 
   for (size_t i = 0; i < buffer.size(); i++) {
     buffer[i] = characters[pick(rg)];

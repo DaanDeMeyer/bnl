@@ -123,7 +123,7 @@ huffman::encoder::encode(uint8_t *dest, buffer_view string) const noexcept
 buffer huffman::encoder::encode(buffer_view string) const
 {
   size_t encoded_size = this->encoded_size(string);
-  mutable_buffer encoded(encoded_size);
+  buffer_mut encoded(encoded_size);
 
   ASSERT(encoded_size == encode(encoded.data(), string));
 

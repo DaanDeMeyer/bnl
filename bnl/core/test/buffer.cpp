@@ -96,7 +96,7 @@ TEST_CASE("buffer")
 
   SUBCASE("mutable")
   {
-    mutable_buffer data(500);
+    buffer_mut data(500);
     data[50] = 20;
 
     buffer second = data; // NOLINT

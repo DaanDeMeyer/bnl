@@ -139,17 +139,17 @@ private:
   size_t position_;
 };
 
-class BNL_CORE_EXPORT mutable_buffer : public buffer {
+class BNL_CORE_EXPORT buffer_mut : public buffer {
 public:
-  mutable_buffer() = default;
-  explicit mutable_buffer(size_t size);
+  buffer_mut() = default;
+  explicit buffer_mut(size_t size);
 
-  BNL_MOVE_ONLY(mutable_buffer);
+  BNL_MOVE_ONLY(buffer_mut);
 
   template <size_t Size>
-  mutable_buffer(const char (&static_)[Size]) noexcept = delete;
+  buffer_mut(const char (&static_)[Size]) noexcept = delete;
 
-  mutable_buffer slice(size_t) = delete;
+  buffer_mut slice(size_t) = delete;
 
   uint8_t *data() noexcept;
   uint8_t &operator[](size_t index) noexcept;
@@ -157,7 +157,7 @@ public:
 
   uint8_t *end() noexcept;
 
-  operator mutable_buffer_view() noexcept;
+  operator buffer_view_mut() noexcept;
 };
 
 } // namespace bnl
