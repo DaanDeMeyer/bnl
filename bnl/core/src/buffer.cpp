@@ -5,45 +5,6 @@
 
 namespace bnl {
 
-buffer_view::buffer_view(const char *data, size_t size) noexcept
-    : buffer_view(reinterpret_cast<const uint8_t *>(data), size)
-{}
-
-buffer_view::buffer_view(const uint8_t *data, size_t size) noexcept
-    : data_(data), size_(size)
-{}
-
-const uint8_t *buffer_view::data() const noexcept
-{
-  return data_;
-}
-
-size_t buffer_view::size() const noexcept
-{
-  return size_;
-}
-
-const uint8_t *buffer_view::begin() const noexcept
-{
-  return data_;
-}
-
-const uint8_t *buffer_view::end() const noexcept
-{
-  return data_ + size_;
-}
-
-bool operator==(buffer_view lhs, buffer_view rhs) noexcept
-{
-  return lhs.size() == rhs.size() &&
-         std::equal(lhs.begin(), lhs.end(), rhs.begin());
-}
-
-bool operator!=(buffer_view lhs, buffer_view rhs) noexcept
-{
-  return !(lhs == rhs);
-}
-
 buffer::buffer() noexcept : type_(type::static_), static_() {} // NOLINT
 
 buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
@@ -374,6 +335,11 @@ uint8_t &mutable_buffer::operator*() noexcept
 uint8_t *mutable_buffer::end() noexcept
 {
   return data() + size();
+}
+
+mutable_buffer::operator mutable_buffer_view() noexcept
+{
+  return { data(), size() };
 }
 
 } // namespace bnl

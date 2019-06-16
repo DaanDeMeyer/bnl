@@ -6,6 +6,7 @@ target_sources(bnl-core PRIVATE
   src/http3/event.cpp
   src/http3/header.cpp
   src/quic/event.cpp
+  src/buffer_view.cpp
   src/buffer.cpp
   src/buffers.cpp
   src/log.cpp
