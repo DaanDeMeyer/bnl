@@ -3,19 +3,19 @@
 #include <utility>
 
 template <typename Fn>
-class function_ref;
+class function_view;
 
 template <typename Return, typename... Params>
-class function_ref<Return(Params...)> {
+class function_view<Return(Params...)> {
 public:
-  function_ref() = default;
-  function_ref(std::nullptr_t) {}
+  function_view() = default;
+  function_view(std::nullptr_t) {}
 
   template <typename Callable>
-  function_ref(Callable &&callable,
+  function_view(Callable &&callable,
                typename std::enable_if<
                    !std::is_same<typename std::remove_reference<Callable>::type,
-                                 function_ref>::value>::type * = nullptr)
+                                 function_view>::value>::type * = nullptr)
       : callback(callback_fn<typename std::remove_reference<Callable>::type>),
         callable(reinterpret_cast<void *>(&callable))
   {}

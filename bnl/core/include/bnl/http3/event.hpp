@@ -8,7 +8,7 @@
 #include <bnl/quic/event.hpp>
 
 #include <bnl/buffer.hpp>
-#include <bnl/function_ref.hpp>
+#include <bnl/function_view.hpp>
 
 #include <system_error>
 
@@ -17,7 +17,7 @@ namespace http3 {
 
 class BNL_CORE_EXPORT event {
 public:
-  using handler = function_ref<void(event, std::error_code &)>;
+  using handler = function_view<void(event, std::error_code &)>;
 
   enum class type { settings, header, body, error };
 

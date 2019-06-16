@@ -3,7 +3,7 @@
 #include <bnl/core/export.hpp>
 
 #include <bnl/buffer.hpp>
-#include <bnl/function_ref.hpp>
+#include <bnl/function_view.hpp>
 
 #include <cstdint>
 #include <system_error>
@@ -30,7 +30,7 @@ struct BNL_CORE_EXPORT error {
 
 class BNL_CORE_EXPORT event {
 public:
-  using handler = function_ref<void(event, std::error_code &ec)>;
+  using handler = function_view<void(event, std::error_code &ec)>;
 
   enum class type { data, error };
 
