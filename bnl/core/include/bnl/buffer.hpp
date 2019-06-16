@@ -21,8 +21,8 @@ public:
   buffer() noexcept;
 
   template <size_t Size>
-  buffer(const char (&static_)[Size]) noexcept // NOLINT
-      : buffer(static_cast<const char *>(static_), Size - 1)
+  buffer(const char (&data)[Size]) noexcept // NOLINT
+      : buffer(reinterpret_cast<const uint8_t *>(data), Size - 1)
   {}
 
   // Use a templated constructor to avoid an ambiguous overload that occurs
@@ -70,7 +70,6 @@ protected:
   uint8_t *data_mut() noexcept;
 
 private:
-  buffer(const char *static_, size_t size) noexcept;
   buffer(const uint8_t *data, size_t size) noexcept;
 
   void upgrade() const noexcept;
@@ -78,9 +77,9 @@ private:
   void destroy() noexcept;
 
 private:
-  enum class type { static_, sso, unique, shared };
+  enum class type { sso, unique, shared };
 
-  static constexpr size_t SSO_THRESHOLD = 10;
+  static constexpr size_t SSO_THRESHOLD = 20;
 
   mutable type type_;
   size_t size_ = 0;
@@ -89,7 +88,6 @@ private:
   using deleter = std::function<void(uint8_t *)>;
 
   union {
-    const char *static_;
     std::array<uint8_t, SSO_THRESHOLD> sso_;
     // Type erase `std::unique_ptr` deleter so any kind of deleter can be stored
     // in `buffer`.
@@ -146,9 +144,6 @@ public:
 
   BNL_MOVE_ONLY(buffer_mut);
 
-  template <size_t Size>
-  buffer_mut(const char (&static_)[Size]) noexcept = delete;
-
   buffer_mut slice(size_t) = delete;
 
   uint8_t *data() noexcept;
@@ -157,7 +152,7 @@ public:
 
   uint8_t *end() noexcept;
 
-  operator buffer_view_mut() noexcept;
+  operator buffer_view_mut() noexcept; // NOLINT
 };
 
 } // namespace bnl

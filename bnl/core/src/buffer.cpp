@@ -5,7 +5,7 @@
 
 namespace bnl {
 
-buffer::buffer() noexcept : type_(type::static_), static_() {} // NOLINT
+buffer::buffer() noexcept : type_(type::sso), sso_() {} // NOLINT
 
 buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
     : type_(size <= SSO_THRESHOLD ? type::sso : type::shared), size_(size)
@@ -35,9 +35,6 @@ buffer &buffer::operator=(const buffer &other) noexcept
     destroy();
 
     switch (other.type_) {
-      case type::static_:
-        new (&static_) decltype(static_)(other.static_);
-        break;
       case type::sso:
         new (&sso_) decltype(sso_)(other.sso_);
         break;
@@ -70,9 +67,6 @@ buffer &buffer::operator=(buffer &&other) noexcept
     destroy();
 
     switch (other.type_) {
-      case type::static_:
-        new (&static_) decltype(static_)(other.static_);
-        break;
       case type::sso:
         new (&sso_) decltype(sso_)(other.sso_);
         break;
@@ -103,8 +97,6 @@ buffer::~buffer() noexcept
 const uint8_t *buffer::data() const noexcept
 {
   switch (type_) {
-    case type::static_:
-      return reinterpret_cast<const uint8_t *>(static_) + position_;
     case type::sso:
       return sso_.data() + position_;
     case type::unique:
@@ -156,8 +148,6 @@ buffer buffer::slice(size_t size) const noexcept
   }
 
   switch (type_) {
-    case type::static_:
-      return buffer(data(), size);
     case type::sso:
       return buffer(data(), size);
     case type::unique:
@@ -240,8 +230,6 @@ buffer::buffer(size_t size) noexcept // NOLINT
 uint8_t *buffer::data_mut() noexcept
 {
   switch (type_) {
-    case type::static_:
-      break;
     case type::sso:
       return sso_.data() + position_;
     case type::unique:
@@ -254,15 +242,10 @@ uint8_t *buffer::data_mut() noexcept
   return nullptr;
 }
 
-buffer::buffer(const char *static_, size_t size) noexcept // NOLINT
-    : type_(type::static_), size_(size), static_(static_)
-{}
-
 buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
-    : type_(type::sso), size_(size), sso_()
+    : buffer(size)
 {
-  assert(size <= SSO_THRESHOLD);
-  std::copy_n(data, size, sso_.data());
+  std::copy_n(data, size, data_mut());
 }
 
 void buffer::upgrade() const noexcept
@@ -280,7 +263,6 @@ void buffer::destroy() noexcept
   switch (type_) {
     case type::sso:
       sso_.~array();
-    case type::static_:
       break;
     case type::unique:
       unique_.~unique_ptr();

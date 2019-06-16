@@ -4,10 +4,6 @@
 
 namespace bnl {
 
-buffer_view::buffer_view(const char *data, size_t size) noexcept
-    : buffer_view(reinterpret_cast<const uint8_t *>(data), size)
-{}
-
 buffer_view::buffer_view(const uint8_t *data, size_t size) noexcept
     : data_(data), size_(size)
 {}
