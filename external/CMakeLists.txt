@@ -7,11 +7,13 @@ FetchContent_Declare(
   URL https://github.com/onqtam/doctest/archive/2.3.2.tar.gz
 )
 
-option(DOCTEST_WITH_TESTS "" OFF)
-option(DOCTEST_WITH_MAIN_IN_STATIC_LIB "" ON)
-option(DOCTEST_NO_INSTALL "" ON)
+if(BNL_TEST)
+  option(DOCTEST_WITH_TESTS "" OFF)
+  option(DOCTEST_WITH_MAIN_IN_STATIC_LIB "" ON)
+  option(DOCTEST_NO_INSTALL "" ON)
 
-reproc_MakeAvailable(doctest)
+  reproc_MakeAvailable(doctest)
+endif()
 
 ## fmt ##
 
