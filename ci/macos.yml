@@ -34,4 +34,3 @@ jobs:
 
   - script: build/test
     displayName: Test
-

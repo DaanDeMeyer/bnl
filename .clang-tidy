@@ -34,4 +34,3 @@ Checks:
 '
 HeaderFilterRegex: '^.*include.*bnl.*$'
 ...
-
