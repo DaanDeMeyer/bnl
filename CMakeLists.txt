@@ -1,6 +1,5 @@
-# 3.14 introduced `FetchContent_MakeAvailable` which is used to download
-# dependencies at configure time.
-cmake_minimum_required(VERSION 3.14)
+# 3.13 is required for `target_link_options`.
+cmake_minimum_required(VERSION 3.13...3.14)
 
 project(bnl
   VERSION 0.0.1

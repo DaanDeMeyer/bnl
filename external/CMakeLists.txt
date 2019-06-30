@@ -11,7 +11,7 @@ option(DOCTEST_WITH_TESTS "" OFF)
 option(DOCTEST_WITH_MAIN_IN_STATIC_LIB "" ON)
 option(DOCTEST_NO_INSTALL "" ON)
 
-FetchContent_MakeAvailable(doctest)
+reproc_MakeAvailable(doctest)
 
 ## fmt ##
 
@@ -23,7 +23,7 @@ FetchContent_Declare(
 )
 
 option(FMT_INSTALL "" ON)
-FetchContent_MakeAvailable(fmt)
+reproc_MakeAvailable(fmt)
 
 ## xxhash ##
 
@@ -33,7 +33,7 @@ FetchContent_Declare(
   GIT_TAG 22d66e972267852409e8d13565cdfb459e285b70
 )
 
-FetchContent_MakeAvailable(xxhash)
+reproc_MakeAvailable(xxhash)
 
 add_library(xxhash INTERFACE IMPORTED GLOBAL)
 target_compile_definitions(xxhash INTERFACE XXH_INLINE_ALL)
