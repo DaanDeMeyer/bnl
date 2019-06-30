@@ -1,4 +1,4 @@
-cddm_add_library(http3)
+bnl_add_library(http3)
 
 # GCC 8.1.0 has Wconversion false positives.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
@@ -53,7 +53,7 @@ endif()
 foreach(ACTION encode decode)
   add_executable(bnl-http3-qpack-interop-${ACTION})
 
-  cddm_add_common(bnl-http3-qpack-interop-${ACTION} bin)
+  bnl_add_common(bnl-http3-qpack-interop-${ACTION} bin)
   target_link_libraries(bnl-http3-qpack-interop-${ACTION} PRIVATE
     bnl-http3
     bnl-log

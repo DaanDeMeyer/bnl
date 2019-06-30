@@ -1,4 +1,4 @@
-cddm_add_library(core)
+bnl_add_library(core)
 
 target_link_libraries(bnl-core PUBLIC fmt)
 

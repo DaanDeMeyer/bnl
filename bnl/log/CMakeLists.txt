@@ -1,4 +1,4 @@
-cddm_add_library(log)
+bnl_add_library(log)
 
 target_link_libraries(bnl-log PUBLIC bnl-core)
 

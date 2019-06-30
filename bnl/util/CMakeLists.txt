@@ -1,4 +1,4 @@
-cddm_add_library(util)
+bnl_add_library(util)
 
 target_link_libraries(bnl-util PUBLIC bnl-core)
 

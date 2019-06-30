@@ -11,8 +11,9 @@ project(bnl
 
 option(BNL_TEST "Build tests.")
 
-include(external/CMakeLists.txt)
-include(external/cddm.cmake)
+include(cmake/bnl.cmake)
+
+add_subdirectory(external)
 
 if(BNL_TEST)
   # bnl uses the doctest testing framework. All tests are grouped inside a
@@ -20,7 +21,7 @@ if(BNL_TEST)
   # new tests. Tests are executed by running the build/test executable.
   add_executable(bnl-test)
 
-  cddm_add_common(bnl-test "")
+  bnl_add_common(bnl-test "")
   target_link_libraries(bnl-test PRIVATE doctest_with_main)
   set_target_properties(bnl-test PROPERTIES OUTPUT_NAME test)
 endif()
