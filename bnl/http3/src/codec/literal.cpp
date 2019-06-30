@@ -84,9 +84,7 @@ buffer literal::decoder::decode(Sequence &encoded,
 {
   typename Sequence::anchor anchor(encoded);
 
-  if (encoded.empty()) {
-    THROW(error::incomplete);
-  }
+  CHECK(!encoded.empty(), error::incomplete);
 
   bool is_huffman_encoded = (static_cast<uint8_t>(*encoded >> prefix) // NOLINT
                              & 0x01) != 0;

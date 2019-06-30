@@ -18,10 +18,7 @@ event server::request::receiver::process(frame frame,
 {
   switch (frame) {
     case frame::type::priority:
-      if (headers().started()) {
-        THROW(error::unexpected_frame);
-      }
-
+      CHECK(!headers().started(), error::unexpected_frame);
       // TODO: Implement PRIORITY
       THROW(error::not_implemented);
     case frame::type::headers:

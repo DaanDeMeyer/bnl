@@ -119,9 +119,7 @@ uint8_t
 prefix_int::decoder::uint8_decode(Sequence &encoded, std::error_code &ec) const
     noexcept
 {
-  if (encoded.empty()) {
-    THROW(error::incomplete);
-  }
+  CHECK(!encoded.empty(), error::incomplete);
 
   uint8_t result = *encoded;
 

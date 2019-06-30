@@ -11,26 +11,26 @@ body::encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger)
 {}
 
-void body::encoder::add(buffer body, std::error_code &ec)
+nothing body::encoder::add(buffer body, std::error_code &ec)
 {
-  if (fin_) {
-    THROW_VOID(error::internal_error);
-  }
+  CHECK(!fin_, error::internal_error);
 
   buffers_.emplace(std::move(body));
+
+  return {};
 }
 
-void body::encoder::fin(std::error_code &ec) noexcept
+nothing body::encoder::fin(std::error_code &ec) noexcept
 {
-  if (state_ == state::fin) {
-    THROW_VOID(error::internal_error);
-  }
+  CHECK(state_ != state::fin, error::internal_error);
 
   fin_ = true;
 
   if (buffers_.empty()) {
     state_ = state::fin;
   }
+
+  return {};
 }
 
 bool body::encoder::finished() const noexcept
@@ -47,9 +47,7 @@ buffer body::encoder::encode(std::error_code &ec) noexcept
   switch (state_) {
 
     case state::frame: {
-      if (buffers_.empty()) {
-        THROW(error::idle);
-      }
+      CHECK(!buffers_.empty(), error::idle);
 
       frame frame = frame::payload::data{ buffers_.front().size() };
       buffer encoded = TRY(frame_.encode(frame, ec));
@@ -97,9 +95,7 @@ buffer body::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
     case state::frame: {
       frame::type type = TRY(frame_.peek(encoded, ec));
 
-      if (type != frame::type::data) {
-        THROW(error::unknown);
-      }
+      CHECK(type == frame::type::data, error::unknown);
 
       frame frame = TRY(frame_.decode(encoded, ec));
 
@@ -108,9 +104,7 @@ buffer body::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
     }
 
     case state::data: {
-      if (encoded.empty()) {
-        THROW(error::incomplete);
-      }
+      CHECK(!encoded.empty(), error::incomplete);
 
       size_t body_part_size = encoded.size() < remaining_
                                   ? encoded.size()

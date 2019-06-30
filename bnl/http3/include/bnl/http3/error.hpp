@@ -27,6 +27,7 @@ enum class error : uint32_t {
   // than 16 bytes for library error codes.
 
   not_implemented = UINT16_MAX + 1,
+  invalid_argument,
   incomplete,
   idle,
   unknown,

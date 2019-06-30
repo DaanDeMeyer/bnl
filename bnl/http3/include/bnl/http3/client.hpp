@@ -7,6 +7,8 @@
 #include <bnl/http3/endpoint/client/request.hpp>
 #include <bnl/http3/endpoint/handle.hpp>
 
+#include <bnl/nothing.hpp>
+
 #include <bnl/quic/event.hpp>
 
 #include <bnl/class/macro.hpp>
@@ -29,7 +31,7 @@ public:
 
   quic::data send(std::error_code &ec) noexcept;
 
-  void recv(quic::data data, event::handler handler, std::error_code &ec);
+  nothing recv(quic::data data, event::handler handler, std::error_code &ec);
 
   endpoint::handle request(std::error_code &ec);
 

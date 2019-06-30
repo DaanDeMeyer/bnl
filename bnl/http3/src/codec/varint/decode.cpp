@@ -81,9 +81,7 @@ template <typename Sequence>
 uint64_t
 varint::decoder::decode(Sequence &encoded, std::error_code &ec) const noexcept
 {
-  if (encoded.empty()) {
-    THROW(error::incomplete);
-  }
+  CHECK(!encoded.empty(), error::incomplete);
 
   size_t varint_size = 1;
   uint8_t header = static_cast<uint8_t>(*encoded >> 6U);
@@ -91,9 +89,7 @@ varint::decoder::decode(Sequence &encoded, std::error_code &ec) const noexcept
   // varint size = 2^header
   varint_size <<= header; // shift left => x2
 
-  if (varint_size > encoded.size()) {
-    THROW(error::incomplete);
-  }
+  CHECK(encoded.size() >= varint_size, error::incomplete);
 
   uint64_t varint = 0;
 

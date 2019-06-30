@@ -44,7 +44,8 @@ quic::data server::send(std::error_code &ec) noexcept
   THROW(error::idle);
 }
 
-void server::recv(quic::data data, event::handler handler, std::error_code &ec)
+nothing
+server::recv(quic::data data, event::handler handler, std::error_code &ec)
 {
   endpoint::server::control::receiver &control = control_.second;
 
@@ -63,7 +64,7 @@ void server::recv(quic::data data, event::handler handler, std::error_code &ec)
 
     control.recv(std::move(data), control_handler, ec);
 
-    return;
+    return {};
   }
 
   auto match = requests_.find(data.id);
@@ -71,7 +72,7 @@ void server::recv(quic::data data, event::handler handler, std::error_code &ec)
     endpoint::server::request::sender sender(data.id, logger_);
     endpoint::server::request::receiver receiver(data.id, logger_);
 
-    TRY_VOID(receiver.start(ec));
+    TRY(receiver.start(ec));
 
     request request = std::make_pair(std::move(sender), std::move(receiver));
     requests_.insert(std::make_pair(data.id, std::move(request)));
@@ -84,14 +85,13 @@ void server::recv(quic::data data, event::handler handler, std::error_code &ec)
   };
 
   request.recv(std::move(data), request_handler, ec);
+
+  return {};
 }
 
 endpoint::handle server::response(uint64_t id, std::error_code &ec) noexcept
 {
-  if (requests_.find(id) == requests_.end()) {
-    THROW(error::stream_closed);
-  }
-
+  CHECK(requests_.find(id) != requests_.end(), error::stream_closed);
   return requests_.at(id).first.handle();
 }
 

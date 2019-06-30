@@ -11,23 +11,23 @@ headers::encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
-void headers::encoder::add(header_view header, std::error_code &ec)
+nothing headers::encoder::add(header_view header, std::error_code &ec)
 {
-  if (state_ != state::idle) {
-    THROW_VOID(error::internal_error);
-  }
+  CHECK(state_ == state::idle, error::internal_error);
 
   buffer encoded = qpack_.encode(header, ec);
   buffers_.emplace(std::move(encoded));
+
+  return {};
 }
 
-void headers::encoder::fin(std::error_code &ec) noexcept
+nothing headers::encoder::fin(std::error_code &ec) noexcept
 {
-  if (state_ != state::idle) {
-    THROW_VOID(error::internal_error);
-  }
+  CHECK(state_ == state::idle, error::internal_error);
 
   state_ = state::frame;
+
+  return {};
 }
 
 bool headers::encoder::finished() const noexcept
@@ -97,26 +97,20 @@ header headers::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
     case state::frame: {
       frame::type type = TRY(frame_.peek(encoded, ec));
 
-      if (type != frame::type::headers) {
-        THROW(error::unknown);
-      }
+      CHECK(type == frame::type::headers, error::unknown);
 
       frame frame = TRY(frame_.decode(encoded, ec));
 
       state_ = state::qpack;
       headers_size_ = frame.headers.size;
 
-      if (headers_size_ == 0) {
-        THROW(error::malformed_frame);
-      }
+      CHECK(headers_size_ != 0, error::malformed_frame);
     }
 
     case state::qpack: {
       header header = TRY(qpack_.decode(encoded, ec));
 
-      if (qpack_.count() > headers_size_) {
-        THROW(error::malformed_frame);
-      }
+      CHECK(qpack_.count() <= headers_size_, error::malformed_frame);
 
       bool fin = qpack_.count() == headers_size_;
       state_ = fin ? state::fin : state_;

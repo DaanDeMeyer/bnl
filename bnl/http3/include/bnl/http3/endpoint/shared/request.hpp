@@ -14,6 +14,7 @@
 
 #include <bnl/buffer.hpp>
 #include <bnl/buffers.hpp>
+#include <bnl/nothing.hpp>
 
 namespace bnl {
 
@@ -69,9 +70,9 @@ public:
 
   bool finished() const noexcept;
 
-  void start(std::error_code &ec) noexcept;
+  nothing start(std::error_code &ec) noexcept;
 
-  void recv(quic::data data, event::handler handler, std::error_code &ec);
+  nothing recv(quic::data data, event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) noexcept = 0;

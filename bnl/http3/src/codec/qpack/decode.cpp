@@ -69,14 +69,10 @@ header qpack::decoder::decode(Sequence &encoded, std::error_code &ec)
 
   typename Sequence::anchor anchor(encoded);
 
-  if (encoded.empty()) {
-    THROW(error::incomplete);
-  }
+  CHECK(!encoded.empty(), error::incomplete);
 
   if (state_ == state::prefix) {
-    if (encoded.size() < QPACK_PREFIX_ENCODED_SIZE) {
-      THROW(error::incomplete);
-    }
+    CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, error::incomplete);
 
     encoded += QPACK_PREFIX_ENCODED_SIZE;
     count_ += QPACK_PREFIX_ENCODED_SIZE;
@@ -90,38 +86,30 @@ header qpack::decoder::decode(Sequence &encoded, std::error_code &ec)
   switch (qpack_instruction_type(*encoded)) {
 
     case instruction::indexed_header_field: {
-      // Ensure the 'S' bit is set which indicates the index is in the static
-      // table.
-      if ((*encoded & 0x40U) == 0) {
-        LOG_E("'S' bit not set in indexed header field");
-        THROW(error::qpack_decompression_failed);
-      }
+      CHECK_MSG((*encoded & 0x40U) != 0, error::qpack_decompression_failed,
+                "'S' (static table) bit not set in indexed header field");
 
       uint8_t index = TRY(
           static_cast<uint8_t>(prefix_int_.decode(encoded, 6, ec)));
 
-      if (!qpack::static_table::find_header_value(index, &header)) {
-        LOG_E("Indexed header field ({}) not found in static table", index);
-        THROW(error::qpack_decompression_failed);
-      }
+      bool found = qpack::static_table::find_header_value(index, &header);
+      CHECK_MSG(found, error::qpack_decompression_failed,
+                "Indexed header field ({}) not found in static table", index);
+
       break;
     }
 
     case instruction::literal_with_name_reference: {
-      // Ensure the 'S' bit is set which indicates the index is in the static
-      // table.
-      if ((*encoded & 0x10U) == 0) {
-        LOG_E("'S' bit not set in literal with name reference");
-        THROW(error::qpack_decompression_failed);
-      }
+      CHECK_MSG(
+          (*encoded & 0x10U) != 0, error::qpack_decompression_failed,
+          "'S' (static table) bit not set in literal with name reference");
 
       uint8_t index = TRY(
           static_cast<uint8_t>(prefix_int_.decode(encoded, 4, ec)));
 
-      if (!static_table::find_header_only(index, &header)) {
-        LOG_E("Header name reference ({}) not found in static table", index);
-        THROW(error::qpack_decompression_failed);
-      }
+      bool found = qpack::static_table::find_header_only(index, &header);
+      CHECK_MSG(found, error::qpack_decompression_failed,
+                "Header name reference ({}) not found in static table", index);
 
       header.value = TRY(literal_.decode(encoded, 7, ec));
       break;
@@ -133,10 +121,8 @@ header qpack::decoder::decode(Sequence &encoded, std::error_code &ec)
       const char *name = reinterpret_cast<const char *>(header.name.data());
       size_t size = header.name.size();
 
-      if (!util::is_lowercase(name, size)) {
-        LOG_E("Header ({}) is not lowercase", fmt::string_view(name, size));
-        THROW(error::malformed_header);
-      }
+      CHECK_MSG(util::is_lowercase(name, size), error::malformed_header,
+                "Header ({}) is not lowercase", fmt::string_view(name, size));
 
       header.value = TRY(literal_.decode(encoded, 7, ec));
       break;

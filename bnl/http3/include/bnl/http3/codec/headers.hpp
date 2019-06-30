@@ -11,6 +11,8 @@
 
 #include <bnl/class/macro.hpp>
 
+#include <bnl/nothing.hpp>
+
 #include <queue>
 
 namespace bnl {
@@ -28,8 +30,8 @@ public:
 
   BNL_MOVE_ONLY(encoder);
 
-  void add(header_view header, std::error_code &ec);
-  void fin(std::error_code &ec) noexcept;
+  nothing add(header_view header, std::error_code &ec);
+  nothing fin(std::error_code &ec) noexcept;
 
   bool finished() const noexcept;
 

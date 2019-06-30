@@ -36,6 +36,8 @@ std::string error_category_impl::message(int condition) const noexcept
 
     case error::not_implemented:
       return "not implemented";
+    case error::invalid_argument:
+      return "invalid argument";
     case error::incomplete:
       return "incomplete";
     case error::idle:

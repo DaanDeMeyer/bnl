@@ -82,7 +82,7 @@ size_t varint::encoder::encode(uint8_t *dest,
                                uint64_t varint,
                                std::error_code &ec) const noexcept
 {
-  ASSERT(dest != nullptr);
+  CHECK(dest != nullptr, error::invalid_argument);
 
   size_t varint_size = TRY(this->encoded_size(varint, ec));
 

@@ -89,9 +89,7 @@ size_t huffman::decoder::decoded_size(Sequence &encoded,
                                       size_t encoded_size,
                                       std::error_code &ec) const noexcept
 {
-  if (encoded.size() < encoded_size) {
-    THROW(error::incomplete);
-  }
+  CHECK(encoded.size() >= encoded_size, error::incomplete);
 
   size_t decoded_size = 0;
   uint8_t state = 0;
@@ -100,9 +98,8 @@ size_t huffman::decoder::decoded_size(Sequence &encoded,
   for (size_t i = 0; i < encoded_size; i++) {
     const node &first = decode_table[state][encoded[i] >> 4U];
 
-    if ((first.flags & util::to_underlying(decode_flag::failed)) != 0) {
-      THROW(error::qpack_decompression_failed);
-    }
+    bool failed = (first.flags & util::to_underlying(decode_flag::failed)) != 0;
+    CHECK(!failed, error::qpack_decompression_failed);
 
     if ((first.flags & util::to_underlying(decode_flag::symbol)) != 0) {
       decoded_size++;
@@ -110,9 +107,8 @@ size_t huffman::decoder::decoded_size(Sequence &encoded,
 
     const node &second = decode_table[first.state][encoded[i] & 0xfU];
 
-    if ((second.flags & util::to_underlying(decode_flag::failed)) != 0) {
-      THROW(error::qpack_decompression_failed);
-    }
+    failed = (second.flags & util::to_underlying(decode_flag::failed)) != 0;
+    CHECK(!failed, error::qpack_decompression_failed);
 
     if ((second.flags & util::to_underlying(decode_flag::symbol)) != 0) {
       decoded_size++;
@@ -122,9 +118,7 @@ size_t huffman::decoder::decoded_size(Sequence &encoded,
     accept = (second.flags & util::to_underlying(decode_flag::accepted)) != 0;
   }
 
-  if (!accept) {
-    THROW(error::qpack_decompression_failed);
-  }
+  CHECK(accept, error::qpack_decompression_failed);
 
   return decoded_size;
 }

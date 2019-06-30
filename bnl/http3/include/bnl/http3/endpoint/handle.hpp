@@ -4,6 +4,7 @@
 #include <bnl/http3/header.hpp>
 
 #include <bnl/buffer.hpp>
+#include <bnl/nothing.hpp>
 
 #include <cstdint>
 #include <system_error>
@@ -38,11 +39,11 @@ public:
 
   uint64_t id() const noexcept;
 
-  void header(header_view header, std::error_code &ec);
-  void body(buffer body, std::error_code &ec);
+  nothing header(header_view header, std::error_code &ec);
+  nothing body(buffer body, std::error_code &ec);
 
-  void start(std::error_code &ec) noexcept;
-  void fin(std::error_code &ec) noexcept;
+  nothing start(std::error_code &ec) noexcept;
+  nothing fin(std::error_code &ec) noexcept;
 
 private:
   friend endpoint::shared::request::sender;

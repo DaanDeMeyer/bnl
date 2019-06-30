@@ -46,17 +46,15 @@ uint64_t control::receiver::id() const noexcept
   return id_;
 }
 
-void control::receiver::recv(quic::data data,
-                             event::handler handler,
-                             std::error_code &ec)
+nothing control::receiver::recv(quic::data data,
+                                event::handler handler,
+                                std::error_code &ec)
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
   // TODO: Handle `quic::event::type::error`.
 
-  if (data.fin) {
-    THROW_VOID(error::closed_critical_stream);
-  }
+  CHECK(!data.fin, error::closed_critical_stream);
 
   buffers_.push(std::move(data.buffer));
 
@@ -72,6 +70,8 @@ void control::receiver::recv(quic::data data,
 
     handler(std::move(event), ec);
   }
+
+  return {};
 }
 
 event control::receiver::process(std::error_code &ec) noexcept
@@ -85,9 +85,7 @@ event control::receiver::process(std::error_code &ec) noexcept
 
       // First frame on the control stream has to be a SETTINGS frame.
       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-settings
-      if (frame != frame::type::settings) {
-        THROW(error::missing_settings);
-      }
+      CHECK(frame == frame::type::settings, error::missing_settings);
 
       state_ = state::active;
 

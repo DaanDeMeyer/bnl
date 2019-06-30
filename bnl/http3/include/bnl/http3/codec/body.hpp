@@ -7,6 +7,8 @@
 #include <bnl/buffer.hpp>
 #include <bnl/buffers.hpp>
 
+#include <bnl/nothing.hpp>
+
 #include <bnl/class/macro.hpp>
 
 #include <queue>
@@ -26,8 +28,8 @@ public:
 
   BNL_MOVE_ONLY(encoder);
 
-  void add(buffer body, std::error_code &ec);
-  void fin(std::error_code &ec) noexcept;
+  nothing add(buffer body, std::error_code &ec);
+  nothing fin(std::error_code &ec) noexcept;
 
   bool finished() const noexcept;
 

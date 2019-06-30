@@ -69,9 +69,7 @@ uint8_t
 frame::decoder::uint8_decode(Sequence &encoded, std::error_code &ec) const
     noexcept
 {
-  if (encoded.empty()) {
-    THROW(error::incomplete);
-  }
+  CHECK(!encoded.empty(), error::incomplete);
 
   uint8_t result = *encoded;
 
@@ -239,15 +237,9 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
 
     size_t actual_encoded_size = encoded.consumed() - before;
 
-    if (actual_encoded_size > payload_encoded_size) {
-      LOG_E("Frame payload's actual length exceeds its advertised length");
-      THROW(error::malformed_frame);
-    }
-
-    if (actual_encoded_size < payload_encoded_size) {
-      LOG_E("Frame payload's advertised length exceeds its actual length");
-      THROW(error::malformed_frame);
-    }
+    CHECK_MSG(
+        actual_encoded_size == payload_encoded_size, error::malformed_frame,
+        "Frame payload's actual length does not match its advertised length");
 
     if (!is_unknown_frame_type) {
       anchor.release();

@@ -29,10 +29,8 @@ size_t qpack::encoder::encoded_size(header_view header,
   const char *name = reinterpret_cast<const char *>(header.name().data());
   size_t size = header.name().size();
 
-  if (!util::is_lowercase(name, size)) {
-    LOG_E("Header ({}) is not lowercase", fmt::string_view(name, size));
-    THROW(error::malformed_header);
-  }
+  CHECK_MSG(util::is_lowercase(name, size), error::malformed_header,
+            "Header ({}) is not lowercase", fmt::string_view(name, size));
 
   size_t encoded_size = 0;
 
@@ -84,7 +82,7 @@ size_t qpack::encoder::encode(uint8_t *dest,
                               header_view header,
                               std::error_code &ec) noexcept
 {
-  ASSERT(dest != nullptr);
+  CHECK(dest != nullptr, error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(header, ec));
   uint8_t *begin = dest;

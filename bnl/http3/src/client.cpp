@@ -47,7 +47,8 @@ quic::data client::send(std::error_code &ec) noexcept
   THROW(error::idle);
 }
 
-void client::recv(quic::data data, event::handler handler, std::error_code &ec)
+nothing
+client::recv(quic::data data, event::handler handler, std::error_code &ec)
 {
   endpoint::client::control::receiver &control = control_.second;
 
@@ -66,14 +67,12 @@ void client::recv(quic::data data, event::handler handler, std::error_code &ec)
 
     control.recv(std::move(data), control_handler, ec);
 
-    return;
+    return {};
   }
 
   auto match = requests_.find(data.id);
-  if (match == requests_.end()) {
-    // TODO: Better error
-    THROW_VOID(error::internal_error);
-  }
+  // TODO: Better error
+  CHECK(match != requests_.end(), error::internal_error);
 
   endpoint::client::request::receiver &request = match->second.second;
 
@@ -87,6 +86,8 @@ void client::recv(quic::data data, event::handler handler, std::error_code &ec)
   if (request.finished()) {
     requests_.erase(id);
   }
+
+  return {};
 }
 
 endpoint::handle client::request(std::error_code & /* ec */)

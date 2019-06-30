@@ -51,39 +51,27 @@ uint64_t handle::id() const noexcept
   return id_;
 }
 
-void handle::header(header_view header, std::error_code &ec)
+nothing handle::header(header_view header, std::error_code &ec)
 {
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
+  CHECK(ref_ != nullptr, error::stream_closed);
   return ref_->headers_.add(header, ec);
 }
 
-void handle::start(std::error_code &ec) noexcept
+nothing handle::start(std::error_code &ec) noexcept
 {
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
+  CHECK(ref_ != nullptr, error::stream_closed);
   return ref_->headers_.fin(ec);
 }
 
-void handle::body(buffer body, std::error_code &ec)
+nothing handle::body(buffer body, std::error_code &ec)
 {
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
+  CHECK(ref_ != nullptr, error::stream_closed);
   return ref_->body_.add(std::move(body), ec);
 }
 
-void handle::fin(std::error_code &ec) noexcept
+nothing handle::fin(std::error_code &ec) noexcept
 {
-  if (ref_ == nullptr) {
-    THROW_VOID(error::stream_closed);
-  }
-
+  CHECK(ref_ != nullptr, error::stream_closed);
   return ref_->body_.fin(ec);
 }
 

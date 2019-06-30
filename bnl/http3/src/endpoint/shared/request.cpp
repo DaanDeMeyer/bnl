@@ -126,13 +126,13 @@ bool request::receiver::finished() const noexcept
   return state_ == state::fin;
 }
 
-void request::receiver::start(std::error_code &ec) noexcept
+nothing request::receiver::start(std::error_code &ec) noexcept
 {
-  if (state_ != state::closed) {
-    THROW_VOID(error::internal_error);
-  }
+  CHECK(state_ == state::closed, error::internal_error);
 
   state_ = state::headers;
+
+  return {};
 }
 
 const headers::decoder &request::receiver::headers() const noexcept
@@ -140,17 +140,15 @@ const headers::decoder &request::receiver::headers() const noexcept
   return headers_;
 }
 
-void request::receiver::recv(quic::data data,
-                             event::handler handler,
-                             std::error_code &ec)
+nothing request::receiver::recv(quic::data data,
+                                event::handler handler,
+                                std::error_code &ec)
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
   // TODO: Handle `quic::event::type::error`.
 
-  if (fin_received_) {
-    THROW_VOID(error::internal_error);
-  }
+  CHECK(!fin_received_, error::internal_error);
 
   buffers_.push(std::move(data.buffer));
   fin_received_ = data.fin;
@@ -170,6 +168,8 @@ void request::receiver::recv(quic::data data,
 
     handler(event, ec);
   }
+
+  return {};
 }
 
 event request::receiver::process(std::error_code &ec) noexcept
@@ -209,10 +209,7 @@ event request::receiver::process(std::error_code &ec) noexcept
       if (fin) {
         // We've processed all stream data but there still frame data left to be
         // received.
-        if (body_.in_progress()) {
-          THROW(error::malformed_frame);
-        }
-
+        CHECK(!body_.in_progress(), error::malformed_frame);
         state_ = state::fin;
       }
 
@@ -229,10 +226,8 @@ event request::receiver::process(std::error_code &ec) noexcept
 
     switch (frame) {
       case frame::type::headers:
-        if (state_ == request::receiver::state::body) {
-          // TODO: Implement trailing HEADERS
-          THROW(error::not_implemented);
-        }
+        // TODO: Implement trailing HEADERS
+        CHECK(state_ != request::receiver::state::body, error::not_implemented);
         break;
       case frame::type::data:
         THROW(error::unexpected_frame);

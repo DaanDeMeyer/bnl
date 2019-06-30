@@ -8,6 +8,7 @@
 #include <bnl/quic/event.hpp>
 
 #include <bnl/buffers.hpp>
+#include <bnl/nothing.hpp>
 
 #include <bnl/class/macro.hpp>
 
@@ -53,7 +54,7 @@ public:
 
   uint64_t id() const noexcept;
 
-  void recv(quic::data data, event::handler handler, std::error_code &ec);
+  nothing recv(quic::data data, event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) = 0;
