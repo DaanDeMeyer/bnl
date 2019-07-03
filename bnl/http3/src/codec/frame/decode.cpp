@@ -33,16 +33,16 @@ frame::decoder::peek(Sequence &encoded, std::error_code &ec) const noexcept
   while (true) {
     uint64_t type = TRY(varint_.decode(encoded, ec));
 
-    switch (type) {
-      case util::to_underlying(frame::type::data):
-      case util::to_underlying(frame::type::headers):
-      case util::to_underlying(frame::type::priority):
-      case util::to_underlying(frame::type::cancel_push):
-      case util::to_underlying(frame::type::settings):
-      case util::to_underlying(frame::type::push_promise):
-      case util::to_underlying(frame::type::goaway):
-      case util::to_underlying(frame::type::max_push_id):
-      case util::to_underlying(frame::type::duplicate_push):
+    switch (static_cast<frame::type>(type)) {
+      case frame::type::data:
+      case frame::type::headers:
+      case frame::type::priority:
+      case frame::type::cancel_push:
+      case frame::type::settings:
+      case frame::type::push_promise:
+      case frame::type::goaway:
+      case frame::type::max_push_id:
+      case frame::type::duplicate_push:
         return static_cast<frame::type>(type);
       default:
         continue;
@@ -92,8 +92,8 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
 
     // Use lambda to get around lack of copy assignment operator on `frame`.
     auto payload_decode = [&]() -> frame {
-      switch (type) {
-        case util::to_underlying(frame::type::data): {
+      switch (static_cast<frame::type>(type)) {
+        case frame::type::data: {
           frame::payload::data data{};
 
           data.size = payload_encoded_size;
@@ -102,7 +102,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return data;
         }
 
-        case util::to_underlying(frame::type::headers): {
+        case frame::type::headers: {
           frame::payload::headers headers{};
 
           headers.size = payload_encoded_size;
@@ -111,7 +111,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return headers;
         }
 
-        case util::to_underlying(frame::type::priority): {
+        case frame::type::priority: {
           frame::payload::priority priority{};
 
           uint8_t byte = TRY(uint8_decode(encoded, ec));
@@ -129,7 +129,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return priority;
         }
 
-        case util::to_underlying(frame::type::cancel_push): {
+        case frame::type::cancel_push: {
           frame::payload::cancel_push cancel_push{};
 
           cancel_push.push_id = TRY(varint_.decode(encoded, ec));
@@ -137,7 +137,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return cancel_push;
         }
 
-        case util::to_underlying(frame::type::settings): {
+        case frame::type::settings: {
           frame::payload::settings settings{};
 
           size_t settings_encoded_size = 0;
@@ -172,7 +172,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return settings;
         }
 
-        case util::to_underlying(frame::type::push_promise): {
+        case frame::type::push_promise: {
           frame::payload::push_promise push_promise{};
 
           size_t before = encoded.consumed();
@@ -193,7 +193,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return push_promise;
         }
 
-        case util::to_underlying(frame::type::goaway): {
+        case frame::type::goaway: {
           frame::payload::goaway goaway{};
 
           goaway.stream_id = TRY(varint_.decode(encoded, ec));
@@ -201,7 +201,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return goaway;
         }
 
-        case util::to_underlying(frame::type::max_push_id): {
+        case frame::type::max_push_id: {
           frame::payload::max_push_id max_push_id{};
 
           max_push_id.push_id = TRY(varint_.decode(encoded, ec));
@@ -209,7 +209,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
           return max_push_id;
         }
 
-        case util::to_underlying(frame::type::duplicate_push): {
+        case frame::type::duplicate_push: {
           frame::payload::duplicate_push duplicate_push{};
 
           duplicate_push.push_id = TRY(varint_.decode(encoded, ec));
