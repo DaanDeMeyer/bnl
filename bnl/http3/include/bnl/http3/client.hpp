@@ -29,9 +29,9 @@ public:
 
   BNL_MOVE_ONLY(client);
 
-  quic::data send(std::error_code &ec) noexcept;
+  quic::event send(std::error_code &ec) noexcept;
 
-  nothing recv(quic::data data, event::handler handler, std::error_code &ec);
+  nothing recv(quic::event event, event::handler handler, std::error_code &ec);
 
   endpoint::handle request(std::error_code &ec);
 

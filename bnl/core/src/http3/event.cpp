@@ -4,7 +4,7 @@ namespace bnl {
 namespace http3 {
 
 event::event() noexcept // NOLINT
-    : type_(event::type::error), id(0), fin(false), error()
+    : type_(event::type::error), id(0), fin(true), error()
 {}
 
 event::event(uint64_t id, // NOLINT
@@ -76,7 +76,7 @@ event::~event() noexcept
       body.~buffer();
       break;
     case event::type::error:
-      error.~error();
+      error.~error_code();
       break;
   }
 }

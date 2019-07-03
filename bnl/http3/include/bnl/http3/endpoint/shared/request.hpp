@@ -40,7 +40,7 @@ public:
 
   bool finished() const noexcept;
 
-  quic::data send(std::error_code &ec) noexcept;
+  quic::event send(std::error_code &ec) noexcept;
 
 private:
   friend endpoint::handle;
@@ -72,7 +72,7 @@ public:
 
   nothing start(std::error_code &ec) noexcept;
 
-  nothing recv(quic::data data, event::handler handler, std::error_code &ec);
+  nothing recv(quic::event event, event::handler handler, std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) noexcept = 0;

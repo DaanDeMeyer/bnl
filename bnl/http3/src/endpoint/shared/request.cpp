@@ -76,7 +76,7 @@ bool request::sender::finished() const noexcept
   return state_ == state::fin;
 }
 
-quic::data request::sender::send(std::error_code &ec) noexcept
+quic::event request::sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -140,7 +140,7 @@ const headers::decoder &request::receiver::headers() const noexcept
   return headers_;
 }
 
-nothing request::receiver::recv(quic::data data,
+nothing request::receiver::recv(quic::event event,
                                 event::handler handler,
                                 std::error_code &ec)
 {
@@ -150,11 +150,13 @@ nothing request::receiver::recv(quic::data data,
 
   CHECK(!fin_received_, error::internal_error);
 
-  buffers_.push(std::move(data.buffer));
-  fin_received_ = data.fin;
+  CHECK(event == quic::event::type::data, error::not_implemented);
+
+  buffers_.push(std::move(event.data));
+  fin_received_ = event.fin;
 
   while (!finished()) {
-    event event = process(ec);
+    http3::event result = process(ec);
 
     if (ec) {
       if (ec == error::incomplete && fin_received_) {
@@ -166,7 +168,7 @@ nothing request::receiver::recv(quic::data data,
       break;
     }
 
-    handler(event, ec);
+    handler(std::move(result), ec);
   }
 
   return {};

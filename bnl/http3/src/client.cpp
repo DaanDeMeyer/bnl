@@ -13,13 +13,15 @@ client::client(const log::api *logger)
                 endpoint::client::control::receiver(logger) }
 {}
 
-quic::data client::send(std::error_code &ec) noexcept
+quic::event client::send(std::error_code &ec) noexcept
 {
   endpoint::client::control::sender &control = control_.first;
 
-  quic::data data = control.send(ec);
-  if (ec != error::idle) {
-    return data;
+  {
+    quic::event event = control.send(ec);
+    if (ec != error::idle) {
+      return event;
+    }
   }
 
   for (auto &entry : requests_) {
@@ -29,7 +31,7 @@ quic::data client::send(std::error_code &ec) noexcept
       continue;
     }
 
-    data = sender.send(ec);
+    quic::event event = sender.send(ec);
     if (ec != error::idle) {
       if (!ec) {
         endpoint::client::request::receiver &receiver = entry.second.second;
@@ -40,7 +42,7 @@ quic::data client::send(std::error_code &ec) noexcept
         }
       }
 
-      return data;
+      return event;
     }
   }
 
@@ -48,12 +50,13 @@ quic::data client::send(std::error_code &ec) noexcept
 }
 
 nothing
-client::recv(quic::data data, event::handler handler, std::error_code &ec)
+client::recv(quic::event event, event::handler handler, std::error_code &ec)
 {
   endpoint::client::control::receiver &control = control_.second;
 
-  if (data.id == control.id()) {
-    auto control_handler = [this, &handler](event event, std::error_code &ec) {
+  if (event.id == control.id()) {
+    auto control_handler = [this, &handler](http3::event event,
+                                            std::error_code &ec) {
       switch (event) {
         case event::type::settings:
           settings_.remote = event.settings;
@@ -65,23 +68,23 @@ client::recv(quic::data data, event::handler handler, std::error_code &ec)
       handler(std::move(event), ec);
     };
 
-    control.recv(std::move(data), control_handler, ec);
+    control.recv(std::move(event), control_handler, ec);
 
     return {};
   }
 
-  auto match = requests_.find(data.id);
+  auto match = requests_.find(event.id);
   // TODO: Better error
   CHECK(match != requests_.end(), error::internal_error);
 
   endpoint::client::request::receiver &request = match->second.second;
 
-  auto request_handler = [&handler](event event, std::error_code &ec) {
+  auto request_handler = [&handler](http3::event event, std::error_code &ec) {
     handler(std::move(event), ec);
   };
 
-  uint64_t id = data.id;
-  request.recv(std::move(data), request_handler, ec);
+  uint64_t id = event.id;
+  request.recv(std::move(event), request_handler, ec);
 
   if (request.finished()) {
     requests_.erase(id);

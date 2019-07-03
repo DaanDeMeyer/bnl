@@ -11,23 +11,6 @@
 namespace bnl {
 namespace quic {
 
-struct BNL_CORE_EXPORT data {
-  data() = default;
-  data(uint64_t id, bool fin, buffer buffer)
-      : id(id), fin(fin), buffer(std::move(buffer))
-  {}
-
-  uint64_t id = 0;
-  bool fin = false;
-  bnl::buffer buffer;
-};
-
-struct BNL_CORE_EXPORT error {
-  enum class type { connection, stream };
-  type type = type::connection;
-  uint64_t code = 3; // HTTP_INTERNAL_ERROR
-};
-
 class BNL_CORE_EXPORT event {
 public:
   using handler = function_view<void(event, std::error_code &ec)>;
@@ -35,14 +18,14 @@ public:
   enum class type { data, error };
 
   struct payload {
-    using data = quic::data;
-    using error = quic::error;
+    using data = buffer;
+    using error = std::error_code;
   };
 
   event() noexcept;
 
-  event(payload::data data) noexcept;   // NOLINT
-  event(payload::error error) noexcept; // NOLINT
+  event(uint64_t id, bool fin, payload::data data) noexcept;   // NOLINT
+  event(uint64_t id, bool fin, payload::error error) noexcept; // NOLINT
 
   event(const event &other) noexcept;
   event(event &&other) noexcept;
@@ -58,6 +41,9 @@ private:
   const type type_;
 
 public:
+  const uint64_t id;
+  const bool fin;
+
   union {
     payload::data data;
     payload::error error;

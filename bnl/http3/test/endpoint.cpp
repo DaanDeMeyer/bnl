@@ -65,11 +65,12 @@ static message transfer(Sender &sender, Receiver &receiver)
   std::error_code ec;
 
   while (true) {
-    quic::data data = sender.send(ec);
+    quic::event event = sender.send(ec);
     if (ec == http3::error::idle) {
       break;
     }
 
+    REQUIRE(event == quic::event::type::data);
     REQUIRE(!ec);
 
     auto handler = [&decoded](http3::event event, std::error_code &ec) {
@@ -92,7 +93,7 @@ static message transfer(Sender &sender, Receiver &receiver)
       }
     };
 
-    receiver.recv(std::move(data), handler, ec);
+    receiver.recv(std::move(event), handler, ec);
 
     REQUIRE(!ec);
   }
