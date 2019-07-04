@@ -38,23 +38,24 @@ bool operator!=(const message &first, const message &second)
   return !(first == second);
 }
 
+template <typename Endpoint>
 static void
-start(http3::endpoint::handle &handle, const message &message)
+start(Endpoint &endpoint, uint64_t id, const message &message)
 {
   std::error_code ec;
 
   for (const http3::header &header : message.headers) {
-    handle.header(header, ec);
+    endpoint.header(id, header, ec);
     REQUIRE(!ec);
   }
 
-  handle.start(ec);
+  endpoint.start(id, ec);
   REQUIRE(!ec);
 
-  handle.body(message.body, ec);
+  endpoint.body(id, message.body, ec);
   REQUIRE(!ec);
 
-  handle.fin(ec);
+  endpoint.fin(id, ec);
   REQUIRE(!ec);
 }
 
@@ -116,10 +117,10 @@ TEST_CASE("endpoint")
                         { ":path", "index.html" } },
                       { "abcde" } };
 
-  http3::endpoint::handle handle = client.request(ec);
+  uint64_t id = client.request(ec);
   REQUIRE(!ec);
 
-  start(handle, request);
+  start(client, id, request);
 
   message decoded = transfer(client, server);
 
@@ -127,10 +128,7 @@ TEST_CASE("endpoint")
 
   message response = { { { ":status", "200" } }, { "qsdfg" } };
 
-  handle = server.response(0, ec);
-  REQUIRE(!ec);
-
-  start(handle, response);
+  start(server, id, response);
 
   decoded = transfer(server, client);
 

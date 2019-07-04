@@ -31,7 +31,6 @@ target_sources(bnl-http3 PRIVATE
   src/endpoint/server/request.cpp
   src/endpoint/shared/control.cpp
   src/endpoint/shared/request.cpp
-  src/endpoint/handle.cpp
   src/client.cpp
   src/server.cpp
   src/error.cpp
@@ -41,7 +40,6 @@ if(BNL_TEST)
   target_sources(bnl-test PRIVATE
     test/endpoint.cpp
     test/frame.cpp
-    test/handle.cpp
     test/huffman.cpp
     test/qpack.cpp
     test/varint.cpp

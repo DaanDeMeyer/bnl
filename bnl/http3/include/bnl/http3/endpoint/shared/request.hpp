@@ -1,7 +1,5 @@
 #pragma once
 
-#include <bnl/http3/endpoint/handle.hpp>
-
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/header.hpp>
@@ -31,30 +29,28 @@ class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
 
-  BNL_NO_COPY(sender);
-  BNL_CUSTOM_MOVE(sender);
-
-  ~sender() noexcept;
-
-  endpoint::handle handle() noexcept;
+  BNL_MOVE_ONLY(sender);
 
   bool finished() const noexcept;
 
   quic::event send(std::error_code &ec) noexcept;
 
-private:
-  friend endpoint::handle;
+  nothing header(header_view header, std::error_code &ec);
+  nothing body(buffer body, std::error_code &ec);
 
+  nothing start(std::error_code &ec) noexcept;
+  nothing fin(std::error_code &ec) noexcept;
+
+private:
   uint64_t id_;
   const log::api *logger_;
 
   headers::encoder headers_;
   body::encoder body_;
 
-  enum state : uint8_t { headers, body, fin, error };
+  enum class state : uint8_t { headers, body, fin, error };
 
   state state_ = state::headers;
-  endpoint::handle *handle_ = nullptr;
 };
 
 class BNL_HTTP3_EXPORT receiver {

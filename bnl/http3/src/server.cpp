@@ -92,10 +92,44 @@ server::recv(quic::event event, event::handler handler, std::error_code &ec)
   return {};
 }
 
-endpoint::handle server::response(uint64_t id, std::error_code &ec) noexcept
+nothing server::header(uint64_t id, header_view header, std::error_code &ec)
 {
-  CHECK(requests_.find(id) != requests_.end(), error::stream_closed);
-  return requests_.at(id).first.handle();
+  auto match = requests_.find(id);
+  CHECK(match != requests_.end(), error::stream_closed);
+
+  endpoint::server::request::sender &sender = match->second.first;
+
+  return sender.header(header, ec);
+}
+
+nothing server::body(uint64_t id, buffer body, std::error_code &ec)
+{
+  auto match = requests_.find(id);
+  CHECK(match != requests_.end(), error::stream_closed);
+
+  endpoint::server::request::sender &sender = match->second.first;
+
+  return sender.body(std::move(body), ec);
+}
+
+nothing server::start(uint64_t id, std::error_code &ec) noexcept
+{
+  auto match = requests_.find(id);
+  CHECK(match != requests_.end(), error::stream_closed);
+
+  endpoint::server::request::sender &sender = match->second.first;
+
+  return sender.start(ec);
+}
+
+nothing server::fin(uint64_t id, std::error_code &ec) noexcept
+{
+  auto match = requests_.find(id);
+  CHECK(match != requests_.end(), error::stream_closed);
+
+  endpoint::server::request::sender &sender = match->second.first;
+
+  return sender.fin(ec);
 }
 
 } // namespace http3

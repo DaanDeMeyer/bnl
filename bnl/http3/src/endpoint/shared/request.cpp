@@ -13,64 +13,6 @@ request::sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), headers_(logger), body_(logger)
 {}
 
-request::sender::sender(sender &&other) noexcept
-    : id_(other.id_),
-      logger_(other.logger_),
-      headers_(std::move(other.headers_)),
-      body_(std::move(other.body_)),
-      state_(other.state_),
-      handle_(other.handle_)
-{
-  other.handle_ = nullptr;
-
-  if (handle_ != nullptr) {
-    handle_->ref_ = this;
-  }
-}
-
-request::sender &request::sender::operator=(sender &&other) noexcept
-{
-  if (&other != this) {
-    id_ = other.id_;
-    logger_ = other.logger_;
-    headers_ = std::move(other.headers_);
-    body_ = std::move(other.body_);
-    state_ = other.state_;
-
-    handle_ = other.handle_;
-    other.handle_ = nullptr;
-
-    if (handle_ != nullptr) {
-      handle_->ref_ = this;
-    }
-  }
-
-  return *this;
-}
-
-request::sender::~sender() noexcept
-{
-  if (handle_ == nullptr) {
-    return;
-  }
-
-  handle_->ref_ = nullptr;
-}
-
-endpoint::handle request::sender::handle() noexcept
-{
-  endpoint::handle result(id_, this, logger_);
-
-  if (handle_ != nullptr) {
-    // Invalidate previous handle.
-    handle_->ref_ = nullptr;
-  }
-
-  handle_ = &result;
-
-  return result;
-}
-
 bool request::sender::finished() const noexcept
 {
   return state_ == state::fin;
@@ -108,6 +50,26 @@ quic::event request::sender::send(std::error_code &ec) noexcept
   }
 
   NOTREACHED();
+}
+
+nothing request::sender::header(header_view header, std::error_code &ec)
+{
+  return headers_.add(header, ec);
+}
+
+nothing request::sender::body(buffer body, std::error_code &ec)
+{
+  return body_.add(std::move(body), ec);
+}
+
+nothing request::sender::start(std::error_code &ec) noexcept
+{
+  return headers_.fin(ec);
+}
+
+nothing request::sender::fin(std::error_code &ec) noexcept
+{
+  return body_.fin(ec);
 }
 
 request::receiver::receiver(uint64_t id, const log::api *logger) noexcept

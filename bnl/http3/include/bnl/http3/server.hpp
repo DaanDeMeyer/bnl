@@ -3,7 +3,6 @@
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
 
-#include <bnl/http3/endpoint/handle.hpp>
 #include <bnl/http3/endpoint/server/control.hpp>
 #include <bnl/http3/endpoint/server/request.hpp>
 
@@ -34,7 +33,11 @@ public:
 
   nothing recv(quic::event event, event::handler handler, std::error_code &ec);
 
-  endpoint::handle response(uint64_t id, std::error_code &ec) noexcept;
+  nothing header(uint64_t id, header_view header, std::error_code &ec);
+  nothing body(uint64_t id, buffer body, std::error_code &ec);
+
+  nothing start(uint64_t id, std::error_code &ec) noexcept;
+  nothing fin(uint64_t id, std::error_code &ec) noexcept;
 
 private:
   using control = std::pair<endpoint::server::control::sender,
