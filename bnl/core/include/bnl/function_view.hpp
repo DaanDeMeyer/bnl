@@ -16,23 +16,23 @@ public:
       typename std::enable_if<
           !std::is_same<typename std::remove_reference<Callable>::type,
                         function_view>::value>::type * = nullptr) // NOLINT
-      : callback(callback_fn<typename std::remove_reference<Callable>::type>),
-        callable(reinterpret_cast<void *>(&callable))
+      : callback_(callback_fn<typename std::remove_reference<Callable>::type>),
+        callable_(reinterpret_cast<void *>(&callable))
   {}
 
   Return operator()(Params... params) const
   {
-    return callback(callable, std::forward<Params>(params)...);
+    return callback_(callable_, std::forward<Params>(params)...);
   }
 
   operator bool() const // NOLINT
   {
-    return callback;
+    return callback_;
   }
 
 private:
-  Return (*callback)(void *callable, Params... params) = nullptr;
-  void *callable = nullptr;
+  Return (*callback_)(void *callable, Params... params) = nullptr;
+  void *callable_ = nullptr;
 
   template <typename Callable>
   static Return callback_fn(void *callable, Params... params)
