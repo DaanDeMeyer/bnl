@@ -73,6 +73,26 @@ void buffers::push(buffer buffer)
   buffers_.emplace_back(std::move(buffer));
 }
 
+const buffer &buffers::front() const noexcept
+{
+  return buffers_.front();
+}
+
+const buffer &buffers::back() const noexcept
+{
+  return buffers_.back();
+}
+
+buffer &buffers::front() noexcept
+{
+  return buffers_.front();
+}
+
+buffer &buffers::back() noexcept
+{
+  return buffers_.back();
+}
+
 void buffers::consume(size_t size) noexcept
 {
   assert(size <= this->size());

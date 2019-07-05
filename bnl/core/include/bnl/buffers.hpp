@@ -27,6 +27,12 @@ public:
 
   void push(buffer buffer);
 
+  const buffer &front() const noexcept;
+  const buffer &back() const noexcept;
+
+  buffer &front() noexcept;
+  buffer &back() noexcept;
+
   void consume(size_t size) noexcept;
   buffers &operator+=(size_t size) noexcept;
 
