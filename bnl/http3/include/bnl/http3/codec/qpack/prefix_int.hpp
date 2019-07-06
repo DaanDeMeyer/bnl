@@ -17,6 +17,7 @@ class api;
 }
 
 namespace http3 {
+namespace qpack {
 namespace prefix_int {
 
 class BNL_HTTP3_EXPORT encoder {
@@ -41,23 +42,26 @@ public:
 
   BNL_MOVE_ONLY(decoder);
 
-  uint64_t
-  decode(buffer &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
+  uint64_t decode(buffer_view &encoded,
+                  uint8_t prefix,
+                  std::error_code &ec) const noexcept;
 
-  uint64_t
-  decode(buffers &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
+  uint64_t decode(buffers_view &encoded,
+                  uint8_t prefix,
+                  std::error_code &ec) const noexcept;
 
 private:
   const log::api *logger_;
 
-  template <typename Sequence>
-  uint64_t
-  decode(Sequence &encoded, uint8_t prefix, std::error_code &ec) const noexcept;
+  template <typename View>
+  uint64_t decode(View &encoded, uint8_t prefix, std::error_code &ec) const
+      noexcept;
 
-  template <typename Sequence>
-  uint8_t uint8_decode(Sequence &encoded, std::error_code &ec) const noexcept;
+  template <typename View>
+  uint8_t uint8_decode(View &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace prefix_int
+} // namespace qpack
 } // namespace http3
 } // namespace bnl

@@ -7,16 +7,15 @@ namespace bnl {
 
 buffer::buffer() noexcept : type_(type::sso), sso_() {} // NOLINT
 
-buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
-    : type_(size <= SSO_THRESHOLD ? type::sso : type::shared), size_(size)
+buffer::buffer(size_t size) // NOLINT
+    : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
 {
   switch (type_) {
     case type::sso:
       new (&sso_) decltype(sso_)();
-      std::copy_n(data.get(), size, sso_.data());
       break;
-    case type::shared:
-      new (&shared_) decltype(shared_)(std::move(data));
+    case type::unique:
+      new (&unique_) decltype(unique_)(new uint8_t[size]);
       break;
     default:
       assert(false);
@@ -24,29 +23,36 @@ buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
   }
 }
 
-buffer::buffer(const buffer &other) noexcept : buffer()
+buffer::buffer(const uint8_t *data, size_t size) // NOLINT
+    : buffer(size)
+{
+  std::copy_n(data, size, this->data());
+}
+
+buffer::buffer(const buffer &other) : buffer()
 {
   operator=(other);
 }
 
-buffer &buffer::operator=(const buffer &other) noexcept
+buffer &buffer::operator=(const buffer &other)
 {
   if (&other != this) {
     destroy();
 
-    switch (other.type_) {
+    type_ = other.size() <= SSO_THRESHOLD ? type::sso : type::unique;
+    size_ = other.size();
+    position_ = 0;
+
+    switch (type_) {
       case type::sso:
-        new (&sso_) decltype(sso_)(other.sso_);
+        new (&sso_) decltype(sso_)();
         break;
-      case type::unique:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-        other.upgrade();
-#pragma GCC diagnostic pop
-      case type::shared:
-        new (&shared_) decltype(shared_)(other.shared_);
+      default:
+        new (&unique_) decltype(unique_)(new uint8_t[size_]);
         break;
     }
+
+    std::copy_n(other.data(), size_, data());
 
     type_ = other.type_;
     size_ = other.size_;
@@ -66,7 +72,11 @@ buffer &buffer::operator=(buffer &&other) noexcept
   if (&other != this) {
     destroy();
 
-    switch (other.type_) {
+    type_ = other.type_;
+    size_ = other.size_;
+    position_ = other.position_;
+
+    switch (type_) {
       case type::sso:
         new (&sso_) decltype(sso_)(other.sso_);
         break;
@@ -78,10 +88,6 @@ buffer &buffer::operator=(buffer &&other) noexcept
         break;
     }
 
-    type_ = other.type_;
-    size_ = other.size_;
-    position_ = other.position_;
-
     other.size_ = 0;
     other.position_ = 0;
   }
@@ -92,6 +98,21 @@ buffer &buffer::operator=(buffer &&other) noexcept
 buffer::~buffer() noexcept
 {
   destroy();
+}
+
+uint8_t *buffer::data() noexcept
+{
+  switch (type_) {
+    case type::sso:
+      return sso_.data() + position_;
+    case type::unique:
+      return unique_.get() + position_;
+    case type::shared:
+      return static_cast<uint8_t *>(shared_.get()) + position_;
+  }
+
+  assert(false);
+  return nullptr;
 }
 
 const uint8_t *buffer::data() const noexcept
@@ -111,10 +132,22 @@ const uint8_t *buffer::data() const noexcept
 
 uint8_t buffer::operator[](size_t index) const noexcept
 {
+  assert(index < size());
   return *(data() + index);
 }
 
 uint8_t buffer::operator*() const noexcept
+{
+  return *data();
+}
+
+uint8_t &buffer::operator[](size_t index) noexcept
+{
+  assert(index < size());
+  return *(data() + index);
+}
+
+uint8_t &buffer::operator*() noexcept
 {
   return *data();
 }
@@ -139,37 +172,14 @@ const uint8_t *buffer::end() const noexcept
   return data() + size();
 }
 
-buffer buffer::slice(size_t size) const noexcept
+uint8_t *buffer::begin() noexcept
 {
-  assert(size <= this->size());
+  return data();
+}
 
-  if (size == 0) {
-    return buffer();
-  }
-
-  switch (type_) {
-    case type::sso:
-      return buffer(data(), size);
-    case type::unique:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-      if (size <= SSO_THRESHOLD) {
-        return buffer(data(), size);
-      }
-
-      upgrade();
-#pragma GCC diagnostic pop
-    case type::shared:
-      if (size <= SSO_THRESHOLD) {
-        return buffer(data(), size);
-      }
-
-      uint8_t *data = shared_.get() + position_;
-      return buffer(std::shared_ptr<uint8_t>(shared_, data), size);
-  }
-
-  assert(false);
-  return {};
+uint8_t *buffer::end() noexcept
+{
+  return data() + size();
 }
 
 void buffer::consume(size_t size) noexcept
@@ -178,81 +188,61 @@ void buffer::consume(size_t size) noexcept
   position_ += size;
 }
 
-buffer &buffer::operator+=(size_t size) noexcept
-{
-  consume(size);
-  return *this;
-}
-
 size_t buffer::consumed() const noexcept
 {
   return position_;
 }
 
-void buffer::undo(size_t size) noexcept
+buffer buffer::slice(size_t size) noexcept
 {
-  assert(size <= consumed());
-  position_ -= size;
+  assert(size <= this->size());
+
+  if (size == 0) {
+    return buffer();
+  }
+
+  if (size <= SSO_THRESHOLD || type_ == type::sso) {
+    buffer result = buffer(data(), size);
+    consume(size);
+    return result;
+  }
+
+  if (type_ == type::unique) {
+    upgrade();
+  }
+
+  buffer result = buffer(std::shared_ptr<uint8_t>(shared_, data()), size);
+
+  consume(size);
+
+  return result;
+}
+
+buffer buffer::copy(size_t size) noexcept
+{
+  assert(size <= this->size());
+  return buffer(data(), size);
 }
 
 buffer buffer::concat(const buffer &first, const buffer &second)
 {
-  buffer_mut result(first.size() + second.size());
+  buffer result(first.size() + second.size());
 
   std::copy_n(first.data(), first.size(), result.data());
   std::copy_n(second.data(), second.size(), result.data() + first.size());
 
-  return std::move(result);
+  return result;
 }
 
-buffer::operator buffer_view() const noexcept
-{
-  return { data(), size() };
-}
+buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
+    : type_(type::shared), size_(size), shared_(std::move(data))
+{}
 
-buffer::buffer(size_t size) noexcept // NOLINT
-    : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
-{
-  switch (type_) {
-    case type::sso:
-      new (&sso_) decltype(sso_)();
-      break;
-    case type::unique:
-      new (&unique_) decltype(unique_)(
-          std::unique_ptr<uint8_t[]>(new uint8_t[size]));
-      break;
-    default:
-      assert(false);
-      break;
-  }
-}
-
-uint8_t *buffer::data_mut() noexcept
-{
-  switch (type_) {
-    case type::sso:
-      return sso_.data() + position_;
-    case type::unique:
-      return unique_.get() + position_;
-    case type::shared:
-      return shared_.get() + position_;
-  }
-
-  assert(false);
-  return nullptr;
-}
-
-buffer::buffer(const uint8_t *data, size_t size) noexcept // NOLINT
-    : buffer(size)
-{
-  std::copy_n(data, size, data_mut());
-}
-
-void buffer::upgrade() const noexcept
+void buffer::upgrade() noexcept
 {
   assert(type_ == type::unique);
 
-  std::unique_ptr<uint8_t[], deleter> temp = std::move(unique_);
+  std::unique_ptr<uint8_t[]> temp = std::move(unique_);
   unique_.~unique_ptr();
   new (&shared_) decltype(shared_)(temp.release(), temp.get_deleter());
   type_ = type::shared;
@@ -274,54 +264,6 @@ void buffer::destroy() noexcept
 
   position_ = 0;
   size_ = 0;
-}
-
-buffer::anchor::anchor(buffer &buffer) noexcept
-    : buffer_(buffer), position_(buffer.position_)
-{}
-
-void buffer::anchor::relocate() noexcept
-{
-  position_ = buffer_.position_;
-}
-
-void buffer::anchor::release() noexcept
-{
-  released_ = true;
-}
-
-buffer::anchor::~anchor() noexcept
-{
-  if (!released_) {
-    buffer_.position_ = position_;
-  }
-}
-
-buffer_mut::buffer_mut(size_t size) : buffer(size) {}
-
-uint8_t *buffer_mut::data() noexcept
-{
-  return data_mut();
-}
-
-uint8_t &buffer_mut::operator[](size_t index) noexcept
-{
-  return *(data() + index);
-}
-
-uint8_t &buffer_mut::operator*() noexcept
-{
-  return *data();
-}
-
-uint8_t *buffer_mut::end() noexcept
-{
-  return data() + size();
-}
-
-buffer_mut::operator buffer_view_mut() noexcept
-{
-  return { data(), size() };
 }
 
 } // namespace bnl

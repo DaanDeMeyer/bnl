@@ -22,5 +22,4 @@ TEST_CASE("buffers")
   REQUIRE(buffers.size() == first.size() + second.size() + third.size());
 
   buffers.consume(5);
-  buffers.undo(5);
 }

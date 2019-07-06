@@ -15,16 +15,18 @@ target_sources(bnl-http3 PRIVATE
   src/codec/frame/decode.cpp
   src/codec/frame/encode.cpp
   src/codec/frame/frame.cpp
-  src/codec/huffman/decode.cpp
-  src/codec/huffman/encode.cpp
+  src/codec/qpack/huffman/decode.cpp
+  src/codec/qpack/huffman/encode.cpp
+  src/codec/qpack/literal/encode.cpp
+  src/codec/qpack/literal/decode.cpp
+  src/codec/qpack/prefix_int/encode.cpp
+  src/codec/qpack/prefix_int/decode.cpp
   src/codec/qpack/decode.cpp
   src/codec/qpack/encode.cpp
   src/codec/varint/decode.cpp
   src/codec/varint/encode.cpp
   src/codec/body.cpp
   src/codec/headers.cpp
-  src/codec/literal.cpp
-  src/codec/prefix_int.cpp
   src/endpoint/client/control.cpp
   src/endpoint/client/request.cpp
   src/endpoint/server/control.cpp

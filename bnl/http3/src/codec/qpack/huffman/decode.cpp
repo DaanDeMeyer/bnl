@@ -24,7 +24,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <bnl/http3/codec/huffman.hpp>
+#include <bnl/http3/codec/qpack/huffman.hpp>
 
 #include <bnl/http3/error.hpp>
 
@@ -33,6 +33,7 @@
 
 namespace bnl {
 namespace http3 {
+namespace qpack {
 
 #include "decode_generated.cpp"
 
@@ -42,23 +43,47 @@ buffer huffman::decoder::decode(buffer &encoded,
                                 size_t encoded_size,
                                 std::error_code &ec) const
 {
-  return decode<buffer>(encoded, encoded_size, ec);
+  buffer_view view(encoded);
+
+  buffer decoded = TRY(decode<buffer_view>(view, encoded_size, ec));
+  encoded.consume(view.consumed());
+
+  return decoded;
 }
 
 buffer huffman::decoder::decode(buffers &encoded,
                                 size_t encoded_size,
                                 std::error_code &ec) const
 {
-  return decode<buffers>(encoded, encoded_size, ec);
+  buffers_view view(encoded);
+
+  buffer decoded = TRY(decode<buffers_view>(view, encoded_size, ec));
+  encoded.consume(view.consumed());
+
+  return decoded;
 }
 
-template <typename Sequence>
-buffer huffman::decoder::decode(Sequence &encoded,
+buffer huffman::decoder::decode(buffer_view &encoded,
+                                size_t encoded_size,
+                                std::error_code &ec) const
+{
+  return decode<buffer_view>(encoded, encoded_size, ec);
+}
+
+buffer huffman::decoder::decode(buffers_view &encoded,
+                                size_t encoded_size,
+                                std::error_code &ec) const
+{
+  return decode<buffers_view>(encoded, encoded_size, ec);
+}
+
+template <typename View>
+buffer huffman::decoder::decode(View &encoded,
                                 size_t encoded_size,
                                 std::error_code &ec) const
 {
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size, ec));
-  buffer_mut decoded(decoded_size);
+  buffer decoded(decoded_size);
 
   uint8_t *dest = decoded.data();
   uint8_t state = 0;
@@ -79,13 +104,13 @@ buffer huffman::decoder::decode(Sequence &encoded,
     state = second.state;
   }
 
-  encoded += encoded_size;
+  encoded.consume(encoded_size);
 
-  return std::move(decoded);
+  return decoded;
 }
 
-template <typename Sequence>
-size_t huffman::decoder::decoded_size(Sequence &encoded,
+template <typename View>
+size_t huffman::decoder::decoded_size(const View &encoded,
                                       size_t encoded_size,
                                       std::error_code &ec) const noexcept
 {
@@ -123,5 +148,6 @@ size_t huffman::decoder::decoded_size(Sequence &encoded,
   return decoded_size;
 }
 
+} // namespace qpack
 } // namespace http3
 } // namespace bnl

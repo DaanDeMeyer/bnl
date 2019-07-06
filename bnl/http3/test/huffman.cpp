@@ -2,7 +2,7 @@
 
 #include <bnl/http3/error.hpp>
 
-#include <bnl/http3/codec/huffman.hpp>
+#include <bnl/http3/codec/qpack/huffman.hpp>
 
 #include <bnl/log.hpp>
 
@@ -19,18 +19,18 @@ static buffer random_string(size_t length)
   static std::mt19937 rg{ std::random_device{}() };
   static std::uniform_int_distribution<size_t> pick(0, sizeof(characters) - 1);
 
-  buffer_mut buffer(length);
+  buffer buffer(length);
 
-  for (size_t i = 0; i < buffer.size(); i++) {
-    buffer[i] = characters[pick(rg)];
+  for (uint8_t &character : buffer) {
+    character = characters[pick(rg)];
   }
 
-  return std::move(buffer);
+  return buffer;
 }
 
-static void encode_and_decode(const buffer &string,
-                              const http3::huffman::encoder &encoder,
-                              const http3::huffman::decoder &decoder)
+static void encode_and_decode(const buffer_view &string,
+                              const http3::qpack::huffman::encoder &encoder,
+                              const http3::qpack::huffman::decoder &decoder)
 {
   buffer encoded = encoder.encode(string);
 
@@ -46,8 +46,8 @@ TEST_CASE("huffman")
 {
   log::api logger;
 
-  http3::huffman::encoder encoder(&logger);
-  http3::huffman::decoder decoder(&logger);
+  http3::qpack::huffman::encoder encoder(&logger);
+  http3::qpack::huffman::decoder decoder(&logger);
 
   SUBCASE("random")
   {
@@ -62,15 +62,17 @@ TEST_CASE("huffman")
     buffer data("abcde");
     buffer encoded = encoder.encode(data);
 
-    buffer slice = encoded.slice(2);
+    buffer incomplete = encoded.copy(2);
 
     std::error_code ec;
-    buffer decoded = decoder.decode(slice, encoded.size(), ec);
+    decoder.decode(incomplete, encoded.size(), ec);
 
     REQUIRE(ec == http3::error::incomplete);
+    REQUIRE(incomplete.size() == 2);
 
-    decoded = decoder.decode(encoded, encoded.size(), ec);
+    decoder.decode(encoded, encoded.size(), ec);
 
     REQUIRE(!ec);
+    REQUIRE(encoded.empty());
   }
 }

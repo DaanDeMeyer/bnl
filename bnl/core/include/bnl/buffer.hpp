@@ -1,7 +1,5 @@
 #pragma once
 
-#include <bnl/buffer_view.hpp>
-
 #include <bnl/core/export.hpp>
 
 #include <bnl/class/macro.hpp>
@@ -14,145 +12,88 @@
 
 namespace bnl {
 
+class buffer_view;
+
 class BNL_CORE_EXPORT buffer {
 public:
-  class anchor;
+  using view = buffer_view;
 
   buffer() noexcept;
+  explicit buffer(size_t size);
+  buffer(const uint8_t *data, size_t size);
 
   template <size_t Size>
   buffer(const char (&data)[Size]) noexcept // NOLINT
       : buffer(reinterpret_cast<const uint8_t *>(data), Size - 1)
   {}
 
-  // Use a templated constructor to avoid an ambiguous overload that occurs
-  // because `buffer` provides constructors for both `std::unique_ptr` and
-  // `std::shared_ptr`.
-  template <typename Deleter>
-  buffer(std::unique_ptr<uint8_t[], Deleter> data, size_t size) noexcept;
-
-  buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
-
-public:
-  buffer(const buffer &other) noexcept;
-  buffer &operator=(const buffer &other) noexcept;
-
+  BNL_CUSTOM_COPY(buffer);
   BNL_CUSTOM_MOVE(buffer);
 
   ~buffer() noexcept;
 
+  uint8_t *data() noexcept;
   const uint8_t *data() const noexcept;
-  uint8_t operator[](size_t index) const noexcept;
-  uint8_t operator*() const noexcept;
-
-  size_t size() const noexcept;
-  bool empty() const noexcept;
 
   const uint8_t *begin() const noexcept;
   const uint8_t *end() const noexcept;
 
-  buffer slice(size_t size) const noexcept;
+  uint8_t *begin() noexcept;
+  uint8_t *end() noexcept;
+
+  uint8_t operator[](size_t index) const noexcept;
+  uint8_t operator*() const noexcept;
+
+  uint8_t &operator[](size_t index) noexcept;
+  uint8_t &operator*() noexcept;
+
+  size_t size() const noexcept;
+  bool empty() const noexcept;
 
   void consume(size_t size) noexcept;
-  buffer &operator+=(size_t size) noexcept;
-
   size_t consumed() const noexcept;
 
-  void undo(size_t size) noexcept;
+  // Returns a buffer to the next `size` bytes of this buffer and consumes
+  // `size` bytes from this buffer. Both this buffer and the returned buffer
+  // will manage different slices of the same memory block.
+  //
+  // Conceptually, this method transfers ownership of a slice of the memory
+  // block to a new buffer. Because this method consumes `size` bytes, the
+  // returned buffer will be the sole owner of the slice of memory.
+  buffer slice(size_t size) noexcept;
+
+  // Copies the next `size` bytes to a new buffer and returns it. In contrast to
+  // `slice`, this method does not consume any bytes of this buffer.
+  buffer copy(size_t size) noexcept;
 
   static buffer concat(const buffer &first, const buffer &second);
 
-  operator buffer_view() const noexcept; // NOLINT
-
-protected:
-  explicit buffer(size_t size) noexcept;
-
-  uint8_t *data_mut() noexcept;
-
 private:
-  buffer(const uint8_t *data, size_t size) noexcept;
+  buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
 
-  void upgrade() const noexcept;
+  void upgrade() noexcept;
 
   void destroy() noexcept;
 
 private:
   enum class type { sso, unique, shared };
 
-  static constexpr size_t SSO_THRESHOLD = 20;
-
-  mutable type type_;
+  type type_;
   size_t size_ = 0;
   size_t position_ = 0;
 
-  using deleter = std::function<void(uint8_t *)>;
+  static constexpr size_t SSO_THRESHOLD = 20;
 
   union {
     std::array<uint8_t, SSO_THRESHOLD> sso_;
     // Type erase `std::unique_ptr` deleter so any kind of deleter can be stored
     // in `buffer`.
-    mutable std::unique_ptr<uint8_t[], deleter> unique_;
+    std::unique_ptr<uint8_t[]> unique_;
     // `std::shared_ptr<uint8_t[]>` requires C++17.
-    mutable std::shared_ptr<uint8_t> shared_;
+    std::shared_ptr<uint8_t> shared_;
   };
 };
 
-template <typename Deleter>
-buffer::buffer(std::unique_ptr<uint8_t[], Deleter> data, // NOLINT
-               size_t size) noexcept
-    : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
-{
-  switch (type_) {
-    case type::sso:
-      new (&sso_) decltype(sso_)();
-      for (size_t i = 0; i < size; i++) {
-        sso_[i] = data[i];
-      }
-      break;
-    case type::unique:
-      new (&unique_) decltype(unique_)(std::move(data));
-      break;
-    default:
-      break;
-  }
-}
-
-class BNL_CORE_EXPORT buffer::anchor {
-public:
-  explicit anchor(buffer &buffer) noexcept;
-
-  BNL_NO_COPY(anchor);
-  BNL_NO_MOVE(anchor);
-
-  ~anchor() noexcept;
-
-  void relocate() noexcept;
-
-  void release() noexcept;
-
-private:
-  buffer &buffer_;
-
-  bool released_ = false;
-  size_t position_;
-};
-
-class BNL_CORE_EXPORT buffer_mut : public buffer {
-public:
-  buffer_mut() = default;
-  explicit buffer_mut(size_t size);
-
-  BNL_MOVE_ONLY(buffer_mut);
-
-  buffer_mut slice(size_t) = delete;
-
-  uint8_t *data() noexcept;
-  uint8_t &operator[](size_t index) noexcept;
-  uint8_t &operator*() noexcept;
-
-  uint8_t *end() noexcept;
-
-  operator buffer_view_mut() noexcept; // NOLINT
-};
-
 } // namespace bnl
+
+#include <bnl/buffer_view.hpp>

@@ -86,13 +86,11 @@ TEST_CASE("qpack")
 
   SUBCASE("decode: qpack decompression failed (indexed header field)")
   {
-    buffer_mut data(4);
-    data[0] = 0;    // prefix
-    data[1] = 0;    // prefix
-    data[2] = 0xff; // 0xff = indexed header field
-    data[3] = 100;  // 100 = unassigned index
-
-    buffer encoded = std::move(data);
+    buffer encoded(4);
+    encoded[0] = 0;    // prefix
+    encoded[1] = 0;    // prefix
+    encoded[2] = 0xff; // 0xff = indexed header field
+    encoded[3] = 100;  // 100 = unassigned index
 
     http3::header header = decoder.decode(encoded, ec);
 
@@ -103,13 +101,11 @@ TEST_CASE("qpack")
 
   SUBCASE("decode: qpack decompression failed (literal with name reference)")
   {
-    buffer_mut data(4);
-    data[0] = 0;    // prefix
-    data[1] = 0;    // prefix
-    data[2] = 0x5f; // 0x5f = literal with name reference
-    data[3] = 100;  // 100 = unassigned index
-
-    buffer encoded = std::move(data);
+    buffer encoded(4);
+    encoded[0] = 0;    // prefix
+    encoded[1] = 0;    // prefix
+    encoded[2] = 0x5f; // 0x5f = literal with name reference
+    encoded[3] = 100;  // 100 = unassigned index
 
     http3::header header = decoder.decode(encoded, ec);
 

@@ -18,6 +18,7 @@ class api;
 }
 
 namespace http3 {
+namespace qpack {
 namespace huffman {
 
 class BNL_HTTP3_EXPORT encoder {
@@ -42,25 +43,35 @@ public:
 
   BNL_MOVE_ONLY(decoder);
 
-  buffer
-  decode(buffer &encoded, size_t encoded_size, std::error_code &ec) const;
+  buffer decode(buffer &encoded,
+                size_t encoded_size,
+                std::error_code &ec) const;
 
-  buffer
-  decode(buffers &encoded, size_t encoded_size, std::error_code &ec) const;
+  buffer decode(buffers &encoded,
+                size_t encoded_size,
+                std::error_code &ec) const;
+
+  buffer decode(buffer_view &encoded,
+                size_t encoded_size,
+                std::error_code &ec) const;
+
+  buffer decode(buffers_view &encoded,
+                size_t encoded_size,
+                std::error_code &ec) const;
 
 private:
   const log::api *logger_;
 
-  template <typename Sequence>
-  buffer
-  decode(Sequence &encoded, size_t encoded_size, std::error_code &ec) const;
+  template <typename View>
+  buffer decode(View &encoded, size_t encoded_size, std::error_code &ec) const;
 
-  template <typename Sequence>
-  size_t decoded_size(Sequence &encoded,
+  template <typename View>
+  size_t decoded_size(const View &encoded,
                       size_t encoded_size,
                       std::error_code &ec) const noexcept;
 };
 
 } // namespace huffman
+} // namespace qpack
 } // namespace http3
 } // namespace bnl

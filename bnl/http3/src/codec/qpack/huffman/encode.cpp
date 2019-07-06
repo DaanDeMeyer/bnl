@@ -24,7 +24,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <bnl/http3/codec/huffman.hpp>
+#include <bnl/http3/codec/qpack/huffman.hpp>
 
 #include <bnl/http3/error.hpp>
 
@@ -32,6 +32,7 @@
 
 namespace bnl {
 namespace http3 {
+namespace qpack {
 
 #include "encode_generated.cpp"
 
@@ -49,8 +50,9 @@ size_t huffman::encoder::encoded_size(buffer_view string) const noexcept
   return (num_bits + 7) / 8;
 }
 
-static size_t
-symbol_encode(uint8_t *dest, size_t *rem_bits, const symbol &symbol)
+static size_t symbol_encode(uint8_t *dest,
+                            size_t *rem_bits,
+                            const symbol &symbol)
 {
   uint8_t *begin = dest;
 
@@ -96,8 +98,8 @@ symbol_encode(uint8_t *dest, size_t *rem_bits, const symbol &symbol)
   return static_cast<size_t>(dest - begin);
 }
 
-size_t
-huffman::encoder::encode(uint8_t *dest, buffer_view string) const noexcept
+size_t huffman::encoder::encode(uint8_t *dest, buffer_view string) const
+    noexcept
 {
   uint8_t *begin = dest;
   size_t rem_bits = 8;
@@ -123,12 +125,13 @@ huffman::encoder::encode(uint8_t *dest, buffer_view string) const noexcept
 buffer huffman::encoder::encode(buffer_view string) const
 {
   size_t encoded_size = this->encoded_size(string);
-  buffer_mut encoded(encoded_size);
+  buffer encoded(encoded_size);
 
   ASSERT(encoded_size == encode(encoded.data(), string));
 
-  return std::move(encoded);
+  return encoded;
 }
 
+} // namespace qpack
 } // namespace http3
 } // namespace bnl

@@ -8,6 +8,7 @@ target_sources(bnl-core PRIVATE
   src/quic/event.cpp
   src/buffer_view.cpp
   src/buffer.cpp
+  src/buffers_view.cpp
   src/buffers.cpp
   src/log.cpp
 )

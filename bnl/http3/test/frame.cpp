@@ -145,14 +145,14 @@ TEST_CASE("frame")
     http3::frame frame = http3::frame::payload::duplicate_push{ 50 };
 
     buffer encoded = encoder.encode(frame, ec);
-
     REQUIRE(!ec);
 
-    buffer slice = encoded.slice(encoded.size() - 1);
-    decoder.decode(slice, ec);
+    buffer incomplete = encoded.copy(encoded.size() - 1);
+
+    decoder.decode(incomplete, ec);
 
     REQUIRE(ec == http3::error::incomplete);
-    REQUIRE(slice.size() == encoded.size() - 1);
+    REQUIRE(incomplete.size() == encoded.size() - 1);
 
     decoder.decode(encoded, ec);
 

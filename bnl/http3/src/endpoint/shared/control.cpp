@@ -75,8 +75,6 @@ nothing control::receiver::recv(quic::event event,
 
 event control::receiver::process(std::error_code &ec) noexcept
 {
-  buffers::discarder discarder(buffers_);
-
   switch (state_) {
 
     case state::settings: {

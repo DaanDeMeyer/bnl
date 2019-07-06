@@ -12,42 +12,64 @@ varint::decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 uint64_t
 varint::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
 {
-  return decode<buffer>(encoded, ec);
+  buffer_view view(encoded);
+
+  uint64_t varint = TRY(decode<buffer_view>(view, ec));
+  encoded.consume(view.consumed());
+
+  return varint;
 }
 
 uint64_t
 varint::decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
 {
-  return decode<buffers>(encoded, ec);
+  buffers_view view(encoded);
+
+  uint64_t varint = TRY(decode<buffers_view>(view, ec));
+  encoded.consume(view.consumed());
+
+  return varint;
+}
+
+uint64_t varint::decoder::decode(buffer_view &encoded,
+                                 std::error_code &ec) const noexcept
+{
+  return decode<buffer_view>(encoded, ec);
+}
+
+uint64_t varint::decoder::decode(buffers_view &encoded,
+                                 std::error_code &ec) const noexcept
+{
+  return decode<buffers_view>(encoded, ec);
 }
 
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
 
-template <typename Sequence>
-static uint8_t uint8_decode(Sequence &encoded)
+template <typename View>
+static uint8_t uint8_decode(View &encoded)
 {
   uint8_t result = encoded[0] & 0x3fU;
 
-  encoded += sizeof(uint8_t);
+  encoded.consume(sizeof(uint8_t));
 
   return result;
 }
 
-template <typename Sequence>
-static uint16_t uint16_decode(Sequence &encoded)
+template <typename View>
+static uint16_t uint16_decode(View &encoded)
 {
   uint16_t result = static_cast<uint16_t>(
       static_cast<uint16_t>(static_cast<uint16_t>(encoded[0]) << 8U) |
       static_cast<uint16_t>(static_cast<uint16_t>(encoded[1]) << 0U));
 
-  encoded += sizeof(uint16_t);
+  encoded.consume(sizeof(uint16_t));
 
   return result & 0x3fffU;
 }
 
-template <typename Sequence>
-static uint32_t uint32_decode(Sequence &encoded)
+template <typename View>
+static uint32_t uint32_decode(View &encoded)
 {
 
   uint32_t result = static_cast<uint32_t>(encoded[0]) << 24U |
@@ -55,13 +77,13 @@ static uint32_t uint32_decode(Sequence &encoded)
                     static_cast<uint32_t>(encoded[2]) << 8U |
                     static_cast<uint32_t>(encoded[3]) << 0U;
 
-  encoded += sizeof(uint32_t);
+  encoded.consume(sizeof(uint32_t));
 
   return result & 0x3fffffffU;
 }
 
-template <typename Sequence>
-static uint64_t uint64_decode(Sequence &encoded)
+template <typename View>
+static uint64_t uint64_decode(View &encoded)
 {
   uint64_t result = static_cast<uint64_t>(encoded[0]) << 56U |
                     static_cast<uint64_t>(encoded[1]) << 48U |
@@ -72,14 +94,14 @@ static uint64_t uint64_decode(Sequence &encoded)
                     static_cast<uint64_t>(encoded[6]) << 8U |
                     static_cast<uint64_t>(encoded[7]) << 0U;
 
-  encoded += sizeof(uint64_t);
+  encoded.consume(sizeof(uint64_t));
 
   return result & 0x3fffffffffffffffU;
 }
 
-template <typename Sequence>
+template <typename View>
 uint64_t
-varint::decoder::decode(Sequence &encoded, std::error_code &ec) const noexcept
+varint::decoder::decode(View &encoded, std::error_code &ec) const noexcept
 {
   CHECK(!encoded.empty(), error::incomplete);
 

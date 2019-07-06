@@ -3,8 +3,8 @@
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/header.hpp>
 
-#include <bnl/http3/codec/literal.hpp>
-#include <bnl/http3/codec/prefix_int.hpp>
+#include <bnl/http3/codec/qpack/literal.hpp>
+#include <bnl/http3/codec/qpack/prefix_int.hpp>
 
 #include <bnl/class/macro.hpp>
 
@@ -78,8 +78,8 @@ private:
   state state_ = state::prefix;
   uint64_t count_ = 0;
 
-  template <typename Sequence>
-  header decode(Sequence &encoded, std::error_code &ec);
+  template <typename View>
+  header decode(View &encoded, std::error_code &ec);
 };
 
 } // namespace qpack

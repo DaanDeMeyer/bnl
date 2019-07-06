@@ -51,6 +51,10 @@ public:
 
   uint64_t decode(buffers &encoded, std::error_code &ec) const noexcept;
 
+  uint64_t decode(buffer_view &encoded, std::error_code &ec) const noexcept;
+
+  uint64_t decode(buffers_view &encoded, std::error_code &ec) const noexcept;
+
 private:
   const log::api *logger_;
 

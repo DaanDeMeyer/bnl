@@ -196,12 +196,16 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded.size() == sizeof(uint16_t));
 
-    buffer incomplete = encoded.slice(encoded.size() - 1);
+    buffer incomplete = encoded.copy(encoded.size() - 1);
 
-    uint64_t decoded = decoder.decode(incomplete, ec);
+    decoder.decode(incomplete, ec);
 
     REQUIRE(ec == http3::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
-    REQUIRE(decoded == 0);
+
+    decoder.decode(encoded, ec);
+
+    REQUIRE(!ec);
+    REQUIRE(encoded.empty());
   }
 }

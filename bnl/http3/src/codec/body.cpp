@@ -111,7 +111,6 @@ buffer body::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
                                   : static_cast<size_t>(remaining_);
       buffer body_part = encoded.slice(body_part_size);
 
-      encoded += body_part_size;
       remaining_ -= body_part_size;
 
       ASSERT(encoded.empty() || remaining_ == 0);

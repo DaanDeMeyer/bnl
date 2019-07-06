@@ -132,8 +132,8 @@ public:
 
   size_t encoded_size(const frame &frame, std::error_code &ec) const noexcept;
 
-  size_t
-  encode(uint8_t *dest, const frame &frame, std::error_code &ec) const noexcept;
+  size_t encode(uint8_t *dest, const frame &frame, std::error_code &ec) const
+      noexcept;
 
   buffer encode(const frame &frame, std::error_code &ec) const;
 
@@ -151,9 +151,9 @@ public:
 
   BNL_MOVE_ONLY(decoder);
 
-  frame::type peek(buffer &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(const buffer &encoded, std::error_code &ec) const noexcept;
 
-  frame::type peek(buffers &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(const buffers &encoded, std::error_code &ec) const noexcept;
 
   frame decode(buffer &encoded, std::error_code &ec) const noexcept;
 
@@ -165,13 +165,18 @@ private:
   varint::decoder varint_;
 
   template <typename Sequence>
-  frame::type peek(Sequence &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(const Sequence &encoded, std::error_code &ec) const noexcept;
 
   template <typename Sequence>
   frame decode(Sequence &encoded, std::error_code &ec) const noexcept;
 
-  template <typename Sequence>
-  uint8_t uint8_decode(Sequence &encoded, std::error_code &ec) const noexcept;
+  template <typename View>
+  frame decode(View &encoded,
+               bool *is_unknown_frame_type,
+               std::error_code &ec) const noexcept;
+
+  template <typename View>
+  uint8_t uint8_decode(View &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace http3

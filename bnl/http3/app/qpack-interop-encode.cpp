@@ -19,7 +19,7 @@ using namespace bnl;
 
 static buffer id_encode(uint64_t id)
 {
-  buffer_mut encoded(sizeof(uint64_t));
+  buffer encoded(sizeof(uint64_t));
 
   encoded[0] = static_cast<uint8_t>(id >> 56U);
   encoded[1] = static_cast<uint8_t>(id >> 48U);
@@ -30,19 +30,19 @@ static buffer id_encode(uint64_t id)
   encoded[6] = static_cast<uint8_t>(id >> 8U);
   encoded[7] = static_cast<uint8_t>(id >> 0U);
 
-  return std::move(encoded);
+  return encoded;
 }
 
 static buffer size_encode(uint32_t encoded_size)
 {
-  buffer_mut encoded(sizeof(uint32_t));
+  buffer encoded(sizeof(uint32_t));
 
   encoded[0] = static_cast<uint8_t>(encoded_size >> 24U);
   encoded[1] = static_cast<uint8_t>(encoded_size >> 16U);
   encoded[2] = static_cast<uint8_t>(encoded_size >> 8U);
   encoded[3] = static_cast<uint8_t>(encoded_size >> 0U);
 
-  return std::move(encoded);
+  return encoded;
 }
 
 void write(std::ostream &dest, const buffer &encoded)
@@ -147,10 +147,10 @@ int main(int argc, char *argv[])
       return 1;
     }
 
-    buffer_mut name(i);
+    buffer name(i);
     std::copy_n(line.substr(0, i).data(), name.size(), name.data());
 
-    buffer_mut value(line.size() - (i + 1));
+    buffer value(line.size() - (i + 1));
     std::copy_n(line.substr(i + 1).data(), value.size(), value.data());
 
     headers.emplace_back(http3::header{ std::move(name), std::move(value) });

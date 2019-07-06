@@ -28,7 +28,7 @@ id_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
                 static_cast<uint64_t>(encoded[6]) << 8U |
                 static_cast<uint64_t>(encoded[7]) << 0U;
 
-  encoded += sizeof(uint64_t);
+  encoded.consume(sizeof(uint64_t));
 
   return id;
 }
@@ -43,7 +43,7 @@ size_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
                         static_cast<uint32_t>(encoded[2]) << 8U |
                         static_cast<uint32_t>(encoded[3]) << 0U;
 
-  encoded += sizeof(uint32_t);
+  encoded.consume(sizeof(uint32_t));
 
   return encoded_size;
 }
@@ -92,10 +92,8 @@ int main(int argc, char *argv[])
     std::streamsize size = input.tellg();
     input.seekg(0, std::ios::beg);
 
-    buffer_mut buffer(static_cast<size_t>(size));
-    input.read(reinterpret_cast<char *>(buffer.data()), size);
-
-    encoded = std::move(buffer);
+    encoded = buffer(static_cast<size_t>(size));
+    input.read(reinterpret_cast<char *>(encoded.data()), size);
   } catch (const std::ios_base::failure &e) {
     LOG_E("Error reading input: {}", e.what());
     return 1;

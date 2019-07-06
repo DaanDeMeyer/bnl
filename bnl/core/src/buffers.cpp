@@ -50,7 +50,7 @@ uint8_t buffers::operator*() const noexcept
   return operator[](0);
 }
 
-buffer buffers::slice(size_t size) const
+buffer buffers::slice(size_t size)
 {
   assert(size <= this->size());
 
@@ -65,7 +65,15 @@ buffer buffers::slice(size_t size) const
     end++;
   }
 
-  return concat(start, end, left);
+  if (start == end) {
+    return buffers_[start].slice(left);
+  }
+
+  buffer result = concat(start, end, left);
+
+  consume(result.size());
+
+  return result;
 }
 
 void buffers::push(buffer buffer)
@@ -102,12 +110,8 @@ void buffers::consume(size_t size) noexcept
     buffers_[i].consume(to_consume);
     size -= to_consume;
   }
-}
 
-buffers &buffers::operator+=(size_t size) noexcept
-{
-  consume(size);
-  return *this;
+  discard();
 }
 
 size_t buffers::consumed() const noexcept
@@ -121,18 +125,7 @@ size_t buffers::consumed() const noexcept
   return consumed;
 }
 
-void buffers::undo(size_t size) noexcept
-{
-  assert(size <= this->consumed());
-
-  for (size_t i = buffers_.size() - 1; size != 0; i--) {
-    size_t to_undo = std::min(buffers_[i].consumed(), size);
-    buffers_[i].undo(to_undo);
-    size -= to_undo;
-  }
-}
-
-void buffers::discard()
+void buffers::discard() noexcept
 {
   while (!buffers_.empty() && buffers_.front().empty()) {
     buffers_.pop_front();
@@ -141,10 +134,6 @@ void buffers::discard()
 
 buffer buffers::concat(size_t start, size_t end, size_t left) const
 {
-  if (start == end) {
-    return buffers_[start].slice(left);
-  }
-
   size_t size = 0;
   for (size_t i = start; i < end; i++) {
     size += buffers_[i].size();
@@ -152,7 +141,7 @@ buffer buffers::concat(size_t start, size_t end, size_t left) const
 
   size += left;
 
-  buffer_mut result(size);
+  buffer result(size);
   size_t offset = 0;
 
   for (size_t i = start; i < end; i++) {
@@ -162,35 +151,7 @@ buffer buffers::concat(size_t start, size_t end, size_t left) const
 
   std::copy_n(buffers_[end].data(), left, result.data() + offset);
 
-  return std::move(result);
-}
-
-buffers::anchor::anchor(buffers &buffers) noexcept
-    : buffers_(buffers), position_(buffers.consumed())
-{}
-
-void buffers::anchor::relocate() noexcept
-{
-  position_ = buffers_.consumed();
-}
-
-void buffers::anchor::release() noexcept
-{
-  released_ = true;
-}
-
-buffers::anchor::~anchor() noexcept
-{
-  if (!released_) {
-    buffers_.undo(buffers_.consumed() - position_);
-  }
-}
-
-buffers::discarder::discarder(buffers &buffers) noexcept : buffers_(buffers) {}
-
-buffers::discarder::~discarder() noexcept
-{
-  buffers_.discard();
+  return result;
 }
 
 } // namespace bnl
