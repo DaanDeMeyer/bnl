@@ -413,16 +413,29 @@ def huffman_tree_print_transition_table(ctx):
 ### main ###
 
 encode_table_template = """\
+#include <cstddef>
 #include <cstdint>
+
+namespace bnl {{
+namespace http3 {{
+namespace qpack {{
+namespace huffman {{
+namespace encode {{
 
 struct symbol {{
   uint32_t code;
   size_t num_bits;
 }};
 
-const symbol encode_table[] = {{
+const symbol table[] = {{
     {}
 }};
+
+}}
+}}
+}}
+}}
+}}
 """
 
 ctx = Context()
@@ -461,9 +474,16 @@ file.write(encode_table)
 file.close()
 
 decode_table_template = """\
+#include <cstddef>
 #include <cstdint>
 
-enum class decode_flag {{
+namespace bnl {{
+namespace http3 {{
+namespace qpack {{
+namespace huffman {{
+namespace decode {{
+
+enum flag : uint8_t {{
   accepted = {},
   symbol = {},
   failed = {},
@@ -475,9 +495,15 @@ struct node {{
   uint8_t symbol;
 }};
 
-const node decode_table[][16] = {{
+const node table[][16] = {{
     {}
 }};
+
+}}
+}}
+}}
+}}
+}}
 """
 
 transition_table = huffman_tree_print_transition_table(ctx)

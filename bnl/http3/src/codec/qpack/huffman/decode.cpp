@@ -31,17 +31,18 @@
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
+#include "decode_generated.cpp"
+
 namespace bnl {
 namespace http3 {
 namespace qpack {
+namespace huffman {
 
-#include "decode_generated.cpp"
+decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
-huffman::decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
-
-buffer huffman::decoder::decode(buffer &encoded,
-                                size_t encoded_size,
-                                std::error_code &ec) const
+buffer decoder::decode(buffer &encoded,
+                       size_t encoded_size,
+                       std::error_code &ec) const
 {
   buffer_view view(encoded);
 
@@ -51,9 +52,9 @@ buffer huffman::decoder::decode(buffer &encoded,
   return decoded;
 }
 
-buffer huffman::decoder::decode(buffers &encoded,
-                                size_t encoded_size,
-                                std::error_code &ec) const
+buffer decoder::decode(buffers &encoded,
+                       size_t encoded_size,
+                       std::error_code &ec) const
 {
   buffers_view view(encoded);
 
@@ -63,24 +64,24 @@ buffer huffman::decoder::decode(buffers &encoded,
   return decoded;
 }
 
-buffer huffman::decoder::decode(buffer_view &encoded,
-                                size_t encoded_size,
-                                std::error_code &ec) const
+buffer decoder::decode(buffer_view &encoded,
+                       size_t encoded_size,
+                       std::error_code &ec) const
 {
   return decode<buffer_view>(encoded, encoded_size, ec);
 }
 
-buffer huffman::decoder::decode(buffers_view &encoded,
-                                size_t encoded_size,
-                                std::error_code &ec) const
+buffer decoder::decode(buffers_view &encoded,
+                       size_t encoded_size,
+                       std::error_code &ec) const
 {
   return decode<buffers_view>(encoded, encoded_size, ec);
 }
 
 template <typename View>
-buffer huffman::decoder::decode(View &encoded,
-                                size_t encoded_size,
-                                std::error_code &ec) const
+buffer decoder::decode(View &encoded,
+                       size_t encoded_size,
+                       std::error_code &ec) const
 {
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size, ec));
   buffer decoded(decoded_size);
@@ -89,15 +90,15 @@ buffer huffman::decoder::decode(View &encoded,
   uint8_t state = 0;
 
   for (size_t i = 0; i < encoded_size; ++i) {
-    const node &first = decode_table[state][encoded[i] >> 4U];
+    const decode::node &first = decode::table[state][encoded[i] >> 4U];
 
-    if ((first.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+    if ((first.flags & util::to_underlying(decode::flag::symbol)) != 0) {
       *dest++ = first.symbol;
     }
 
-    const node &second = decode_table[first.state][encoded[i] & 0xfU];
+    const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
 
-    if ((second.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+    if ((second.flags & util::to_underlying(decode::flag::symbol)) != 0) {
       *dest++ = second.symbol;
     }
 
@@ -110,9 +111,9 @@ buffer huffman::decoder::decode(View &encoded,
 }
 
 template <typename View>
-size_t huffman::decoder::decoded_size(const View &encoded,
-                                      size_t encoded_size,
-                                      std::error_code &ec) const noexcept
+size_t decoder::decoded_size(const View &encoded,
+                             size_t encoded_size,
+                             std::error_code &ec) const noexcept
 {
   CHECK(encoded.size() >= encoded_size, error::incomplete);
 
@@ -121,26 +122,26 @@ size_t huffman::decoder::decoded_size(const View &encoded,
   bool accept = false;
 
   for (size_t i = 0; i < encoded_size; i++) {
-    const node &first = decode_table[state][encoded[i] >> 4U];
+    const decode::node &first = decode::table[state][encoded[i] >> 4U];
 
-    bool failed = (first.flags & util::to_underlying(decode_flag::failed)) != 0;
+    bool failed = (first.flags & decode::flag::failed) != 0;
     CHECK(!failed, error::qpack_decompression_failed);
 
-    if ((first.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+    if ((first.flags & decode::flag::symbol) != 0) {
       decoded_size++;
     }
 
-    const node &second = decode_table[first.state][encoded[i] & 0xfU];
+    const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
 
-    failed = (second.flags & util::to_underlying(decode_flag::failed)) != 0;
+    failed = (second.flags & decode::flag::failed) != 0;
     CHECK(!failed, error::qpack_decompression_failed);
 
-    if ((second.flags & util::to_underlying(decode_flag::symbol)) != 0) {
+    if ((second.flags & decode::flag::symbol) != 0) {
       decoded_size++;
     }
 
     state = second.state;
-    accept = (second.flags & util::to_underlying(decode_flag::accepted)) != 0;
+    accept = (second.flags & decode::flag::accepted) != 0;
   }
 
   CHECK(accept, error::qpack_decompression_failed);
@@ -148,6 +149,7 @@ size_t huffman::decoder::decoded_size(const View &encoded,
   return decoded_size;
 }
 
+} // namespace huffman
 } // namespace qpack
 } // namespace http3
 } // namespace bnl

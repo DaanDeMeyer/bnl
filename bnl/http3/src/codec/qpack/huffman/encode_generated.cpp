@@ -1,11 +1,18 @@
+#include <cstddef>
 #include <cstdint>
+
+namespace bnl {
+namespace http3 {
+namespace qpack {
+namespace huffman {
+namespace encode {
 
 struct symbol {
   uint32_t code;
   size_t num_bits;
 };
 
-const symbol encode_table[] = {
+const symbol table[] = {
   /*  */ { 0x1ff8u, 13 },     /*  */ { 0x7fffd8u, 23 },
   /*  */ { 0xfffffe2u, 28 },  /*  */ { 0xfffffe3u, 28 },
   /*  */ { 0xfffffe4u, 28 },  /*  */ { 0xfffffe5u, 28 },
@@ -136,3 +143,9 @@ const symbol encode_table[] = {
   /*  */ { 0x7fffff0u, 27 },  /*  */ { 0x3ffffeeu, 26 },
   /*  */ { 0x3fffffffu, 30 }
 };
+
+} // namespace encode
+} // namespace huffman
+} // namespace qpack
+} // namespace http3
+} // namespace bnl

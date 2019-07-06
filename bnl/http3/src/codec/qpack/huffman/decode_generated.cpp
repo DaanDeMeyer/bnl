@@ -1,6 +1,13 @@
+#include <cstddef>
 #include <cstdint>
 
-enum class decode_flag : uint8_t {
+namespace bnl {
+namespace http3 {
+namespace qpack {
+namespace huffman {
+namespace decode {
+
+enum flag : uint8_t {
   accepted = 1,
   symbol = 2,
   failed = 4,
@@ -12,7 +19,7 @@ struct node {
   uint8_t symbol;
 };
 
-const node decode_table[][16] = {
+const node table[][16] = {
   /* 0 */ {
       { 4, 0x00, 0 },
       { 5, 0x00, 0 },
@@ -4877,3 +4884,9 @@ const node decode_table[][16] = {
       { 0, 0x04, 0 },
   },
 };
+
+} // namespace decode
+} // namespace huffman
+} // namespace qpack
+} // namespace http3
+} // namespace bnl
