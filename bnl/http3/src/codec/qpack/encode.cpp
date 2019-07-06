@@ -30,9 +30,11 @@ size_t encoder::encoded_size(header_view header, std::error_code &ec) const
   const char *name = reinterpret_cast<const char *>(header.name().data());
   size_t size = header.name().size();
 
-  CHECK_MSG(util::is_lowercase(name, size), error::malformed_header,
-            "Header ({}) is not lowercase", fmt::string_view(name, size));
-
+  if(!util::is_lowercase(name, size)) {
+    LOG_E("Header ({}) is not lowercase", fmt::string_view(name, size));
+    THROW(error::malformed_header);
+  }
+  
   size_t encoded_size = 0;
 
   if (state_ == state::prefix) {

@@ -238,9 +238,10 @@ frame frame::decoder::decode(View &encoded,
 
   size_t actual_encoded_size = encoded.consumed() - before;
 
-  CHECK_MSG(
-      actual_encoded_size == payload_encoded_size, error::malformed_frame,
-      "Frame payload's actual length does not match its advertised length");
+  if (actual_encoded_size != payload_encoded_size) {
+    LOG_E("Frame payload's actual length does not match its advertised length");
+    THROW(error::malformed_frame);
+  }
 
   return frame;
 }

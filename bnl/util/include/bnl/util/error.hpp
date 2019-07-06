@@ -49,21 +49,3 @@
     }                                                                          \
   }                                                                            \
   (void) 0
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-
-#define CHECK_MSG(expression, error, format, ...)                              \
-  {                                                                            \
-    auto result = expression;                                                  \
-    if (!result) {                                                             \
-      LOG_E(format, ##__VA_ARGS__);                                            \
-      THROW(error);                                                            \
-    }                                                                          \
-  }                                                                            \
-  (void) 0
-
-#pragma clang diagnostic pop
-#pragma GCC diagnostic pop
