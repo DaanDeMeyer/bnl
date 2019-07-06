@@ -170,13 +170,13 @@ private:
   template <typename Sequence>
   frame decode(Sequence &encoded, std::error_code &ec) const noexcept;
 
-  template <typename View>
-  frame decode(View &encoded,
+  template <typename Lookahead>
+  frame decode(Lookahead &encoded,
                bool *is_unknown_frame_type,
                std::error_code &ec) const noexcept;
 
-  template <typename View>
-  uint8_t uint8_decode(View &encoded, std::error_code &ec) const noexcept;
+  template <typename Lookahead>
+  uint8_t uint8_decode(Lookahead &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace http3

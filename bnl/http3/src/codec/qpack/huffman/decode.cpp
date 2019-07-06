@@ -44,10 +44,10 @@ buffer decoder::decode(buffer &encoded,
                        size_t encoded_size,
                        std::error_code &ec) const
 {
-  buffer_view view(encoded);
+  buffer::lookahead lookahead(encoded);
 
-  buffer decoded = TRY(decode<buffer_view>(view, encoded_size, ec));
-  encoded.consume(view.consumed());
+  buffer decoded = TRY(decode<buffer::lookahead>(lookahead, encoded_size, ec));
+  encoded.consume(lookahead.consumed());
 
   return decoded;
 }
@@ -56,26 +56,26 @@ buffer decoder::decode(buffers &encoded,
                        size_t encoded_size,
                        std::error_code &ec) const
 {
-  buffers_view view(encoded);
+  buffers::lookahead view(encoded);
 
-  buffer decoded = TRY(decode<buffers_view>(view, encoded_size, ec));
+  buffer decoded = TRY(decode<buffers::lookahead>(view, encoded_size, ec));
   encoded.consume(view.consumed());
 
   return decoded;
 }
 
-buffer decoder::decode(buffer_view &encoded,
+buffer decoder::decode(buffer::lookahead &encoded,
                        size_t encoded_size,
                        std::error_code &ec) const
 {
-  return decode<buffer_view>(encoded, encoded_size, ec);
+  return decode<buffer::lookahead>(encoded, encoded_size, ec);
 }
 
-buffer decoder::decode(buffers_view &encoded,
+buffer decoder::decode(buffers::lookahead &encoded,
                        size_t encoded_size,
                        std::error_code &ec) const
 {
-  return decode<buffers_view>(encoded, encoded_size, ec);
+  return decode<buffers::lookahead>(encoded, encoded_size, ec);
 }
 
 template <typename View>

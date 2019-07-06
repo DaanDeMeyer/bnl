@@ -224,6 +224,11 @@ buffer buffer::copy(size_t size) noexcept
   return buffer(data(), size);
 }
 
+buffer::operator buffer_view() const noexcept
+{
+  return { data(), size() };
+}
+
 buffer buffer::concat(const buffer &first, const buffer &second)
 {
   buffer result(first.size() + second.size());
@@ -264,6 +269,46 @@ void buffer::destroy() noexcept
 
   position_ = 0;
   size_ = 0;
+}
+
+buffer::lookahead::lookahead(const buffer &buffer) noexcept : buffer_(buffer) {}
+
+size_t buffer::lookahead::size() const noexcept
+{
+  return buffer_.size() - position_;
+}
+
+bool buffer::lookahead::empty() const noexcept
+{
+  return size() == 0;
+}
+
+uint8_t buffer::lookahead::operator[](size_t index) const noexcept
+{
+  assert(index < size());
+  return buffer_[position_ + index];
+}
+
+uint8_t buffer::lookahead::operator*() const noexcept
+{
+  return buffer_[position_];
+}
+
+void buffer::lookahead::consume(size_t size) noexcept
+{
+  assert(size <= this->size());
+  position_ += size;
+}
+
+size_t buffer::lookahead::consumed() const noexcept
+{
+  return position_;
+}
+
+buffer buffer::lookahead::copy(size_t size) const
+{
+  assert(size <= this->size());
+  return buffer(buffer_.data() + position_, size);
 }
 
 } // namespace bnl

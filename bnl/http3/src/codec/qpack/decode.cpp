@@ -45,20 +45,20 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
   }
 
   header header;
-  typename Sequence::view view(encoded);
+  typename Sequence::lookahead lookahead(encoded);
 
-  CHECK(!view.empty(), error::incomplete);
+  CHECK(!lookahead.empty(), error::incomplete);
 
-  switch (table::fixed::find_type(*view)) {
+  switch (table::fixed::find_type(*lookahead)) {
 
     case table::fixed::type::header_value: {
-      if ((*view & 0x40U) == 0) {
+      if ((*lookahead & 0x40U) == 0) {
         LOG_E("'S' (static table) bit not set in indexed header field");
         THROW(error::qpack_decompression_failed);
       }
 
       uint8_t index = TRY(
-          static_cast<uint8_t>(prefix_int_.decode(view, 6, ec)));
+          static_cast<uint8_t>(prefix_int_.decode(lookahead, 6, ec)));
 
       bool found = false;
       std::tie(found, header) = table::fixed::find_header_value(index);
@@ -72,13 +72,13 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
     }
 
     case table::fixed::type::header_only: {
-      if ((*view & 0x10U) == 0) {
+      if ((*lookahead & 0x10U) == 0) {
         LOG_E("'S' (static table) bit not set in literal with name reference");
         THROW(error::qpack_decompression_failed);
       }
 
       uint8_t index = TRY(
-          static_cast<uint8_t>(prefix_int_.decode(view, 4, ec)));
+          static_cast<uint8_t>(prefix_int_.decode(lookahead, 4, ec)));
 
       bool found = false;
       std::tie(found, header) = table::fixed::find_header_only(index);
@@ -88,12 +88,12 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
         THROW(error::qpack_decompression_failed);
       }
 
-      header.value = TRY(literal_.decode(view, 7, ec));
+      header.value = TRY(literal_.decode(lookahead, 7, ec));
       break;
     }
 
     case table::fixed::type::missing: {
-      header.name = TRY(literal_.decode(view, 3, ec));
+      header.name = TRY(literal_.decode(lookahead, 3, ec));
 
       const char *name = reinterpret_cast<const char *>(header.name.data());
       size_t size = header.name.size();
@@ -103,18 +103,18 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
         THROW(error::malformed_header);
       }
 
-      header.value = TRY(literal_.decode(view, 7, ec));
+      header.value = TRY(literal_.decode(lookahead, 7, ec));
       break;
     }
 
     case table::fixed::type::unknown:
-      LOG_E("Unexpected header block instruction prefix ({})", *view);
+      LOG_E("Unexpected header block instruction prefix ({})", *lookahead);
       THROW(error::qpack_decompression_failed);
   }
 
-  count_ += view.consumed();
+  count_ += lookahead.consumed();
 
-  encoded.consume(view.consumed());
+  encoded.consume(lookahead.consumed());
 
   return header;
 }

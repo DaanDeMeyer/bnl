@@ -11,22 +11,22 @@ namespace prefix_int {
 
 decoder::decoder(const log::api *logger) : logger_(logger) {}
 
-uint64_t decoder::decode(buffer_view &encoded,
+uint64_t decoder::decode(buffer::lookahead &encoded,
                          uint8_t prefix,
                          std::error_code &ec) const noexcept
 {
-  return decode<buffer_view>(encoded, prefix, ec);
+  return decode<buffer::lookahead>(encoded, prefix, ec);
 }
 
-uint64_t decoder::decode(buffers_view &encoded,
+uint64_t decoder::decode(buffers::lookahead &encoded,
                          uint8_t prefix,
                          std::error_code &ec) const noexcept
 {
-  return decode<buffers_view>(encoded, prefix, ec);
+  return decode<buffers::lookahead>(encoded, prefix, ec);
 }
 
-template <typename View>
-uint64_t decoder::decode(View &encoded,
+template <typename Lookahead>
+uint64_t decoder::decode(Lookahead &encoded,
                          uint8_t prefix,
                          std::error_code &ec) const noexcept
 {
@@ -48,8 +48,9 @@ uint64_t decoder::decode(View &encoded,
   return result;
 }
 
-template <typename View>
-uint8_t decoder::uint8_decode(View &encoded, std::error_code &ec) const noexcept
+template <typename Lookahead>
+uint8_t decoder::uint8_decode(Lookahead &encoded, std::error_code &ec) const
+    noexcept
 {
   CHECK(!encoded.empty(), error::incomplete);
 

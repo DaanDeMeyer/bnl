@@ -15,18 +15,18 @@ decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-buffer decoder::decode(buffer_view &encoded,
+buffer decoder::decode(buffer::lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
-  return decode<buffer_view>(encoded, prefix, ec);
+  return decode<buffer::lookahead>(encoded, prefix, ec);
 }
 
-buffer decoder::decode(buffers_view &encoded,
+buffer decoder::decode(buffers::lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
-  return decode<buffers_view>(encoded, prefix, ec);
+  return decode<buffers::lookahead>(encoded, prefix, ec);
 }
 
 template <typename View>

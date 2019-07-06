@@ -12,27 +12,26 @@ frame::decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), varint_(logger)
 {}
 
-frame::type
-frame::decoder::peek(const buffer &encoded, std::error_code &ec) const noexcept
+frame::type frame::decoder::peek(const buffer &encoded,
+                                 std::error_code &ec) const noexcept
 {
   return peek<buffer>(encoded, ec);
 }
 
-frame::type
-frame::decoder::peek(const buffers &encoded, std::error_code &ec) const noexcept
+frame::type frame::decoder::peek(const buffers &encoded,
+                                 std::error_code &ec) const noexcept
 {
   return peek<buffers>(encoded, ec);
 }
 
 template <typename Sequence>
-frame::type
-frame::decoder::peek(const Sequence &encoded, std::error_code &ec) const
-    noexcept
+frame::type frame::decoder::peek(const Sequence &encoded,
+                                 std::error_code &ec) const noexcept
 {
-  typename Sequence::view view(encoded);
+  typename Sequence::lookahead lookahead(encoded);
 
   while (true) {
-    uint64_t type = TRY(varint_.decode(view, ec));
+    uint64_t type = TRY(varint_.decode(lookahead, ec));
 
     switch (static_cast<frame::type>(type)) {
       case frame::type::data:
@@ -73,10 +72,10 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
   // while loop instead.
   while (true) {
     bool is_unknown_frame_type = false;
-    typename Sequence::view view(encoded);
+    typename Sequence::lookahead lookahead(encoded);
 
-    frame frame = TRY(decode(view, &is_unknown_frame_type, ec));
-    encoded.consume(view.consumed());
+    frame frame = TRY(decode(lookahead, &is_unknown_frame_type, ec));
+    encoded.consume(lookahead.consumed());
 
     if (!is_unknown_frame_type) {
       return frame;
@@ -84,8 +83,8 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
   }
 }
 
-template <typename View>
-frame frame::decoder::decode(View &encoded,
+template <typename Lookahead>
+frame frame::decoder::decode(Lookahead &encoded,
                              bool *is_unknown_frame_type,
                              std::error_code &ec) const noexcept
 {
@@ -246,9 +245,9 @@ frame frame::decoder::decode(View &encoded,
   return frame;
 }
 
-template <typename View>
-uint8_t
-frame::decoder::uint8_decode(View &encoded, std::error_code &ec) const noexcept
+template <typename Lookahead>
+uint8_t frame::decoder::uint8_decode(Lookahead &encoded,
+                                     std::error_code &ec) const noexcept
 {
   CHECK(!encoded.empty(), error::incomplete);
 

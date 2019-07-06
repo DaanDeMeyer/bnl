@@ -3,6 +3,7 @@
 #include <bnl/http3/export.hpp>
 
 #include <bnl/buffer.hpp>
+#include <bnl/buffer_view.hpp>
 #include <bnl/buffers.hpp>
 
 #include <bnl/class/macro.hpp>
@@ -51,11 +52,11 @@ public:
                 size_t encoded_size,
                 std::error_code &ec) const;
 
-  buffer decode(buffer_view &encoded,
+  buffer decode(buffer::lookahead &encoded,
                 size_t encoded_size,
                 std::error_code &ec) const;
 
-  buffer decode(buffers_view &encoded,
+  buffer decode(buffers::lookahead &encoded,
                 size_t encoded_size,
                 std::error_code &ec) const;
 

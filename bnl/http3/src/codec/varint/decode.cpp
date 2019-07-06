@@ -12,41 +12,41 @@ decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
 uint64_t decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
 {
-  buffer_view view(encoded);
+  buffer::lookahead lookahead(encoded);
 
-  uint64_t varint = TRY(decode<buffer_view>(view, ec));
-  encoded.consume(view.consumed());
+  uint64_t varint = TRY(decode<buffer::lookahead>(lookahead, ec));
+  encoded.consume(lookahead.consumed());
 
   return varint;
 }
 
 uint64_t decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
 {
-  buffers_view view(encoded);
+  buffers::lookahead view(encoded);
 
-  uint64_t varint = TRY(decode<buffers_view>(view, ec));
+  uint64_t varint = TRY(decode<buffers::lookahead>(view, ec));
   encoded.consume(view.consumed());
 
   return varint;
 }
 
-uint64_t decoder::decode(buffer_view &encoded, std::error_code &ec) const
+uint64_t decoder::decode(buffer::lookahead &encoded, std::error_code &ec) const
     noexcept
 {
-  return decode<buffer_view>(encoded, ec);
+  return decode<buffer::lookahead>(encoded, ec);
 }
 
-uint64_t decoder::decode(buffers_view &encoded, std::error_code &ec) const
+uint64_t decoder::decode(buffers::lookahead &encoded, std::error_code &ec) const
     noexcept
 {
-  return decode<buffers_view>(encoded, ec);
+  return decode<buffers::lookahead>(encoded, ec);
 }
 
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
 
-template <typename View>
-static uint8_t uint8_decode(View &encoded)
+template <typename Lookahead>
+static uint8_t uint8_decode(Lookahead &encoded)
 {
   uint8_t result = encoded[0] & 0x3fU;
 
@@ -55,8 +55,8 @@ static uint8_t uint8_decode(View &encoded)
   return result;
 }
 
-template <typename View>
-static uint16_t uint16_decode(View &encoded)
+template <typename Lookahead>
+static uint16_t uint16_decode(Lookahead &encoded)
 {
   uint16_t result = static_cast<uint16_t>(
       static_cast<uint16_t>(static_cast<uint16_t>(encoded[0]) << 8U) |
@@ -67,8 +67,8 @@ static uint16_t uint16_decode(View &encoded)
   return result & 0x3fffU;
 }
 
-template <typename View>
-static uint32_t uint32_decode(View &encoded)
+template <typename Lookahead>
+static uint32_t uint32_decode(Lookahead &encoded)
 {
 
   uint32_t result = static_cast<uint32_t>(encoded[0]) << 24U |
@@ -81,8 +81,8 @@ static uint32_t uint32_decode(View &encoded)
   return result & 0x3fffffffU;
 }
 
-template <typename View>
-static uint64_t uint64_decode(View &encoded)
+template <typename Lookahead>
+static uint64_t uint64_decode(Lookahead &encoded)
 {
   uint64_t result = static_cast<uint64_t>(encoded[0]) << 56U |
                     static_cast<uint64_t>(encoded[1]) << 48U |
@@ -98,8 +98,8 @@ static uint64_t uint64_decode(View &encoded)
   return result & 0x3fffffffffffffffU;
 }
 
-template <typename View>
-uint64_t decoder::decode(View &encoded, std::error_code &ec) const noexcept
+template <typename Lookahead>
+uint64_t decoder::decode(Lookahead &encoded, std::error_code &ec) const noexcept
 {
   CHECK(!encoded.empty(), error::incomplete);
 

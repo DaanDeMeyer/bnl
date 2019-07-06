@@ -42,23 +42,23 @@ public:
 
   BNL_MOVE_ONLY(decoder);
 
-  uint64_t decode(buffer_view &encoded,
+  uint64_t decode(buffer::lookahead &encoded,
                   uint8_t prefix,
                   std::error_code &ec) const noexcept;
 
-  uint64_t decode(buffers_view &encoded,
+  uint64_t decode(buffers::lookahead &encoded,
                   uint8_t prefix,
                   std::error_code &ec) const noexcept;
 
 private:
   const log::api *logger_;
 
-  template <typename View>
-  uint64_t decode(View &encoded, uint8_t prefix, std::error_code &ec) const
+  template <typename Lookahead>
+  uint64_t decode(Lookahead &encoded, uint8_t prefix, std::error_code &ec) const
       noexcept;
 
-  template <typename View>
-  uint8_t uint8_decode(View &encoded, std::error_code &ec) const noexcept;
+  template <typename Lookahead>
+  uint8_t uint8_decode(Lookahead &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace prefix_int

@@ -6,6 +6,7 @@
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 
 #include <bnl/buffer.hpp>
+#include <bnl/buffer_view.hpp>
 #include <bnl/buffers.hpp>
 
 #include <bnl/class/macro.hpp>
@@ -49,11 +50,11 @@ public:
 
   BNL_MOVE_ONLY(decoder);
 
-  buffer decode(buffer_view &encoded,
+  buffer decode(buffer::lookahead &encoded,
                 uint8_t prefix,
                 std::error_code &ec) const;
 
-  buffer decode(buffers_view &encoded,
+  buffer decode(buffers::lookahead &encoded,
                 uint8_t prefix,
                 std::error_code &ec) const;
 
@@ -63,8 +64,8 @@ private:
   prefix_int::decoder prefix_int_;
   huffman::decoder huffman_;
 
-  template <typename View>
-  buffer decode(View &encoded, uint8_t prefix, std::error_code &ec) const;
+  template <typename Lookahead>
+  buffer decode(Lookahead &encoded, uint8_t prefix, std::error_code &ec) const;
 };
 
 } // namespace literal

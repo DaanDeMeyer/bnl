@@ -4,6 +4,8 @@
 
 #include <bnl/class/macro.hpp>
 
+#include <bnl/buffer_view.hpp>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -12,11 +14,9 @@
 
 namespace bnl {
 
-class buffer_view;
-
 class BNL_CORE_EXPORT buffer {
 public:
-  using view = buffer_view;
+  class lookahead;
 
   buffer() noexcept;
   explicit buffer(size_t size);
@@ -66,6 +66,8 @@ public:
   // `slice`, this method does not consume any bytes of this buffer.
   buffer copy(size_t size) noexcept;
 
+  operator buffer_view() const noexcept; // NOLINT
+
   static buffer concat(const buffer &first, const buffer &second);
 
 private:
@@ -94,6 +96,24 @@ private:
   };
 };
 
-} // namespace bnl
+class BNL_CORE_EXPORT buffer::lookahead {
+public:
+  lookahead(const buffer &buffer) noexcept; // NOLINT
 
-#include <bnl/buffer_view.hpp>
+  size_t size() const noexcept;
+  bool empty() const noexcept;
+
+  uint8_t operator[](size_t index) const noexcept;
+  uint8_t operator*() const noexcept;
+
+  void consume(size_t size) noexcept;
+  size_t consumed() const noexcept;
+
+  buffer copy(size_t size) const;
+
+private:
+  const buffer &buffer_;
+  size_t position_ = 0;
+};
+
+} // namespace bnl

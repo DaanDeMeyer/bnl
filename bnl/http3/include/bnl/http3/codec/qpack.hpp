@@ -78,8 +78,8 @@ private:
   state state_ = state::prefix;
   uint64_t count_ = 0;
 
-  template <typename View>
-  header decode(View &encoded, std::error_code &ec);
+  template <typename Lookahead>
+  header decode(Lookahead &encoded, std::error_code &ec);
 };
 
 } // namespace qpack

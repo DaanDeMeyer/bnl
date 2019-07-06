@@ -154,4 +154,53 @@ buffer buffers::concat(size_t start, size_t end, size_t left) const
   return result;
 }
 
+buffers::lookahead::lookahead(const buffers &buffers) noexcept
+    : buffers_(buffers)
+{}
+
+size_t buffers::lookahead::size() const noexcept
+{
+  return buffers_.size() - position_;
+}
+
+bool buffers::lookahead::empty() const noexcept
+{
+  return size() == 0;
+}
+
+uint8_t buffers::lookahead::operator[](size_t index) const noexcept
+{
+  assert(index < size());
+  return buffers_[position_ + index];
+}
+
+uint8_t buffers::lookahead::operator*() const noexcept
+{
+  return buffers_[position_];
+}
+
+void buffers::lookahead::consume(size_t size) noexcept
+{
+  assert(size <= this->size());
+
+  position_ += size;
+}
+
+size_t buffers::lookahead::consumed() const noexcept
+{
+  return position_;
+}
+
+buffer buffers::lookahead::copy(size_t size) const
+{
+  assert(size <= this->size());
+
+  buffer result(size);
+  for (size_t i = 0; i < size; i++) {
+    result[i] = operator[](i);
+  }
+
+  return result;
+}
+
 } // namespace bnl

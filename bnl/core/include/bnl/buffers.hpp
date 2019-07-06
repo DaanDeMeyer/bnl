@@ -10,11 +10,9 @@
 
 namespace bnl {
 
-class buffers_view;
-
 class BNL_CORE_EXPORT buffers {
 public:
-  using view = buffers_view;
+  class lookahead;
 
   buffers() = default;
 
@@ -45,6 +43,24 @@ private:
   buffer concat(size_t start, size_t end, size_t left) const;
 };
 
-} // namespace bnl
+class BNL_CORE_EXPORT buffers::lookahead {
+public:
+  lookahead(const buffers &buffers) noexcept; // NOLINT
 
-#include <bnl/buffers_view.hpp>
+  size_t size() const noexcept;
+  bool empty() const noexcept;
+
+  uint8_t operator[](size_t index) const noexcept;
+  uint8_t operator*() const noexcept;
+
+  void consume(size_t size) noexcept;
+  size_t consumed() const noexcept;
+
+  buffer copy(size_t size) const;
+
+private:
+  const buffers &buffers_;
+  size_t position_ = 0;
+};
+
+} // namespace bnl

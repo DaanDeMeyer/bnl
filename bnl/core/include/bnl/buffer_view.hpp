@@ -2,8 +2,6 @@
 
 #include <bnl/core/export.hpp>
 
-#include <bnl/buffer.hpp>
-
 #include <cstddef>
 #include <cstdint>
 
@@ -17,7 +15,6 @@ public:
   {}
 
   buffer_view(const uint8_t *data, size_t size) noexcept;
-  buffer_view(const buffer &buffer) noexcept; // NOLINT
 
   const uint8_t *data() const noexcept;
 
@@ -27,18 +24,9 @@ public:
   const uint8_t *begin() const noexcept;
   const uint8_t *end() const noexcept;
 
-  uint8_t operator[](size_t index) const noexcept;
-  uint8_t operator*() const noexcept;
-
-  void consume(size_t size) noexcept;
-  size_t consumed() const noexcept;
-
-  buffer copy(size_t size) const;
-
 private:
   const uint8_t *data_;
   size_t size_;
-  size_t position_ = 0;
 };
 
 BNL_CORE_EXPORT bool operator==(buffer_view lhs, buffer_view rhs) noexcept;

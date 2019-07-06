@@ -32,8 +32,8 @@ public:
 
   size_t encoded_size(uint64_t varint, std::error_code &ec) const noexcept;
 
-  size_t
-  encode(uint8_t *dest, uint64_t varint, std::error_code &ec) const noexcept;
+  size_t encode(uint8_t *dest, uint64_t varint, std::error_code &ec) const
+      noexcept;
 
   buffer encode(uint64_t varint, std::error_code &ec) const;
 
@@ -51,15 +51,17 @@ public:
 
   uint64_t decode(buffers &encoded, std::error_code &ec) const noexcept;
 
-  uint64_t decode(buffer_view &encoded, std::error_code &ec) const noexcept;
+  uint64_t decode(buffer::lookahead &encoded, std::error_code &ec) const
+      noexcept;
 
-  uint64_t decode(buffers_view &encoded, std::error_code &ec) const noexcept;
+  uint64_t decode(buffers::lookahead &encoded, std::error_code &ec) const
+      noexcept;
 
 private:
   const log::api *logger_;
 
-  template <typename Sequence>
-  uint64_t decode(Sequence &encoded, std::error_code &ec) const noexcept;
+  template <typename Lookahead>
+  uint64_t decode(Lookahead &encoded, std::error_code &ec) const noexcept;
 };
 
 } // namespace varint
