@@ -1,11 +1,6 @@
 #!usr/bin/env python3
 
 """
-Generates `static_table_find_index`,
-`static_table_find_header_value` and `static_table_find_header_only`
-functions and writes them to encode_generated.c and
-decode_generated.c.
-
 Dependencies:
 - pip install --user xxhash
 """
@@ -117,7 +112,7 @@ static_table_raw = """\
 """
 
 find_index_template = """\
-static static_table::index_type find_index(header_view header, uint8_t *index)
+static std::pair<type, uint8_t> find_index(header_view header)
 {{
   uint64_t name_hash = XXH64(header.name().data(), header.name().size(), 0);
   uint64_t value_hash;
@@ -126,14 +121,13 @@ static static_table::index_type find_index(header_view header, uint8_t *index)
     {}
   }}
 
-  return index_type::missing;
+  return {{ type::missing, {{ }} }};
 }}\
 """
 
 no_values_template = """\
 case {}U: // {}
-  *index = {};
-  return index_type::header_only;\
+  return {{ type::header_only, uint8_t({}) }};\
 """
 
 values_template = """\
@@ -142,14 +136,12 @@ case {}U: // {}
   switch(value_hash) {{
     {}
   }}
-  *index = {};
-  return index_type::header_only;\
+  return {{ type::header_only, uint8_t({}) }};\
 """
 
 value_template = """\
 case {}U: // {}
-  *index = {};
-  return index_type::header_value;\
+  return {{ type::header_value, uint8_t({}) }};\
 """
 
 static_table = [line.split() for line in static_table_raw.splitlines()]
@@ -183,20 +175,23 @@ encode_generated_template = """\
 #include <xxhash.h>
 
 #include <cstdint>
+#include <utility>
 
 namespace bnl {{
 namespace http3 {{
 namespace qpack {{
-namespace static_table {{
+namespace table {{
+namespace fixed {{
 
-enum class index_type {{
-  missing,
+enum class type {{
+  header_value,
   header_only,
-  header_value
+  missing
 }};
 
 {}
 
+}}
 }}
 }}
 }}
@@ -210,20 +205,19 @@ file.write(encode_generated)
 file.close()
 
 find_header_value_template = """\
-bool find_header_value(uint8_t index, header *header)
+std::pair<bool, header> find_header_value(uint8_t index)
 {{
   switch(index) {{
     {}
   }}
 
-  return false;
+  return {{ false, {{ }} }};
 }}\
 """
 
 header_value_case_template = """\
 case {0}:
-  *header = {{ "{1}", "{2}" }};
-  return true;\
+  return {{ true, {{ "{1}", "{2}" }} }};\
 """
 
 cases = ""
@@ -236,20 +230,19 @@ for entry in static_table:
 find_header_value = find_header_value_template.format(cases)
 
 find_header_only_template = """\
-bool find_header_only(uint8_t index, header *header)
+std::pair<bool, header> find_header_only(uint8_t index)
 {{
   switch(index) {{
     {}
   }}
 
-  return false;
+  return {{ false, {{ }} }};
 }}\
 """
 
 header_only_case_template = """\
 case {0}:
-  *header = {{ "{1}", {{}} }};
-  return true;\
+  return {{ true, {{ "{1}", {{}} }} }};\
 """
 
 cases = ""
@@ -263,16 +256,49 @@ decode_generated_template = """\
 #include <bnl/http3/header.hpp>
 
 #include <cstdint>
+#include <utility>
 
 namespace bnl {{
 namespace http3 {{
 namespace qpack {{
-namespace static_table {{
+namespace table {{
+namespace fixed {{
+
+enum class type {{
+  header_value,
+  header_only,
+  missing,
+  unknown
+}};
+
+static constexpr uint8_t INDEXED_HEADER_FIELD_PREFIX = 0x80;
+static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x40;
+static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
+
+static type find_type(uint8_t byte)
+{{
+  if ((byte & INDEXED_HEADER_FIELD_PREFIX) == INDEXED_HEADER_FIELD_PREFIX) {{
+    return type::header_value;
+  }}
+
+  if ((byte & LITERAL_WITH_NAME_REFERENCE_PREFIX) ==
+      LITERAL_WITH_NAME_REFERENCE_PREFIX) {{
+    return type::header_only;
+  }}
+
+  if ((byte & LITERAL_WITHOUT_NAME_REFERENCE_PREFIX) ==
+      LITERAL_WITHOUT_NAME_REFERENCE_PREFIX) {{
+    return type::missing;
+  }}
+
+  return type::unknown;
+}}
 
 {}
 
 {}
 
+}}
 }}
 }}
 }}

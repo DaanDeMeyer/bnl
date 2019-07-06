@@ -38,18 +38,18 @@ size_t qpack::encoder::encoded_size(header_view header,
     encoded_size += QPACK_PREFIX_ENCODED_SIZE;
   }
 
+  qpack::table::fixed::type type;
   uint8_t index = 0;
-  qpack::static_table::index_type result =
-      qpack::static_table::find_index(header, &index);
+  std::tie(type, index) = qpack::table::fixed::find_index(header);
 
-  switch (result) {
+  switch (type) {
 
-    case qpack::static_table::index_type::header_value: {
+    case qpack::table::fixed::type::header_value: {
       encoded_size += prefix_int_.encoded_size(index, 6);
       break;
     }
 
-    case qpack::static_table::index_type::header_only: {
+    case qpack::table::fixed::type::header_only: {
       encoded_size += prefix_int_.encoded_size(index, 4);
 
       size_t value_encoded_size = literal_.encoded_size(header.value(), 7);
@@ -57,7 +57,7 @@ size_t qpack::encoder::encoded_size(header_view header,
       break;
     }
 
-    case qpack::static_table::index_type::missing: {
+    case qpack::table::fixed::type::missing: {
       size_t name_encoded_size = literal_.encoded_size(header.name(), 3);
       encoded_size += name_encoded_size;
 
@@ -93,18 +93,18 @@ size_t qpack::encoder::encode(uint8_t *dest,
     state_ = state::header;
   }
 
+  qpack::table::fixed::type type;
   uint8_t index = 0;
-  qpack::static_table::index_type index_type =
-      qpack::static_table::find_index(header, &index);
+  std::tie(type, index) = qpack::table::fixed::find_index(header);
 
-  switch (index_type) {
+  switch (type) {
 
-    case qpack::static_table::index_type::header_value:
+    case qpack::table::fixed::type::header_value:
       *dest = INDEXED_HEADER_FIELD_PREFIX;
       dest += prefix_int_.encode(dest, index, 6);
       break;
 
-    case qpack::static_table::index_type::header_only:
+    case qpack::table::fixed::type::header_only:
       *dest = LITERAL_WITH_NAME_REFERENCE_PREFIX;
       dest += prefix_int_.encode(dest, index, 4);
 
@@ -112,7 +112,7 @@ size_t qpack::encoder::encode(uint8_t *dest,
       dest += literal_.encode(dest, header.value(), 7);
       break;
 
-    case qpack::static_table::index_type::missing:
+    case qpack::table::fixed::type::missing:
       *dest = LITERAL_WITHOUT_NAME_REFERENCE_PREFIX;
       dest += literal_.encode(dest, header.name(), 3);
 

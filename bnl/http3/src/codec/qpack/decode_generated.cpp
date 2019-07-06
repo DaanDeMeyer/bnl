@@ -1,563 +1,417 @@
 #include <bnl/http3/header.hpp>
 
 #include <cstdint>
+#include <utility>
 
 namespace bnl {
 namespace http3 {
 namespace qpack {
-namespace static_table {
+namespace table {
+namespace fixed {
 
-bool find_header_value(uint8_t index, header *header)
+enum class type { header_value, header_only, missing, unknown };
+
+static constexpr uint8_t INDEXED_HEADER_FIELD_PREFIX = 0x80;
+static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x40;
+static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
+
+static type find_type(uint8_t byte)
+{
+  if ((byte & INDEXED_HEADER_FIELD_PREFIX) == INDEXED_HEADER_FIELD_PREFIX) {
+    return type::header_value;
+  }
+
+  if ((byte & LITERAL_WITH_NAME_REFERENCE_PREFIX) ==
+      LITERAL_WITH_NAME_REFERENCE_PREFIX) {
+    return type::header_only;
+  }
+
+  if ((byte & LITERAL_WITHOUT_NAME_REFERENCE_PREFIX) ==
+      LITERAL_WITHOUT_NAME_REFERENCE_PREFIX) {
+    return type::missing;
+  }
+
+  return type::unknown;
+}
+
+std::pair<bool, header> find_header_value(uint8_t index)
 {
   switch (index) {
     case 15:
-      *header = { ":method", "CONNECT" };
-      return true;
+      return { true, { ":method", "CONNECT" } };
     case 16:
-      *header = { ":method", "DELETE" };
-      return true;
+      return { true, { ":method", "DELETE" } };
     case 17:
-      *header = { ":method", "GET" };
-      return true;
+      return { true, { ":method", "GET" } };
     case 18:
-      *header = { ":method", "HEAD" };
-      return true;
+      return { true, { ":method", "HEAD" } };
     case 19:
-      *header = { ":method", "OPTIONS" };
-      return true;
+      return { true, { ":method", "OPTIONS" } };
     case 20:
-      *header = { ":method", "POST" };
-      return true;
+      return { true, { ":method", "POST" } };
     case 21:
-      *header = { ":method", "PUT" };
-      return true;
+      return { true, { ":method", "PUT" } };
     case 1:
-      *header = { ":path", "/" };
-      return true;
+      return { true, { ":path", "/" } };
     case 22:
-      *header = { ":scheme", "http" };
-      return true;
+      return { true, { ":scheme", "http" } };
     case 23:
-      *header = { ":scheme", "https" };
-      return true;
+      return { true, { ":scheme", "https" } };
     case 24:
-      *header = { ":status", "103" };
-      return true;
+      return { true, { ":status", "103" } };
     case 25:
-      *header = { ":status", "200" };
-      return true;
+      return { true, { ":status", "200" } };
     case 26:
-      *header = { ":status", "304" };
-      return true;
+      return { true, { ":status", "304" } };
     case 27:
-      *header = { ":status", "404" };
-      return true;
+      return { true, { ":status", "404" } };
     case 28:
-      *header = { ":status", "503" };
-      return true;
+      return { true, { ":status", "503" } };
     case 63:
-      *header = { ":status", "100" };
-      return true;
+      return { true, { ":status", "100" } };
     case 64:
-      *header = { ":status", "204" };
-      return true;
+      return { true, { ":status", "204" } };
     case 65:
-      *header = { ":status", "206" };
-      return true;
+      return { true, { ":status", "206" } };
     case 66:
-      *header = { ":status", "302" };
-      return true;
+      return { true, { ":status", "302" } };
     case 67:
-      *header = { ":status", "400" };
-      return true;
+      return { true, { ":status", "400" } };
     case 68:
-      *header = { ":status", "403" };
-      return true;
+      return { true, { ":status", "403" } };
     case 69:
-      *header = { ":status", "421" };
-      return true;
+      return { true, { ":status", "421" } };
     case 70:
-      *header = { ":status", "425" };
-      return true;
+      return { true, { ":status", "425" } };
     case 71:
-      *header = { ":status", "500" };
-      return true;
+      return { true, { ":status", "500" } };
     case 29:
-      *header = { "accept", "*/*" };
-      return true;
+      return { true, { "accept", "*/*" } };
     case 30:
-      *header = { "accept", "application/dns-message" };
-      return true;
+      return { true, { "accept", "application/dns-message" } };
     case 31:
-      *header = { "accept-encoding", "gzip, deflate, br" };
-      return true;
+      return { true, { "accept-encoding", "gzip, deflate, br" } };
     case 32:
-      *header = { "accept-ranges", "bytes" };
-      return true;
+      return { true, { "accept-ranges", "bytes" } };
     case 73:
-      *header = { "access-control-allow-credentials", "FALSE" };
-      return true;
+      return { true, { "access-control-allow-credentials", "FALSE" } };
     case 74:
-      *header = { "access-control-allow-credentials", "TRUE" };
-      return true;
+      return { true, { "access-control-allow-credentials", "TRUE" } };
     case 33:
-      *header = { "access-control-allow-headers", "cache-control" };
-      return true;
+      return { true, { "access-control-allow-headers", "cache-control" } };
     case 34:
-      *header = { "access-control-allow-headers", "content-type" };
-      return true;
+      return { true, { "access-control-allow-headers", "content-type" } };
     case 75:
-      *header = { "access-control-allow-headers", "*" };
-      return true;
+      return { true, { "access-control-allow-headers", "*" } };
     case 76:
-      *header = { "access-control-allow-methods", "get" };
-      return true;
+      return { true, { "access-control-allow-methods", "get" } };
     case 77:
-      *header = { "access-control-allow-methods", "get, post, options" };
-      return true;
+      return { true, { "access-control-allow-methods", "get, post, options" } };
     case 78:
-      *header = { "access-control-allow-methods", "options" };
-      return true;
+      return { true, { "access-control-allow-methods", "options" } };
     case 35:
-      *header = { "access-control-allow-origin", "*" };
-      return true;
+      return { true, { "access-control-allow-origin", "*" } };
     case 79:
-      *header = { "access-control-expose-headers", "content-length" };
-      return true;
+      return { true, { "access-control-expose-headers", "content-length" } };
     case 80:
-      *header = { "access-control-request-headers", "content-type" };
-      return true;
+      return { true, { "access-control-request-headers", "content-type" } };
     case 81:
-      *header = { "access-control-request-method", "get" };
-      return true;
+      return { true, { "access-control-request-method", "get" } };
     case 82:
-      *header = { "access-control-request-method", "post" };
-      return true;
+      return { true, { "access-control-request-method", "post" } };
     case 2:
-      *header = { "age", "0" };
-      return true;
+      return { true, { "age", "0" } };
     case 83:
-      *header = { "alt-svc", "clear" };
-      return true;
+      return { true, { "alt-svc", "clear" } };
     case 36:
-      *header = { "cache-control", "max-age=0" };
-      return true;
+      return { true, { "cache-control", "max-age=0" } };
     case 37:
-      *header = { "cache-control", "max-age=2592000" };
-      return true;
+      return { true, { "cache-control", "max-age=2592000" } };
     case 38:
-      *header = { "cache-control", "max-age=604800" };
-      return true;
+      return { true, { "cache-control", "max-age=604800" } };
     case 39:
-      *header = { "cache-control", "no-cache" };
-      return true;
+      return { true, { "cache-control", "no-cache" } };
     case 40:
-      *header = { "cache-control", "no-store" };
-      return true;
+      return { true, { "cache-control", "no-store" } };
     case 41:
-      *header = { "cache-control", "public, max-age=31536000" };
-      return true;
+      return { true, { "cache-control", "public, max-age=31536000" } };
     case 42:
-      *header = { "content-encoding", "br" };
-      return true;
+      return { true, { "content-encoding", "br" } };
     case 43:
-      *header = { "content-encoding", "gzip" };
-      return true;
+      return { true, { "content-encoding", "gzip" } };
     case 4:
-      *header = { "content-length", "0" };
-      return true;
+      return { true, { "content-length", "0" } };
     case 85:
-      *header = { "content-security-policy",
-                  "script-src 'none'; object-src 'none'; base-uri 'none'" };
-      return true;
+      return { true,
+               { "content-security-policy",
+                 "script-src 'none'; object-src 'none'; base-uri 'none'" } };
     case 44:
-      *header = { "content-type", "application/dns-message" };
-      return true;
+      return { true, { "content-type", "application/dns-message" } };
     case 45:
-      *header = { "content-type", "application/javascript" };
-      return true;
+      return { true, { "content-type", "application/javascript" } };
     case 46:
-      *header = { "content-type", "application/json" };
-      return true;
+      return { true, { "content-type", "application/json" } };
     case 47:
-      *header = { "content-type", "application/x-www-form-urlencoded" };
-      return true;
+      return { true, { "content-type", "application/x-www-form-urlencoded" } };
     case 48:
-      *header = { "content-type", "image/gif" };
-      return true;
+      return { true, { "content-type", "image/gif" } };
     case 49:
-      *header = { "content-type", "image/jpeg" };
-      return true;
+      return { true, { "content-type", "image/jpeg" } };
     case 50:
-      *header = { "content-type", "image/png" };
-      return true;
+      return { true, { "content-type", "image/png" } };
     case 51:
-      *header = { "content-type", "text/css" };
-      return true;
+      return { true, { "content-type", "text/css" } };
     case 52:
-      *header = { "content-type", "text/html; charset=utf-8" };
-      return true;
+      return { true, { "content-type", "text/html; charset=utf-8" } };
     case 53:
-      *header = { "content-type", "text/plain" };
-      return true;
+      return { true, { "content-type", "text/plain" } };
     case 54:
-      *header = { "content-type", "text/plain;charset=utf-8" };
-      return true;
+      return { true, { "content-type", "text/plain;charset=utf-8" } };
     case 86:
-      *header = { "early-data", "1" };
-      return true;
+      return { true, { "early-data", "1" } };
     case 91:
-      *header = { "purpose", "prefetch" };
-      return true;
+      return { true, { "purpose", "prefetch" } };
     case 55:
-      *header = { "range", "bytes=0-" };
-      return true;
+      return { true, { "range", "bytes=0-" } };
     case 56:
-      *header = { "strict-transport-security", "max-age=31536000" };
-      return true;
+      return { true, { "strict-transport-security", "max-age=31536000" } };
     case 57:
-      *header = { "strict-transport-security",
-                  "max-age=31536000; includesubdomains" };
-      return true;
+      return { true,
+               { "strict-transport-security",
+                 "max-age=31536000; includesubdomains" } };
     case 58:
-      *header = { "strict-transport-security",
-                  "max-age=31536000; includesubdomains; preload" };
-      return true;
+      return { true,
+               { "strict-transport-security",
+                 "max-age=31536000; includesubdomains; preload" } };
     case 93:
-      *header = { "timing-allow-origin", "*" };
-      return true;
+      return { true, { "timing-allow-origin", "*" } };
     case 94:
-      *header = { "upgrade-insecure-requests", "1" };
-      return true;
+      return { true, { "upgrade-insecure-requests", "1" } };
     case 59:
-      *header = { "vary", "accept-encoding" };
-      return true;
+      return { true, { "vary", "accept-encoding" } };
     case 60:
-      *header = { "vary", "origin" };
-      return true;
+      return { true, { "vary", "origin" } };
     case 61:
-      *header = { "x-content-type-options", "nosniff" };
-      return true;
+      return { true, { "x-content-type-options", "nosniff" } };
     case 97:
-      *header = { "x-frame-options", "deny" };
-      return true;
+      return { true, { "x-frame-options", "deny" } };
     case 98:
-      *header = { "x-frame-options", "sameorigin" };
-      return true;
+      return { true, { "x-frame-options", "sameorigin" } };
     case 62:
-      *header = { "x-xss-protection", "1; mode=block" };
-      return true;
+      return { true, { "x-xss-protection", "1; mode=block" } };
   }
 
-  return false;
+  return { false, {} };
 }
 
-bool find_header_only(uint8_t index, header *header)
+std::pair<bool, header> find_header_only(uint8_t index)
 {
   switch (index) {
     case 0:
-      *header = { ":authority", {} };
-      return true;
+      return { true, { ":authority", {} } };
     case 15:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 16:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 17:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 18:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 19:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 20:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 21:
-      *header = { ":method", {} };
-      return true;
+      return { true, { ":method", {} } };
     case 1:
-      *header = { ":path", {} };
-      return true;
+      return { true, { ":path", {} } };
     case 22:
-      *header = { ":scheme", {} };
-      return true;
+      return { true, { ":scheme", {} } };
     case 23:
-      *header = { ":scheme", {} };
-      return true;
+      return { true, { ":scheme", {} } };
     case 24:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 25:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 26:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 27:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 28:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 63:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 64:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 65:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 66:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 67:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 68:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 69:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 70:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 71:
-      *header = { ":status", {} };
-      return true;
+      return { true, { ":status", {} } };
     case 29:
-      *header = { "accept", {} };
-      return true;
+      return { true, { "accept", {} } };
     case 30:
-      *header = { "accept", {} };
-      return true;
+      return { true, { "accept", {} } };
     case 31:
-      *header = { "accept-encoding", {} };
-      return true;
+      return { true, { "accept-encoding", {} } };
     case 72:
-      *header = { "accept-language", {} };
-      return true;
+      return { true, { "accept-language", {} } };
     case 32:
-      *header = { "accept-ranges", {} };
-      return true;
+      return { true, { "accept-ranges", {} } };
     case 73:
-      *header = { "access-control-allow-credentials", {} };
-      return true;
+      return { true, { "access-control-allow-credentials", {} } };
     case 74:
-      *header = { "access-control-allow-credentials", {} };
-      return true;
+      return { true, { "access-control-allow-credentials", {} } };
     case 33:
-      *header = { "access-control-allow-headers", {} };
-      return true;
+      return { true, { "access-control-allow-headers", {} } };
     case 34:
-      *header = { "access-control-allow-headers", {} };
-      return true;
+      return { true, { "access-control-allow-headers", {} } };
     case 75:
-      *header = { "access-control-allow-headers", {} };
-      return true;
+      return { true, { "access-control-allow-headers", {} } };
     case 76:
-      *header = { "access-control-allow-methods", {} };
-      return true;
+      return { true, { "access-control-allow-methods", {} } };
     case 77:
-      *header = { "access-control-allow-methods", {} };
-      return true;
+      return { true, { "access-control-allow-methods", {} } };
     case 78:
-      *header = { "access-control-allow-methods", {} };
-      return true;
+      return { true, { "access-control-allow-methods", {} } };
     case 35:
-      *header = { "access-control-allow-origin", {} };
-      return true;
+      return { true, { "access-control-allow-origin", {} } };
     case 79:
-      *header = { "access-control-expose-headers", {} };
-      return true;
+      return { true, { "access-control-expose-headers", {} } };
     case 80:
-      *header = { "access-control-request-headers", {} };
-      return true;
+      return { true, { "access-control-request-headers", {} } };
     case 81:
-      *header = { "access-control-request-method", {} };
-      return true;
+      return { true, { "access-control-request-method", {} } };
     case 82:
-      *header = { "access-control-request-method", {} };
-      return true;
+      return { true, { "access-control-request-method", {} } };
     case 2:
-      *header = { "age", {} };
-      return true;
+      return { true, { "age", {} } };
     case 83:
-      *header = { "alt-svc", {} };
-      return true;
+      return { true, { "alt-svc", {} } };
     case 84:
-      *header = { "authorization", {} };
-      return true;
+      return { true, { "authorization", {} } };
     case 36:
-      *header = { "cache-control", {} };
-      return true;
+      return { true, { "cache-control", {} } };
     case 37:
-      *header = { "cache-control", {} };
-      return true;
+      return { true, { "cache-control", {} } };
     case 38:
-      *header = { "cache-control", {} };
-      return true;
+      return { true, { "cache-control", {} } };
     case 39:
-      *header = { "cache-control", {} };
-      return true;
+      return { true, { "cache-control", {} } };
     case 40:
-      *header = { "cache-control", {} };
-      return true;
+      return { true, { "cache-control", {} } };
     case 41:
-      *header = { "cache-control", {} };
-      return true;
+      return { true, { "cache-control", {} } };
     case 3:
-      *header = { "content-disposition", {} };
-      return true;
+      return { true, { "content-disposition", {} } };
     case 42:
-      *header = { "content-encoding", {} };
-      return true;
+      return { true, { "content-encoding", {} } };
     case 43:
-      *header = { "content-encoding", {} };
-      return true;
+      return { true, { "content-encoding", {} } };
     case 4:
-      *header = { "content-length", {} };
-      return true;
+      return { true, { "content-length", {} } };
     case 85:
-      *header = { "content-security-policy", {} };
-      return true;
+      return { true, { "content-security-policy", {} } };
     case 44:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 45:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 46:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 47:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 48:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 49:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 50:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 51:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 52:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 53:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 54:
-      *header = { "content-type", {} };
-      return true;
+      return { true, { "content-type", {} } };
     case 5:
-      *header = { "cookie", {} };
-      return true;
+      return { true, { "cookie", {} } };
     case 6:
-      *header = { "date", {} };
-      return true;
+      return { true, { "date", {} } };
     case 86:
-      *header = { "early-data", {} };
-      return true;
+      return { true, { "early-data", {} } };
     case 7:
-      *header = { "etag", {} };
-      return true;
+      return { true, { "etag", {} } };
     case 87:
-      *header = { "expect-ct", {} };
-      return true;
+      return { true, { "expect-ct", {} } };
     case 88:
-      *header = { "forwarded", {} };
-      return true;
+      return { true, { "forwarded", {} } };
     case 8:
-      *header = { "if-modified-since", {} };
-      return true;
+      return { true, { "if-modified-since", {} } };
     case 9:
-      *header = { "if-none-match", {} };
-      return true;
+      return { true, { "if-none-match", {} } };
     case 89:
-      *header = { "if-range", {} };
-      return true;
+      return { true, { "if-range", {} } };
     case 10:
-      *header = { "last-modified", {} };
-      return true;
+      return { true, { "last-modified", {} } };
     case 11:
-      *header = { "link", {} };
-      return true;
+      return { true, { "link", {} } };
     case 12:
-      *header = { "location", {} };
-      return true;
+      return { true, { "location", {} } };
     case 90:
-      *header = { "origin", {} };
-      return true;
+      return { true, { "origin", {} } };
     case 91:
-      *header = { "purpose", {} };
-      return true;
+      return { true, { "purpose", {} } };
     case 55:
-      *header = { "range", {} };
-      return true;
+      return { true, { "range", {} } };
     case 13:
-      *header = { "referer", {} };
-      return true;
+      return { true, { "referer", {} } };
     case 92:
-      *header = { "server", {} };
-      return true;
+      return { true, { "server", {} } };
     case 14:
-      *header = { "set-cookie", {} };
-      return true;
+      return { true, { "set-cookie", {} } };
     case 56:
-      *header = { "strict-transport-security", {} };
-      return true;
+      return { true, { "strict-transport-security", {} } };
     case 57:
-      *header = { "strict-transport-security", {} };
-      return true;
+      return { true, { "strict-transport-security", {} } };
     case 58:
-      *header = { "strict-transport-security", {} };
-      return true;
+      return { true, { "strict-transport-security", {} } };
     case 93:
-      *header = { "timing-allow-origin", {} };
-      return true;
+      return { true, { "timing-allow-origin", {} } };
     case 94:
-      *header = { "upgrade-insecure-requests", {} };
-      return true;
+      return { true, { "upgrade-insecure-requests", {} } };
     case 95:
-      *header = { "user-agent", {} };
-      return true;
+      return { true, { "user-agent", {} } };
     case 59:
-      *header = { "vary", {} };
-      return true;
+      return { true, { "vary", {} } };
     case 60:
-      *header = { "vary", {} };
-      return true;
+      return { true, { "vary", {} } };
     case 61:
-      *header = { "x-content-type-options", {} };
-      return true;
+      return { true, { "x-content-type-options", {} } };
     case 96:
-      *header = { "x-forwarded-for", {} };
-      return true;
+      return { true, { "x-forwarded-for", {} } };
     case 97:
-      *header = { "x-frame-options", {} };
-      return true;
+      return { true, { "x-frame-options", {} } };
     case 98:
-      *header = { "x-frame-options", {} };
-      return true;
+      return { true, { "x-frame-options", {} } };
     case 62:
-      *header = { "x-xss-protection", {} };
-      return true;
+      return { true, { "x-xss-protection", {} } };
   }
 
-  return false;
+  return { false, {} };
 }
 
-} // namespace static_table
+} // namespace fixed
+} // namespace table
 } // namespace qpack
 } // namespace http3
 } // namespace bnl
