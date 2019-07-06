@@ -3,10 +3,10 @@
 namespace bnl {
 namespace util {
 
-bool is_lowercase(const char *string, size_t size)
+bool is_lowercase(string_view string)
 {
-  for (size_t i = 0; i < size; i++) {
-    if (string[i] >= 'A' && string[i] <= 'Z') {
+  for (char character : string) {
+    if (character >= 'A' && character <= 'Z') {
       return false;
     }
   }

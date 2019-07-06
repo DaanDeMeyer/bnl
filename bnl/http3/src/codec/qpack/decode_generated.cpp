@@ -1,5 +1,7 @@
 #include <bnl/http3/header.hpp>
 
+#include <bnl/string.hpp>
+
 #include <cstdint>
 #include <utility>
 
@@ -204,207 +206,207 @@ std::pair<bool, header> find_header_value(uint8_t index)
   return { false, {} };
 }
 
-std::pair<bool, header> find_header_only(uint8_t index)
+std::pair<bool, string> find_header_only(uint8_t index)
 {
   switch (index) {
     case 0:
-      return { true, { ":authority", {} } };
+      return { true, ":authority" };
     case 15:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 16:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 17:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 18:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 19:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 20:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 21:
-      return { true, { ":method", {} } };
+      return { true, ":method" };
     case 1:
-      return { true, { ":path", {} } };
+      return { true, ":path" };
     case 22:
-      return { true, { ":scheme", {} } };
+      return { true, ":scheme" };
     case 23:
-      return { true, { ":scheme", {} } };
+      return { true, ":scheme" };
     case 24:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 25:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 26:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 27:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 28:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 63:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 64:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 65:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 66:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 67:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 68:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 69:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 70:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 71:
-      return { true, { ":status", {} } };
+      return { true, ":status" };
     case 29:
-      return { true, { "accept", {} } };
+      return { true, "accept" };
     case 30:
-      return { true, { "accept", {} } };
+      return { true, "accept" };
     case 31:
-      return { true, { "accept-encoding", {} } };
+      return { true, "accept-encoding" };
     case 72:
-      return { true, { "accept-language", {} } };
+      return { true, "accept-language" };
     case 32:
-      return { true, { "accept-ranges", {} } };
+      return { true, "accept-ranges" };
     case 73:
-      return { true, { "access-control-allow-credentials", {} } };
+      return { true, "access-control-allow-credentials" };
     case 74:
-      return { true, { "access-control-allow-credentials", {} } };
+      return { true, "access-control-allow-credentials" };
     case 33:
-      return { true, { "access-control-allow-headers", {} } };
+      return { true, "access-control-allow-headers" };
     case 34:
-      return { true, { "access-control-allow-headers", {} } };
+      return { true, "access-control-allow-headers" };
     case 75:
-      return { true, { "access-control-allow-headers", {} } };
+      return { true, "access-control-allow-headers" };
     case 76:
-      return { true, { "access-control-allow-methods", {} } };
+      return { true, "access-control-allow-methods" };
     case 77:
-      return { true, { "access-control-allow-methods", {} } };
+      return { true, "access-control-allow-methods" };
     case 78:
-      return { true, { "access-control-allow-methods", {} } };
+      return { true, "access-control-allow-methods" };
     case 35:
-      return { true, { "access-control-allow-origin", {} } };
+      return { true, "access-control-allow-origin" };
     case 79:
-      return { true, { "access-control-expose-headers", {} } };
+      return { true, "access-control-expose-headers" };
     case 80:
-      return { true, { "access-control-request-headers", {} } };
+      return { true, "access-control-request-headers" };
     case 81:
-      return { true, { "access-control-request-method", {} } };
+      return { true, "access-control-request-method" };
     case 82:
-      return { true, { "access-control-request-method", {} } };
+      return { true, "access-control-request-method" };
     case 2:
-      return { true, { "age", {} } };
+      return { true, "age" };
     case 83:
-      return { true, { "alt-svc", {} } };
+      return { true, "alt-svc" };
     case 84:
-      return { true, { "authorization", {} } };
+      return { true, "authorization" };
     case 36:
-      return { true, { "cache-control", {} } };
+      return { true, "cache-control" };
     case 37:
-      return { true, { "cache-control", {} } };
+      return { true, "cache-control" };
     case 38:
-      return { true, { "cache-control", {} } };
+      return { true, "cache-control" };
     case 39:
-      return { true, { "cache-control", {} } };
+      return { true, "cache-control" };
     case 40:
-      return { true, { "cache-control", {} } };
+      return { true, "cache-control" };
     case 41:
-      return { true, { "cache-control", {} } };
+      return { true, "cache-control" };
     case 3:
-      return { true, { "content-disposition", {} } };
+      return { true, "content-disposition" };
     case 42:
-      return { true, { "content-encoding", {} } };
+      return { true, "content-encoding" };
     case 43:
-      return { true, { "content-encoding", {} } };
+      return { true, "content-encoding" };
     case 4:
-      return { true, { "content-length", {} } };
+      return { true, "content-length" };
     case 85:
-      return { true, { "content-security-policy", {} } };
+      return { true, "content-security-policy" };
     case 44:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 45:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 46:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 47:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 48:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 49:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 50:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 51:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 52:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 53:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 54:
-      return { true, { "content-type", {} } };
+      return { true, "content-type" };
     case 5:
-      return { true, { "cookie", {} } };
+      return { true, "cookie" };
     case 6:
-      return { true, { "date", {} } };
+      return { true, "date" };
     case 86:
-      return { true, { "early-data", {} } };
+      return { true, "early-data" };
     case 7:
-      return { true, { "etag", {} } };
+      return { true, "etag" };
     case 87:
-      return { true, { "expect-ct", {} } };
+      return { true, "expect-ct" };
     case 88:
-      return { true, { "forwarded", {} } };
+      return { true, "forwarded" };
     case 8:
-      return { true, { "if-modified-since", {} } };
+      return { true, "if-modified-since" };
     case 9:
-      return { true, { "if-none-match", {} } };
+      return { true, "if-none-match" };
     case 89:
-      return { true, { "if-range", {} } };
+      return { true, "if-range" };
     case 10:
-      return { true, { "last-modified", {} } };
+      return { true, "last-modified" };
     case 11:
-      return { true, { "link", {} } };
+      return { true, "link" };
     case 12:
-      return { true, { "location", {} } };
+      return { true, "location" };
     case 90:
-      return { true, { "origin", {} } };
+      return { true, "origin" };
     case 91:
-      return { true, { "purpose", {} } };
+      return { true, "purpose" };
     case 55:
-      return { true, { "range", {} } };
+      return { true, "range" };
     case 13:
-      return { true, { "referer", {} } };
+      return { true, "referer" };
     case 92:
-      return { true, { "server", {} } };
+      return { true, "server" };
     case 14:
-      return { true, { "set-cookie", {} } };
+      return { true, "set-cookie" };
     case 56:
-      return { true, { "strict-transport-security", {} } };
+      return { true, "strict-transport-security" };
     case 57:
-      return { true, { "strict-transport-security", {} } };
+      return { true, "strict-transport-security" };
     case 58:
-      return { true, { "strict-transport-security", {} } };
+      return { true, "strict-transport-security" };
     case 93:
-      return { true, { "timing-allow-origin", {} } };
+      return { true, "timing-allow-origin" };
     case 94:
-      return { true, { "upgrade-insecure-requests", {} } };
+      return { true, "upgrade-insecure-requests" };
     case 95:
-      return { true, { "user-agent", {} } };
+      return { true, "user-agent" };
     case 59:
-      return { true, { "vary", {} } };
+      return { true, "vary" };
     case 60:
-      return { true, { "vary", {} } };
+      return { true, "vary" };
     case 61:
-      return { true, { "x-content-type-options", {} } };
+      return { true, "x-content-type-options" };
     case 96:
-      return { true, { "x-forwarded-for", {} } };
+      return { true, "x-forwarded-for" };
     case 97:
-      return { true, { "x-frame-options", {} } };
+      return { true, "x-frame-options" };
     case 98:
-      return { true, { "x-frame-options", {} } };
+      return { true, "x-frame-options" };
     case 62:
-      return { true, { "x-xss-protection", {} } };
+      return { true, "x-xss-protection" };
   }
 
   return { false, {} };

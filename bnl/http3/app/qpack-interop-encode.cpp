@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
   // Read input
 
-  std::string line;
+  bnl::string line;
   uint64_t id = 1;
   std::vector<http3::header> headers;
 
@@ -142,18 +142,13 @@ int main(int argc, char *argv[])
     }
 
     size_t i = line.find('\t');
-    if (i == std::string::npos) {
+    if (i == bnl::string::npos) {
       LOG_E("Missing TAB character");
       return 1;
     }
 
-    buffer name(i);
-    std::copy_n(line.substr(0, i).data(), name.size(), name.data());
-
-    buffer value(line.size() - (i + 1));
-    std::copy_n(line.substr(i + 1).data(), value.size(), value.data());
-
-    headers.emplace_back(http3::header{ std::move(name), std::move(value) });
+    http3::header header(line.substr(0, i), line.substr(i + 1));
+    headers.emplace_back(std::move(header));
   }
 
   return 0;

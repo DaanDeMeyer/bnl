@@ -10,32 +10,33 @@
 
 using namespace bnl;
 
-static buffer random_string(size_t length)
+static string random_string(size_t length)
 {
-  static const uint8_t characters[] = "0123456789"
-                                      "abcdefghijklmnopqrstuvwxyz"
-                                      "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  static const char characters[] = "0123456789"
+                                   "abcdefghijklmnopqrstuvwxyz"
+                                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   static std::mt19937 rg{ std::random_device{}() };
   static std::uniform_int_distribution<size_t> pick(0, sizeof(characters) - 1);
 
-  buffer buffer(length);
+  bnl::string string;
+  string.resize(length);
 
-  for (uint8_t &character : buffer) {
+  for (char &character : string) {
     character = characters[pick(rg)];
   }
 
-  return buffer;
+  return string;
 }
 
-static void encode_and_decode(const buffer_view &string,
+static void encode_and_decode(string_view string,
                               const http3::qpack::huffman::encoder &encoder,
                               const http3::qpack::huffman::decoder &decoder)
 {
   buffer encoded = encoder.encode(string);
 
   std::error_code ec;
-  buffer decoded = decoder.decode(encoded, encoded.size(), ec);
+  bnl::string decoded = decoder.decode(encoded, encoded.size(), ec);
 
   REQUIRE(!ec);
   REQUIRE(decoded.size() == string.size());
@@ -52,14 +53,14 @@ TEST_CASE("huffman")
   SUBCASE("random")
   {
     for (size_t i = 0; i < 1000; i++) {
-      buffer buffer = random_string(20);
-      encode_and_decode(buffer, encoder, decoder);
+      bnl::string string = random_string(20);
+      encode_and_decode(string, encoder, decoder);
     }
   }
 
   SUBCASE("incomplete")
   {
-    buffer data("abcde");
+    bnl::string data("abcde");
     buffer encoded = encoder.encode(data);
 
     buffer incomplete = encoded.copy(2);

@@ -40,66 +40,68 @@ namespace huffman {
 
 decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
-buffer decoder::decode(buffer &encoded,
-                       size_t encoded_size,
-                       std::error_code &ec) const
+string decoder::decode(buffer &encoded,
+                            size_t encoded_size,
+                            std::error_code &ec) const
 {
   buffer::lookahead lookahead(encoded);
 
-  buffer decoded = TRY(decode<buffer::lookahead>(lookahead, encoded_size, ec));
+  string decoded = TRY(
+      decode<buffer::lookahead>(lookahead, encoded_size, ec));
   encoded.consume(lookahead.consumed());
 
   return decoded;
 }
 
-buffer decoder::decode(buffers &encoded,
-                       size_t encoded_size,
-                       std::error_code &ec) const
+string decoder::decode(buffers &encoded,
+                            size_t encoded_size,
+                            std::error_code &ec) const
 {
   buffers::lookahead view(encoded);
 
-  buffer decoded = TRY(decode<buffers::lookahead>(view, encoded_size, ec));
+  string decoded = TRY(decode<buffers::lookahead>(view, encoded_size, ec));
   encoded.consume(view.consumed());
 
   return decoded;
 }
 
-buffer decoder::decode(buffer::lookahead &encoded,
+string decoder::decode(buffer::lookahead &encoded,
                        size_t encoded_size,
                        std::error_code &ec) const
 {
   return decode<buffer::lookahead>(encoded, encoded_size, ec);
 }
 
-buffer decoder::decode(buffers::lookahead &encoded,
-                       size_t encoded_size,
-                       std::error_code &ec) const
+string decoder::decode(buffers::lookahead &encoded,
+                            size_t encoded_size,
+                            std::error_code &ec) const
 {
   return decode<buffers::lookahead>(encoded, encoded_size, ec);
 }
 
-template <typename View>
-buffer decoder::decode(View &encoded,
-                       size_t encoded_size,
-                       std::error_code &ec) const
+template <typename Lookahead>
+string decoder::decode(Lookahead &encoded,
+                            size_t encoded_size,
+                            std::error_code &ec) const
 {
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size, ec));
-  buffer decoded(decoded_size);
+  string decoded;
+  decoded.resize(decoded_size);
 
-  uint8_t *dest = decoded.data();
+  char *dest = &decoded[0];
   uint8_t state = 0;
 
   for (size_t i = 0; i < encoded_size; ++i) {
     const decode::node &first = decode::table[state][encoded[i] >> 4U];
 
     if ((first.flags & util::to_underlying(decode::flag::symbol)) != 0) {
-      *dest++ = first.symbol;
+      *dest++ = static_cast<char>(first.symbol);
     }
 
     const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
 
     if ((second.flags & util::to_underlying(decode::flag::symbol)) != 0) {
-      *dest++ = second.symbol;
+      *dest++ = static_cast<char>(second.symbol);
     }
 
     state = second.state;
@@ -110,8 +112,8 @@ buffer decoder::decode(View &encoded,
   return decoded;
 }
 
-template <typename View>
-size_t decoder::decoded_size(const View &encoded,
+template <typename Lookahead>
+size_t decoder::decoded_size(const Lookahead &encoded,
                              size_t encoded_size,
                              std::error_code &ec) const noexcept
 {

@@ -15,22 +15,24 @@ decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-buffer decoder::decode(buffer::lookahead &encoded,
+string decoder::decode(buffer::lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
   return decode<buffer::lookahead>(encoded, prefix, ec);
 }
 
-buffer decoder::decode(buffers::lookahead &encoded,
+string decoder::decode(buffers::lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
   return decode<buffers::lookahead>(encoded, prefix, ec);
 }
 
-template <typename View>
-buffer decoder::decode(View &encoded, uint8_t prefix, std::error_code &ec) const
+template <typename Lookahead>
+string decoder::decode(Lookahead &encoded,
+                       uint8_t prefix,
+                       std::error_code &ec) const
 {
   CHECK(!encoded.empty(), error::incomplete);
 
@@ -43,12 +45,17 @@ buffer decoder::decode(View &encoded, uint8_t prefix, std::error_code &ec) const
 
   size_t bounded_encoded_size = static_cast<size_t>(literal_encoded_size);
 
-  buffer literal;
+  string literal;
 
   if (is_huffman) {
     literal = huffman_.decode(encoded, bounded_encoded_size, ec);
   } else {
-    literal = encoded.copy(bounded_encoded_size);
+    literal.resize(bounded_encoded_size);
+
+    for (size_t i = 0; i < bounded_encoded_size; i++) {
+      literal[i] = static_cast<char>(encoded[i]);
+    }
+
     encoded.consume(bounded_encoded_size);
   }
 

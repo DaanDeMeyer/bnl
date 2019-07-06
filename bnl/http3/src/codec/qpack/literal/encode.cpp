@@ -13,7 +13,7 @@ encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-size_t encoder::encoded_size(buffer_view literal, uint8_t prefix) const noexcept
+size_t encoder::encoded_size(string_view literal, uint8_t prefix) const noexcept
 {
   size_t huffman_encoded_size = huffman_.encoded_size(literal);
   size_t literal_encoded_size = huffman_encoded_size < literal.size()
@@ -24,7 +24,7 @@ size_t encoder::encoded_size(buffer_view literal, uint8_t prefix) const noexcept
          literal_encoded_size;
 }
 
-size_t encoder::encode(uint8_t *dest, buffer_view literal, uint8_t prefix) const
+size_t encoder::encode(uint8_t *dest, string_view literal, uint8_t prefix) const
     noexcept
 {
   uint8_t *begin = dest;
@@ -47,7 +47,7 @@ size_t encoder::encode(uint8_t *dest, buffer_view literal, uint8_t prefix) const
   return static_cast<size_t>(dest - begin);
 }
 
-buffer encoder::encode(buffer_view literal, uint8_t prefix) const
+buffer encoder::encode(string_view literal, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(literal, prefix);
   buffer encoded(encoded_size);

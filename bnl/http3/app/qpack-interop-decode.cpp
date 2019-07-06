@@ -51,11 +51,7 @@ size_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
 void write(std::ostream &dest, const std::vector<http3::header> &headers)
 {
   for (const http3::header &header : headers) {
-    std::string name(reinterpret_cast<const char *>(header.name.data()),
-                     header.name.size());
-    std::string value(reinterpret_cast<const char *>(header.value.data()),
-                      header.value.size());
-    dest << name << '\t' << value << '\n';
+    dest << header.name() << '\t' << header.value() << '\n';
   }
 
   dest << '\n';

@@ -27,14 +27,12 @@ uint64_t encoder::count() const noexcept
 size_t encoder::encoded_size(header_view header, std::error_code &ec) const
     noexcept
 {
-  const char *name = reinterpret_cast<const char *>(header.name().data());
-  size_t size = header.name().size();
-
-  if(!util::is_lowercase(name, size)) {
-    LOG_E("Header ({}) is not lowercase", fmt::string_view(name, size));
+  if (!util::is_lowercase(header.name())) {
+    fmt::string_view view(header.name().data(), header.name().size());
+    LOG_E("Header ({}) is not lowercase", view);
     THROW(error::malformed_header);
   }
-  
+
   size_t encoded_size = 0;
 
   if (state_ == state::prefix) {

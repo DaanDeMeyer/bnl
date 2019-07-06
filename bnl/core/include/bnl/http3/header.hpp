@@ -2,33 +2,42 @@
 
 #include <bnl/core/export.hpp>
 
-#include <bnl/buffer.hpp>
+#include <bnl/string.hpp>
+#include <bnl/string_view.hpp>
 
 namespace bnl {
 namespace http3 {
 
 class BNL_CORE_EXPORT header_view {
 public:
-  header_view(buffer_view name, buffer_view value);
+  header_view() = default;
+  header_view(string_view name, string_view value) noexcept;
 
-  buffer_view name() const noexcept;
-  buffer_view value() const noexcept;
+  string_view name() const noexcept;
+  string_view value() const noexcept;
 
 private:
-  buffer_view name_;
-  buffer_view value_;
-};
-
-struct BNL_CORE_EXPORT header {
-  buffer name;
-  buffer value;
-
-  operator header_view() const noexcept; // NOLINT
+  string_view name_;
+  string_view value_;
 };
 
 BNL_CORE_EXPORT bool operator==(header_view first, header_view second) noexcept;
-
 BNL_CORE_EXPORT bool operator!=(header_view first, header_view second) noexcept;
+
+class BNL_CORE_EXPORT header {
+public:
+  header() = default;
+  header(string name, string value) noexcept;
+
+  string_view name() const noexcept;
+  string_view value() const noexcept;
+
+  operator header_view() const noexcept; // NOLINT
+
+private:
+  string name_;
+  string value_;
+};
 
 } // namespace http3
 } // namespace bnl

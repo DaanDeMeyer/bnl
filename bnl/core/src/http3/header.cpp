@@ -3,23 +3,18 @@
 namespace bnl {
 namespace http3 {
 
-header_view::header_view(buffer_view name, buffer_view value)
+header_view::header_view(string_view name, string_view value) noexcept
     : name_(name), value_(value)
 {}
 
-buffer_view header_view::name() const noexcept
+string_view header_view::name() const noexcept
 {
   return name_;
 }
 
-buffer_view header_view::value() const noexcept
+string_view header_view::value() const noexcept
 {
   return value_;
-}
-
-header::operator header_view() const noexcept
-{
-  return { { name.data(), name.size() }, { value.data(), value.size() } };
 }
 
 bool operator==(header_view first, header_view second) noexcept
@@ -30,6 +25,25 @@ bool operator==(header_view first, header_view second) noexcept
 bool operator!=(header_view first, header_view second) noexcept
 {
   return !(first == second);
+}
+
+header::header(string name, string value) noexcept
+    : name_(std::move(name)), value_(std::move(value))
+{}
+
+string_view header::name() const noexcept
+{
+  return name_;
+}
+
+string_view header::value() const noexcept
+{
+  return value_;
+}
+
+header::operator header_view() const noexcept
+{
+  return { name(), value() };
 }
 
 } // namespace http3

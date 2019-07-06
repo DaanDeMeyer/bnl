@@ -30,8 +30,8 @@ static void encode_and_decode(const http3::header &header,
   REQUIRE(!ec);
   REQUIRE(encoded.empty());
 
-  REQUIRE(decoded.name == header.name);
-  REQUIRE(decoded.value == header.value);
+  REQUIRE(decoded.name() == header.name());
+  REQUIRE(decoded.value() == header.value());
 }
 
 TEST_CASE("qpack")
