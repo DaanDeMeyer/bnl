@@ -5,12 +5,11 @@
 namespace bnl {
 namespace http3 {
 namespace qpack {
+namespace prefix_int {
 
-prefix_int::encoder::encoder(const log::api *logger) noexcept : logger_(logger)
-{}
+encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
 
-size_t prefix_int::encoder::encoded_size(uint64_t value, uint8_t prefix) const
-    noexcept
+size_t encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
 {
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
@@ -33,9 +32,8 @@ size_t prefix_int::encoder::encoded_size(uint64_t value, uint8_t prefix) const
   return encoded_size;
 }
 
-size_t prefix_int::encoder::encode(uint8_t *dest,
-                                   uint64_t value,
-                                   uint8_t prefix) const noexcept
+size_t encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const
+    noexcept
 {
   uint8_t *begin = dest;
 
@@ -60,7 +58,7 @@ size_t prefix_int::encoder::encode(uint8_t *dest,
   return static_cast<size_t>(dest - begin);
 }
 
-buffer prefix_int::encoder::encode(uint64_t value, uint8_t prefix) const
+buffer encoder::encode(uint64_t value, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(value, prefix);
   buffer encoded(encoded_size);
@@ -70,6 +68,7 @@ buffer prefix_int::encoder::encode(uint64_t value, uint8_t prefix) const
   return encoded;
 }
 
+} // namespace prefix_int
 } // namespace qpack
 } // namespace http3
 } // namespace bnl

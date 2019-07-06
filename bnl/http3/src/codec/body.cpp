@@ -6,12 +6,13 @@
 
 namespace bnl {
 namespace http3 {
+namespace body {
 
-body::encoder::encoder(const log::api *logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger)
 {}
 
-nothing body::encoder::add(buffer body, std::error_code &ec)
+nothing encoder::add(buffer body, std::error_code &ec)
 {
   CHECK(!fin_, error::internal_error);
 
@@ -20,7 +21,7 @@ nothing body::encoder::add(buffer body, std::error_code &ec)
   return {};
 }
 
-nothing body::encoder::fin(std::error_code &ec) noexcept
+nothing encoder::fin(std::error_code &ec) noexcept
 {
   CHECK(state_ != state::fin, error::internal_error);
 
@@ -33,12 +34,12 @@ nothing body::encoder::fin(std::error_code &ec) noexcept
   return {};
 }
 
-bool body::encoder::finished() const noexcept
+bool encoder::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-buffer body::encoder::encode(std::error_code &ec) noexcept
+buffer encoder::encode(std::error_code &ec) noexcept
 {
   // TODO: Implement PRIORITY
 
@@ -74,16 +75,16 @@ buffer body::encoder::encode(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-body::decoder::decoder(const log::api *logger) noexcept
+decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger)
 {}
 
-bool body::decoder::in_progress() const noexcept
+bool decoder::in_progress() const noexcept
 {
-  return state_ == body::decoder::state::data;
+  return state_ == decoder::state::data;
 }
 
-buffer body::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
+buffer decoder::decode(buffers &encoded, std::error_code &ec) noexcept
 {
   state_error_handler<decoder::state> on_error(state_, ec);
 
@@ -129,5 +130,6 @@ buffer body::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
   NOTREACHED();
 }
 
+} // namespace body
 } // namespace http3
 } // namespace bnl

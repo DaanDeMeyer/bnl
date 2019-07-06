@@ -8,12 +8,13 @@ namespace bnl {
 namespace http3 {
 namespace endpoint {
 namespace shared {
+namespace control {
 
-control::sender::sender(uint64_t id, const log::api *logger) noexcept
+sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-quic::event control::sender::send(std::error_code &ec) noexcept
+quic::event sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -34,20 +35,20 @@ quic::event control::sender::send(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-control::receiver::receiver(uint64_t id, const log::api *logger) noexcept
+receiver::receiver(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger)
 {}
 
-control::receiver::~receiver() noexcept = default;
+receiver::~receiver() noexcept = default;
 
-uint64_t control::receiver::id() const noexcept
+uint64_t receiver::id() const noexcept
 {
   return id_;
 }
 
-nothing control::receiver::recv(quic::event event,
-                                event::handler handler,
-                                std::error_code &ec)
+nothing receiver::recv(quic::event event,
+                       event::handler handler,
+                       std::error_code &ec)
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
@@ -73,7 +74,7 @@ nothing control::receiver::recv(quic::event event,
   return {};
 }
 
-event control::receiver::process(std::error_code &ec) noexcept
+event receiver::process(std::error_code &ec) noexcept
 {
   switch (state_) {
 
@@ -114,6 +115,7 @@ event control::receiver::process(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
+} // namespace control
 } // namespace shared
 } // namespace endpoint
 } // namespace http3

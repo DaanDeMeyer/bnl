@@ -9,29 +9,28 @@
 namespace bnl {
 namespace http3 {
 namespace qpack {
+namespace literal {
 
-literal::decoder::decoder(const log::api *logger) noexcept
+decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-buffer literal::decoder::decode(buffer_view &encoded,
-                                uint8_t prefix,
-                                std::error_code &ec) const
+buffer decoder::decode(buffer_view &encoded,
+                       uint8_t prefix,
+                       std::error_code &ec) const
 {
   return decode<buffer_view>(encoded, prefix, ec);
 }
 
-buffer literal::decoder::decode(buffers_view &encoded,
-                                uint8_t prefix,
-                                std::error_code &ec) const
+buffer decoder::decode(buffers_view &encoded,
+                       uint8_t prefix,
+                       std::error_code &ec) const
 {
   return decode<buffers_view>(encoded, prefix, ec);
 }
 
 template <typename View>
-buffer literal::decoder::decode(View &encoded,
-                                uint8_t prefix,
-                                std::error_code &ec) const
+buffer decoder::decode(View &encoded, uint8_t prefix, std::error_code &ec) const
 {
   CHECK(!encoded.empty(), error::incomplete);
 
@@ -56,6 +55,7 @@ buffer literal::decoder::decode(View &encoded,
   return literal;
 }
 
+} // namespace literal
 } // namespace qpack
 } // namespace http3
 } // namespace bnl

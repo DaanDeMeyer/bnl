@@ -6,10 +6,11 @@
 
 namespace bnl {
 namespace http3 {
+namespace varint {
 
-varint::encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
+encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
 
-size_t varint::encoder::encoded_size(uint64_t varint, std::error_code &ec) const
+size_t encoder::encoded_size(uint64_t varint, std::error_code &ec) const
     noexcept
 {
   if (varint < 0x40U) {
@@ -78,9 +79,9 @@ static void uint64_encode(uint8_t *dest, uint64_t number)
   dest[0] |= UINT64_HEADER;
 }
 
-size_t varint::encoder::encode(uint8_t *dest,
-                               uint64_t varint,
-                               std::error_code &ec) const noexcept
+size_t encoder::encode(uint8_t *dest,
+                       uint64_t varint,
+                       std::error_code &ec) const noexcept
 {
   CHECK(dest != nullptr, error::invalid_argument);
 
@@ -106,7 +107,7 @@ size_t varint::encoder::encode(uint8_t *dest,
   return varint_size;
 }
 
-buffer varint::encoder::encode(uint64_t varint, std::error_code &ec) const
+buffer encoder::encode(uint64_t varint, std::error_code &ec) const
 {
   size_t encoded_size = this->encoded_size(varint, ec);
   buffer encoded(encoded_size);
@@ -116,5 +117,6 @@ buffer varint::encoder::encode(uint64_t varint, std::error_code &ec) const
   return encoded;
 }
 
+} // namespace varint
 } // namespace http3
 } // namespace bnl

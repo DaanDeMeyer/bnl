@@ -7,27 +7,28 @@
 namespace bnl {
 namespace http3 {
 namespace qpack {
+namespace prefix_int {
 
-prefix_int::decoder::decoder(const log::api *logger) : logger_(logger) {}
+decoder::decoder(const log::api *logger) : logger_(logger) {}
 
-uint64_t prefix_int::decoder::decode(buffer_view &encoded,
-                                     uint8_t prefix,
-                                     std::error_code &ec) const noexcept
+uint64_t decoder::decode(buffer_view &encoded,
+                         uint8_t prefix,
+                         std::error_code &ec) const noexcept
 {
   return decode<buffer_view>(encoded, prefix, ec);
 }
 
-uint64_t prefix_int::decoder::decode(buffers_view &encoded,
-                                     uint8_t prefix,
-                                     std::error_code &ec) const noexcept
+uint64_t decoder::decode(buffers_view &encoded,
+                         uint8_t prefix,
+                         std::error_code &ec) const noexcept
 {
   return decode<buffers_view>(encoded, prefix, ec);
 }
 
 template <typename View>
-uint64_t prefix_int::decoder::decode(View &encoded,
-                                     uint8_t prefix,
-                                     std::error_code &ec) const noexcept
+uint64_t decoder::decode(View &encoded,
+                         uint8_t prefix,
+                         std::error_code &ec) const noexcept
 {
   uint64_t result = TRY(uint8_decode(encoded, ec));
 
@@ -48,8 +49,7 @@ uint64_t prefix_int::decoder::decode(View &encoded,
 }
 
 template <typename View>
-uint8_t prefix_int::decoder::uint8_decode(View &encoded,
-                                          std::error_code &ec) const noexcept
+uint8_t decoder::uint8_decode(View &encoded, std::error_code &ec) const noexcept
 {
   CHECK(!encoded.empty(), error::incomplete);
 
@@ -60,6 +60,7 @@ uint8_t prefix_int::decoder::uint8_decode(View &encoded,
   return result;
 }
 
+} // namespace prefix_int
 } // namespace qpack
 } // namespace http3
 } // namespace bnl

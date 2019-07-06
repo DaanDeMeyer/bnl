@@ -7,13 +7,13 @@
 namespace bnl {
 namespace http3 {
 namespace qpack {
+namespace literal {
 
-literal::encoder::encoder(const log::api *logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-size_t literal::encoder::encoded_size(buffer_view literal, uint8_t prefix) const
-    noexcept
+size_t encoder::encoded_size(buffer_view literal, uint8_t prefix) const noexcept
 {
   size_t huffman_encoded_size = huffman_.encoded_size(literal);
   size_t literal_encoded_size = huffman_encoded_size < literal.size()
@@ -24,9 +24,8 @@ size_t literal::encoder::encoded_size(buffer_view literal, uint8_t prefix) const
          literal_encoded_size;
 }
 
-size_t literal::encoder::encode(uint8_t *dest,
-                                buffer_view literal,
-                                uint8_t prefix) const noexcept
+size_t encoder::encode(uint8_t *dest, buffer_view literal, uint8_t prefix) const
+    noexcept
 {
   uint8_t *begin = dest;
 
@@ -48,7 +47,7 @@ size_t literal::encoder::encode(uint8_t *dest,
   return static_cast<size_t>(dest - begin);
 }
 
-buffer literal::encoder::encode(buffer_view literal, uint8_t prefix) const
+buffer encoder::encode(buffer_view literal, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(literal, prefix);
   buffer encoded(encoded_size);
@@ -58,6 +57,7 @@ buffer literal::encoder::encode(buffer_view literal, uint8_t prefix) const
   return encoded;
 }
 
+} // namespace literal
 } // namespace qpack
 } // namespace http3
 } // namespace bnl

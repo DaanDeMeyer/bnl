@@ -13,14 +13,14 @@ namespace endpoint {
 namespace server {
 namespace control {
 
-class BNL_HTTP3_EXPORT sender : public endpoint::shared::control::sender {
+class BNL_HTTP3_EXPORT sender : public shared::control::sender {
 public:
   explicit sender(const log::api *logger) noexcept;
 
   BNL_MOVE_ONLY(sender);
 };
 
-class BNL_HTTP3_EXPORT receiver : public endpoint::shared::control::receiver {
+class BNL_HTTP3_EXPORT receiver : public shared::control::receiver {
 public:
   explicit receiver(const log::api *logger) noexcept;
 

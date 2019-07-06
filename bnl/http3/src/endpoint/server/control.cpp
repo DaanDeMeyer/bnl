@@ -10,18 +10,19 @@ static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;
 namespace bnl {
 namespace http3 {
 namespace endpoint {
+namespace server {
+namespace control {
 
-server::control::sender::sender(const log::api *logger) noexcept
-    : endpoint::shared::control::sender(SERVER_STREAM_CONTROL_ID, logger)
+sender::sender(const log::api *logger) noexcept
+    : shared::control::sender(SERVER_STREAM_CONTROL_ID, logger)
 {}
 
-server::control::receiver::receiver(const log::api *logger) noexcept
-    : endpoint::shared::control::receiver(CLIENT_STREAM_CONTROL_ID, logger),
+receiver::receiver(const log::api *logger) noexcept
+    : shared::control::receiver(CLIENT_STREAM_CONTROL_ID, logger),
       logger_(logger)
 {}
 
-event server::control::receiver::process(frame frame,
-                                         std::error_code &ec) noexcept
+event receiver::process(frame frame, std::error_code &ec) noexcept
 {
   switch (frame) {
     case frame::type::cancel_push:
@@ -38,6 +39,8 @@ event server::control::receiver::process(frame frame,
   }
 }
 
+} // namespace control
+} // namespace server
 } // namespace endpoint
 } // namespace http3
 } // namespace bnl

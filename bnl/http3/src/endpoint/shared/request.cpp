@@ -8,17 +8,18 @@ namespace bnl {
 namespace http3 {
 namespace endpoint {
 namespace shared {
+namespace request {
 
-request::sender::sender(uint64_t id, const log::api *logger) noexcept
+sender::sender(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), headers_(logger), body_(logger)
 {}
 
-bool request::sender::finished() const noexcept
+bool sender::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-quic::event request::sender::send(std::error_code &ec) noexcept
+quic::event sender::send(std::error_code &ec) noexcept
 {
   state_error_handler<sender::state> on_error(state_, ec);
 
@@ -52,43 +53,43 @@ quic::event request::sender::send(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-nothing request::sender::header(header_view header, std::error_code &ec)
+nothing sender::header(header_view header, std::error_code &ec)
 {
   return headers_.add(header, ec);
 }
 
-nothing request::sender::body(buffer body, std::error_code &ec)
+nothing sender::body(buffer body, std::error_code &ec)
 {
   return body_.add(std::move(body), ec);
 }
 
-nothing request::sender::start(std::error_code &ec) noexcept
+nothing sender::start(std::error_code &ec) noexcept
 {
   return headers_.fin(ec);
 }
 
-nothing request::sender::fin(std::error_code &ec) noexcept
+nothing sender::fin(std::error_code &ec) noexcept
 {
   return body_.fin(ec);
 }
 
-request::receiver::receiver(uint64_t id, const log::api *logger) noexcept
+receiver::receiver(uint64_t id, const log::api *logger) noexcept
     : id_(id), logger_(logger), frame_(logger), headers_(logger), body_(logger)
 {}
 
-request::receiver::~receiver() noexcept = default;
+receiver::~receiver() noexcept = default;
 
-bool request::receiver::closed() const noexcept
+bool receiver::closed() const noexcept
 {
   return state_ == state::closed;
 }
 
-bool request::receiver::finished() const noexcept
+bool receiver::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-nothing request::receiver::start(std::error_code &ec) noexcept
+nothing receiver::start(std::error_code &ec) noexcept
 {
   CHECK(state_ == state::closed, error::internal_error);
 
@@ -97,14 +98,14 @@ nothing request::receiver::start(std::error_code &ec) noexcept
   return {};
 }
 
-const headers::decoder &request::receiver::headers() const noexcept
+const headers::decoder &receiver::headers() const noexcept
 {
   return headers_;
 }
 
-nothing request::receiver::recv(quic::event event,
-                                event::handler handler,
-                                std::error_code &ec)
+nothing receiver::recv(quic::event event,
+                       event::handler handler,
+                       std::error_code &ec)
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
@@ -136,7 +137,7 @@ nothing request::receiver::recv(quic::event event,
   return {};
 }
 
-event request::receiver::process(std::error_code &ec) noexcept
+event receiver::process(std::error_code &ec) noexcept
 {
   switch (state_) {
 
@@ -189,7 +190,7 @@ event request::receiver::process(std::error_code &ec) noexcept
     switch (frame) {
       case frame::type::headers:
         // TODO: Implement trailing HEADERS
-        CHECK(state_ != request::receiver::state::body, error::not_implemented);
+        CHECK(state_ != receiver::state::body, error::not_implemented);
         break;
       case frame::type::data:
         THROW(error::unexpected_frame);
@@ -206,6 +207,7 @@ event request::receiver::process(std::error_code &ec) noexcept
   return {};
 }
 
+} // namespace request
 } // namespace shared
 } // namespace endpoint
 } // namespace http3

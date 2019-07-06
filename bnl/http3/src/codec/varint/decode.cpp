@@ -6,11 +6,11 @@
 
 namespace bnl {
 namespace http3 {
+namespace varint {
 
-varint::decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
+decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
-uint64_t
-varint::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
+uint64_t decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
 {
   buffer_view view(encoded);
 
@@ -20,8 +20,7 @@ varint::decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
   return varint;
 }
 
-uint64_t
-varint::decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
+uint64_t decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
 {
   buffers_view view(encoded);
 
@@ -31,14 +30,14 @@ varint::decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
   return varint;
 }
 
-uint64_t varint::decoder::decode(buffer_view &encoded,
-                                 std::error_code &ec) const noexcept
+uint64_t decoder::decode(buffer_view &encoded, std::error_code &ec) const
+    noexcept
 {
   return decode<buffer_view>(encoded, ec);
 }
 
-uint64_t varint::decoder::decode(buffers_view &encoded,
-                                 std::error_code &ec) const noexcept
+uint64_t decoder::decode(buffers_view &encoded, std::error_code &ec) const
+    noexcept
 {
   return decode<buffers_view>(encoded, ec);
 }
@@ -100,8 +99,7 @@ static uint64_t uint64_decode(View &encoded)
 }
 
 template <typename View>
-uint64_t
-varint::decoder::decode(View &encoded, std::error_code &ec) const noexcept
+uint64_t decoder::decode(View &encoded, std::error_code &ec) const noexcept
 {
   CHECK(!encoded.empty(), error::incomplete);
 
@@ -135,5 +133,6 @@ varint::decoder::decode(View &encoded, std::error_code &ec) const noexcept
   return varint;
 }
 
+} // namespace varint
 } // namespace http3
 } // namespace bnl

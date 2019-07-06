@@ -7,14 +7,14 @@
 namespace bnl {
 namespace http3 {
 namespace endpoint {
+namespace client {
+namespace request {
 
-client::request::receiver::receiver(uint64_t id,
-                                    const log::api *logger) noexcept
-    : endpoint::shared::request::receiver(id, logger), logger_(logger)
+receiver::receiver(uint64_t id, const log::api *logger) noexcept
+    : shared::request::receiver(id, logger), logger_(logger)
 {}
 
-event client::request::receiver::process(frame frame,
-                                         std::error_code &ec) noexcept
+event receiver::process(frame frame, std::error_code &ec) noexcept
 {
   switch (frame) {
     case frame::type::push_promise:
@@ -30,6 +30,8 @@ event client::request::receiver::process(frame frame,
   }
 }
 
+} // namespace request
+} // namespace client
 } // namespace endpoint
 } // namespace http3
 } // namespace bnl

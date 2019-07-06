@@ -6,12 +6,13 @@
 
 namespace bnl {
 namespace http3 {
+namespace headers {
 
-headers::encoder::encoder(const log::api *logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
-nothing headers::encoder::add(header_view header, std::error_code &ec)
+nothing encoder::add(header_view header, std::error_code &ec)
 {
   CHECK(state_ == state::idle, error::internal_error);
 
@@ -21,7 +22,7 @@ nothing headers::encoder::add(header_view header, std::error_code &ec)
   return {};
 }
 
-nothing headers::encoder::fin(std::error_code &ec) noexcept
+nothing encoder::fin(std::error_code &ec) noexcept
 {
   CHECK(state_ == state::idle, error::internal_error);
 
@@ -30,12 +31,12 @@ nothing headers::encoder::fin(std::error_code &ec) noexcept
   return {};
 }
 
-bool headers::encoder::finished() const noexcept
+bool encoder::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-buffer headers::encoder::encode(std::error_code &ec) noexcept
+buffer encoder::encode(std::error_code &ec) noexcept
 {
   state_error_handler<encoder::state> on_error(state_, ec);
 
@@ -71,21 +72,21 @@ buffer headers::encoder::encode(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-headers::decoder::decoder(const log::api *logger) noexcept
+decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
-bool headers::decoder::started() const noexcept
+bool decoder::started() const noexcept
 {
   return state_ != state::frame;
 }
 
-bool headers::decoder::finished() const noexcept
+bool decoder::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-header headers::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
+header decoder::decode(buffers &encoded, std::error_code &ec) noexcept
 {
   state_error_handler<decoder::state> on_error(state_, ec);
 
@@ -128,5 +129,6 @@ header headers::decoder::decode(buffers &encoded, std::error_code &ec) noexcept
   NOTREACHED();
 }
 
+} // namespace headers
 } // namespace http3
 } // namespace bnl
