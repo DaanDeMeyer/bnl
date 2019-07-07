@@ -1,10 +1,8 @@
 #pragma once
 
-#include <bnl/http3/export.hpp>
-
-#include <bnl/http3/endpoint/shared/control.hpp>
-
 #include <bnl/base/macro.hpp>
+#include <bnl/http3/endpoint/shared/control.hpp>
+#include <bnl/http3/export.hpp>
 
 namespace bnl {
 

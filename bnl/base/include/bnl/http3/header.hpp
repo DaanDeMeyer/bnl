@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bnl/base/export.hpp>
-
 #include <bnl/base/string.hpp>
 #include <bnl/base/string_view.hpp>
 

@@ -1,9 +1,6 @@
-#include <bnl/http3/error.hpp>
-
 #include <bnl/http3/codec/qpack.hpp>
-
+#include <bnl/http3/error.hpp>
 #include <bnl/log/console.hpp>
-
 #include <bnl/util/error.hpp>
 
 #include <algorithm>

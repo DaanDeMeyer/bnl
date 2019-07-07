@@ -1,6 +1,5 @@
-#include <bnl/http3/header.hpp>
-
 #include <bnl/base/string.hpp>
+#include <bnl/http3/header.hpp>
 
 #include <cstdint>
 #include <utility>

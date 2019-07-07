@@ -254,7 +254,6 @@ find_header_only = find_header_only_template.format(cases)
 
 decode_generated_template = """\
 #include <bnl/http3/header.hpp>
-
 #include <bnl/base/string.hpp>
 
 #include <cstdint>

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <bnl/base/export.hpp>
-
 #include <bnl/base/buffer.hpp>
+#include <bnl/base/export.hpp>
 #include <bnl/base/function_view.hpp>
 
 #include <cstdint>

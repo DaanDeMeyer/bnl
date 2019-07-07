@@ -1,13 +1,11 @@
 #pragma once
 
-#include <bnl/http3/event.hpp>
-#include <bnl/http3/export.hpp>
-
-#include <bnl/http3/endpoint/client/control.hpp>
-#include <bnl/http3/endpoint/client/request.hpp>
-
 #include <bnl/base/macro.hpp>
 #include <bnl/base/nothing.hpp>
+#include <bnl/http3/endpoint/client/control.hpp>
+#include <bnl/http3/endpoint/client/request.hpp>
+#include <bnl/http3/event.hpp>
+#include <bnl/http3/export.hpp>
 
 #include <bnl/quic/event.hpp>
 

@@ -1,9 +1,8 @@
-#include <doctest/doctest.h>
-
 #include <bnl/base/error.hpp>
+#include <bnl/http3/codec/qpack/huffman.hpp>
 #include <bnl/log.hpp>
 
-#include <bnl/http3/codec/qpack/huffman.hpp>
+#include <doctest/doctest.h>
 
 #include <random>
 

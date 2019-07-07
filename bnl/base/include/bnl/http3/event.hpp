@@ -1,14 +1,11 @@
 #pragma once
 
+#include <bnl/base/buffer.hpp>
 #include <bnl/base/export.hpp>
-
+#include <bnl/base/function_view.hpp>
 #include <bnl/http3/header.hpp>
 #include <bnl/http3/settings.hpp>
-
 #include <bnl/quic/event.hpp>
-
-#include <bnl/base/buffer.hpp>
-#include <bnl/base/function_view.hpp>
 
 #include <system_error>
 

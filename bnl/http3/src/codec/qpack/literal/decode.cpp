@@ -1,10 +1,8 @@
 #include <bnl/http3/codec/qpack/literal.hpp>
 
-#include <bnl/http3/error.hpp>
-
-#include <bnl/util/error.hpp>
-
 #include <bnl/base/error.hpp>
+#include <bnl/http3/error.hpp>
+#include <bnl/util/error.hpp>
 
 #include <algorithm>
 
@@ -18,23 +16,23 @@ decoder::decoder(const log::api *logger) noexcept
 {}
 
 base::string decoder::decode(base::buffer::lookahead &encoded,
-                       uint8_t prefix,
-                       std::error_code &ec) const
+                             uint8_t prefix,
+                             std::error_code &ec) const
 {
   return decode<base::buffer::lookahead>(encoded, prefix, ec);
 }
 
 base::string decoder::decode(base::buffers::lookahead &encoded,
-                       uint8_t prefix,
-                       std::error_code &ec) const
+                             uint8_t prefix,
+                             std::error_code &ec) const
 {
   return decode<base::buffers::lookahead>(encoded, prefix, ec);
 }
 
 template <typename Lookahead>
 base::string decoder::decode(Lookahead &encoded,
-                       uint8_t prefix,
-                       std::error_code &ec) const
+                             uint8_t prefix,
+                             std::error_code &ec) const
 {
   CHECK(!encoded.empty(), base::error::incomplete);
 

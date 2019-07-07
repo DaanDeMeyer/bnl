@@ -26,12 +26,10 @@
 
 #include <bnl/http3/codec/qpack/huffman.hpp>
 
+#include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
-
-#include <bnl/base/error.hpp>
 
 #include "decode_generated.cpp"
 

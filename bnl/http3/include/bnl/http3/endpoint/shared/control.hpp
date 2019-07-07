@@ -1,15 +1,12 @@
 #pragma once
 
-#include <bnl/http3/event.hpp>
-#include <bnl/http3/export.hpp>
-
-#include <bnl/http3/codec/frame.hpp>
-
-#include <bnl/quic/event.hpp>
-
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
 #include <bnl/base/nothing.hpp>
+#include <bnl/http3/codec/frame.hpp>
+#include <bnl/http3/event.hpp>
+#include <bnl/http3/export.hpp>
+#include <bnl/quic/event.hpp>
 
 namespace bnl {
 

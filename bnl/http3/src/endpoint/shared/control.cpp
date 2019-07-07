@@ -1,10 +1,8 @@
 #include <bnl/http3/endpoint/shared/control.hpp>
 
-#include <bnl/http3/error.hpp>
-
-#include <bnl/util/error.hpp>
-
 #include <bnl/base/error.hpp>
+#include <bnl/http3/error.hpp>
+#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {

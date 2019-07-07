@@ -1,12 +1,10 @@
-#include <doctest/doctest.h>
-
-#include <bnl/http3/error.hpp>
-
-#include <bnl/http3/client.hpp>
-#include <bnl/http3/server.hpp>
-
 #include <bnl/base/error.hpp>
+#include <bnl/http3/client.hpp>
+#include <bnl/http3/error.hpp>
+#include <bnl/http3/server.hpp>
 #include <bnl/log.hpp>
+
+#include <doctest/doctest.h>
 
 #include <array>
 #include <map>

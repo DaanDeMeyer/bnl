@@ -1,7 +1,6 @@
 #include <bnl/http3/codec/frame.hpp>
 
 #include <bnl/http3/error.hpp>
-
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
@@ -193,7 +192,8 @@ size_t frame::encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-base::buffer frame::encoder::encode(const frame &frame, std::error_code &ec) const
+base::buffer frame::encoder::encode(const frame &frame,
+                                    std::error_code &ec) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame, ec));
   base::buffer encoded(encoded_size);

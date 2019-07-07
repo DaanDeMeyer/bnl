@@ -1,10 +1,8 @@
 #include <bnl/http3/codec/body.hpp>
 
-#include <bnl/http3/error.hpp>
-
-#include <bnl/util/error.hpp>
-
 #include <bnl/base/error.hpp>
+#include <bnl/http3/error.hpp>
+#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {
