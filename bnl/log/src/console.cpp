@@ -16,7 +16,6 @@ static constexpr std::array<fmt::color, 6> level_colors = {
 
 namespace bnl {
 namespace log {
-namespace impl {
 
 void console::log(log::level level,
                   const char *file,
@@ -62,6 +61,5 @@ void console::log(log::level level,
   fflush(output);
 }
 
-} // namespace impl
 } // namespace log
 } // namespace bnl

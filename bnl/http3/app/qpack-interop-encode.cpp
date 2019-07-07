@@ -14,6 +14,10 @@ using namespace bnl;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 
+// Allocate logger on the heap because `THROW` and `LOG_E` macro expect a
+// pointer.
+static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
+
 static base::buffer id_encode(uint64_t id)
 {
   base::buffer encoded(sizeof(uint64_t));
@@ -53,10 +57,6 @@ int main(int argc, char *argv[])
   if (argc < 3) {
     return 1;
   }
-
-  // Allocate logger on the heap because `THROW` and `LOG_E` macro expect a
-  // pointer.
-  std::unique_ptr<log::api> logger_(new log::impl::console());
 
   std::ifstream input;
   input.exceptions(std::ifstream::failbit | std::ifstream::badbit);

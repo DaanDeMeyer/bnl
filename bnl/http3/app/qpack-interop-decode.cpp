@@ -12,9 +12,11 @@ using namespace bnl;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 
-uint64_t id_decode(base::buffer &encoded,
-                   std::error_code &ec,
-                   const log::api *logger_)
+// Allocate logger on the heap because `THROW` and `LOG_E` macro expect a
+// pointer.
+static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
+
+uint64_t id_decode(base::buffer &encoded, std::error_code &ec)
 {
   CHECK(encoded.size() >= sizeof(uint64_t), base::error::incomplete);
 
@@ -32,9 +34,7 @@ uint64_t id_decode(base::buffer &encoded,
   return id;
 }
 
-size_t size_decode(base::buffer &encoded,
-                   std::error_code &ec,
-                   const log::api *logger_)
+size_t size_decode(base::buffer &encoded, std::error_code &ec)
 {
   CHECK(encoded.size() >= sizeof(uint32_t), base::error::incomplete);
 
@@ -62,10 +62,6 @@ int main(int argc, char *argv[])
   if (argc < 3) {
     return 1;
   }
-
-  // Allocate logger on the heap because `THROW` and `LOG_E` macro expect a
-  // pointer.
-  std::unique_ptr<log::api> logger_(new log::impl::console());
 
   std::ifstream input;
   input.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -113,8 +109,8 @@ int main(int argc, char *argv[])
   http3::qpack::decoder qpack(logger_.get());
 
   while (!encoded.empty()) {
-    TRY(id_decode(encoded, ec, logger_.get()));
-    size_t encoded_size = TRY(size_decode(encoded, ec, logger_.get()));
+    TRY(id_decode(encoded, ec));
+    size_t encoded_size = TRY(size_decode(encoded, ec));
 
     std::vector<http3::header> headers;
 

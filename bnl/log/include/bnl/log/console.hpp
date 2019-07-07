@@ -5,7 +5,6 @@
 
 namespace bnl {
 namespace log {
-namespace impl {
 
 class BNL_LOG_EXPORT console : public log::api {
 public:
@@ -20,6 +19,5 @@ private:
   log::level level_ = log::level::trace;
 };
 
-} // namespace impl
 } // namespace log
 } // namespace bnl
