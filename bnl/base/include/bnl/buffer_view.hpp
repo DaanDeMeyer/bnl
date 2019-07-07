@@ -1,13 +1,13 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <cstddef>
 #include <cstdint>
 
 namespace bnl {
 
-class BNL_CORE_EXPORT buffer_view {
+class BNL_BASE_EXPORT buffer_view {
 public:
   template <size_t Size>
   buffer_view(const char (&data)[Size]) noexcept // NOLINT
@@ -29,10 +29,10 @@ private:
   size_t size_;
 };
 
-BNL_CORE_EXPORT bool operator==(buffer_view lhs, buffer_view rhs) noexcept;
-BNL_CORE_EXPORT bool operator!=(buffer_view lhs, buffer_view rhs) noexcept;
+BNL_BASE_EXPORT bool operator==(buffer_view lhs, buffer_view rhs) noexcept;
+BNL_BASE_EXPORT bool operator!=(buffer_view lhs, buffer_view rhs) noexcept;
 
-class BNL_CORE_EXPORT buffer_view_mut {
+class BNL_BASE_EXPORT buffer_view_mut {
 public:
   buffer_view_mut(uint8_t *data, size_t size) noexcept;
 

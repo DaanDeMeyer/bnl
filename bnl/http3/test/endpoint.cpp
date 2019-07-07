@@ -68,7 +68,7 @@ static message transfer(Sender &sender, Receiver &receiver)
 
   while (true) {
     quic::event event = sender.send(ec);
-    if (ec == core::error::idle) {
+    if (ec == base::error::idle) {
       break;
     }
 

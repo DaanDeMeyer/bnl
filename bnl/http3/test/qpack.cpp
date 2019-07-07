@@ -78,7 +78,7 @@ TEST_CASE("qpack")
 
     http3::header decoded = decoder.decode(encoded, ec);
 
-    REQUIRE(ec == core::error::incomplete);
+    REQUIRE(ec == base::error::incomplete);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 8);
   }

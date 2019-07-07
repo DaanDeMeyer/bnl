@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <bnl/string.hpp>
 
@@ -9,7 +9,7 @@
 
 namespace bnl {
 
-class BNL_CORE_EXPORT string_view {
+class BNL_BASE_EXPORT string_view {
 public:
   string_view() = default;
   string_view(const char *data, size_t size) noexcept;
@@ -32,9 +32,9 @@ private:
   size_t size_ = 0;
 };
 
-BNL_CORE_EXPORT bool operator==(string_view lhs, string_view rhs) noexcept;
-BNL_CORE_EXPORT bool operator!=(string_view lhs, string_view rhs) noexcept;
+BNL_BASE_EXPORT bool operator==(string_view lhs, string_view rhs) noexcept;
+BNL_BASE_EXPORT bool operator!=(string_view lhs, string_view rhs) noexcept;
 
-BNL_CORE_EXPORT std::ostream &operator<<(std::ostream &out, string_view string);
+BNL_BASE_EXPORT std::ostream &operator<<(std::ostream &out, string_view string);
 
 } // namespace bnl

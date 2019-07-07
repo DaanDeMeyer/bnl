@@ -1,11 +1,11 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <system_error>
 
 namespace bnl {
-namespace core {
+namespace base {
 
 enum class error {
   internal,
@@ -16,9 +16,9 @@ enum class error {
   unknown
 };
 
-BNL_CORE_EXPORT const std::error_category &error_category() noexcept;
+BNL_BASE_EXPORT const std::error_category &error_category() noexcept;
 
-BNL_CORE_EXPORT std::error_code make_error_code(error error) noexcept;
+BNL_BASE_EXPORT std::error_code make_error_code(error error) noexcept;
 
 }
 } // namespace bnl
@@ -26,7 +26,7 @@ BNL_CORE_EXPORT std::error_code make_error_code(error error) noexcept;
 namespace std {
 
 template <>
-struct is_error_code_enum<bnl::core::error> : true_type {};
+struct is_error_code_enum<bnl::base::error> : true_type {};
 
 } // namespace std
 
@@ -50,8 +50,8 @@ public:
 
   ~state_error_handler()
   {
-    if (ec_ && ec_ != core::error::idle && ec_ != core::error::incomplete &&
-        ec_ != core::error::unknown) {
+    if (ec_ && ec_ != base::error::idle && ec_ != base::error::incomplete &&
+        ec_ != base::error::unknown) {
       state_ = State::error;
     }
   }

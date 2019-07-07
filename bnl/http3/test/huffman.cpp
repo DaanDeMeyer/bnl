@@ -67,7 +67,7 @@ TEST_CASE("huffman")
     std::error_code ec;
     decoder.decode(incomplete, encoded.size(), ec);
 
-    REQUIRE(ec == core::error::incomplete);
+    REQUIRE(ec == base::error::incomplete);
     REQUIRE(incomplete.size() == 2);
 
     decoder.decode(encoded, encoded.size(), ec);

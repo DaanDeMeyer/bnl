@@ -85,7 +85,7 @@ size_t encoder::encode(uint8_t *dest,
                        header_view header,
                        std::error_code &ec) noexcept
 {
-  CHECK(dest != nullptr, core::error::invalid_argument);
+  CHECK(dest != nullptr, base::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(header, ec));
   uint8_t *begin = dest;

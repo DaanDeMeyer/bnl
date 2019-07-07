@@ -42,7 +42,7 @@ jobs:
 
   - script: |
       set PATH=$(Build.SourcesDirectory)\build\bin%
-      set PATH=$(Build.SourcesDirectory)\build\bnl\core\lib;%PATH%
+      set PATH=$(Build.SourcesDirectory)\build\bnl\base\lib;%PATH%
       set PATH=$(Build.SourcesDirectory)\build\bnl\http3\lib;%PATH%
       set PATH=$(Build.SourcesDirectory)\build\bnl\log\lib;%PATH%
       set PATH=$(Build.SourcesDirectory)\build\bnl\util\lib;%PATH%

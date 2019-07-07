@@ -1,8 +1,8 @@
-bnl_add_library(core)
+bnl_add_library(base)
 
-target_link_libraries(bnl-core PUBLIC fmt)
+target_link_libraries(bnl-base PUBLIC fmt)
 
-target_sources(bnl-core PRIVATE
+target_sources(bnl-base PRIVATE
   src/http3/event.cpp
   src/http3/header.cpp
   src/quic/event.cpp
@@ -20,5 +20,5 @@ if(BNL_TEST)
     test/buffers.cpp
   )
 
-  target_link_libraries(bnl-test PRIVATE bnl-core)
+  target_link_libraries(bnl-test PRIVATE bnl-base)
 endif()

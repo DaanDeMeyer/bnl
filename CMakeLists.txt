@@ -25,7 +25,7 @@ if(BNL_TEST)
   set_target_properties(bnl-test PROPERTIES OUTPUT_NAME test)
 endif()
 
-add_subdirectory(bnl/core)
+add_subdirectory(bnl/base)
 add_subdirectory(bnl/util)
 add_subdirectory(bnl/log)
 add_subdirectory(bnl/http3)

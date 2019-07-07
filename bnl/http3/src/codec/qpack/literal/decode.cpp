@@ -36,13 +36,13 @@ string decoder::decode(Lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
-  CHECK(!encoded.empty(), core::error::incomplete);
+  CHECK(!encoded.empty(), base::error::incomplete);
 
   bool is_huffman = static_cast<uint8_t>(*encoded >> prefix) & 0x01; // NOLINT
   uint64_t literal_encoded_size = TRY(prefix_int_.decode(encoded, prefix, ec));
 
   if (literal_encoded_size > encoded.size()) {
-    THROW(core::error::incomplete);
+    THROW(base::error::incomplete);
   }
 
   size_t bounded_encoded_size = static_cast<size_t>(literal_encoded_size);

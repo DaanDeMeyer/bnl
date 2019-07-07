@@ -21,7 +21,7 @@ quic::event client::send(std::error_code &ec) noexcept
 
   {
     quic::event event = control.send(ec);
-    if (ec != core::error::idle) {
+    if (ec != base::error::idle) {
       return event;
     }
   }
@@ -34,7 +34,7 @@ quic::event client::send(std::error_code &ec) noexcept
     }
 
     quic::event event = sender.send(ec);
-    if (ec != core::error::idle) {
+    if (ec != base::error::idle) {
       if (!ec) {
         endpoint::client::request::receiver &receiver = entry.second.second;
 
@@ -48,7 +48,7 @@ quic::event client::send(std::error_code &ec) noexcept
     }
   }
 
-  THROW(core::error::idle);
+  THROW(base::error::idle);
 }
 
 nothing

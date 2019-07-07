@@ -22,7 +22,7 @@ event receiver::process(frame frame, std::error_code &ec) noexcept
     case frame::type::priority:
       CHECK(!headers().started(), error::unexpected_frame);
       // TODO: Implement PRIORITY
-      THROW(core::error::not_implemented);
+      THROW(base::error::not_implemented);
     case frame::type::headers:
     case frame::type::push_promise:
     case frame::type::duplicate_push:

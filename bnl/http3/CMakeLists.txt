@@ -7,7 +7,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
 endif()
 
 target_link_libraries(bnl-http3
-  PUBLIC bnl-core
+  PUBLIC bnl-base
   PRIVATE bnl-util xxhash
 )
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <bnl/buffer.hpp>
 #include <bnl/function_view.hpp>
@@ -11,7 +11,7 @@
 namespace bnl {
 namespace quic {
 
-class BNL_CORE_EXPORT event {
+class BNL_BASE_EXPORT event {
 public:
   using handler = function_view<void(event, std::error_code &ec)>;
 

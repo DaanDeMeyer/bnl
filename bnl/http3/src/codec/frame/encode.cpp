@@ -126,7 +126,7 @@ size_t frame::encoder::encode(uint8_t *dest,
                               const frame &frame,
                               std::error_code &ec) const noexcept
 {
-  CHECK(dest != nullptr, core::error::invalid_argument);
+  CHECK(dest != nullptr, base::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(frame, ec));
   uint8_t *begin = dest;

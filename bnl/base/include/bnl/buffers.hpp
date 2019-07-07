@@ -2,7 +2,7 @@
 
 #include <bnl/buffer.hpp>
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <bnl/class/macro.hpp>
 
@@ -10,7 +10,7 @@
 
 namespace bnl {
 
-class BNL_CORE_EXPORT buffers {
+class BNL_BASE_EXPORT buffers {
 public:
   class lookahead;
 
@@ -43,7 +43,7 @@ private:
   buffer concat(size_t start, size_t end, size_t left) const;
 };
 
-class BNL_CORE_EXPORT buffers::lookahead {
+class BNL_BASE_EXPORT buffers::lookahead {
 public:
   lookahead(const buffers &buffers) noexcept; // NOLINT
 

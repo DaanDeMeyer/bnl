@@ -152,7 +152,7 @@ TEST_CASE("frame")
 
     decoder.decode(incomplete, ec);
 
-    REQUIRE(ec == core::error::incomplete);
+    REQUIRE(ec == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
     decoder.decode(encoded, ec);

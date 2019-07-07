@@ -119,7 +119,7 @@ size_t decoder::decoded_size(const Lookahead &encoded,
                              size_t encoded_size,
                              std::error_code &ec) const noexcept
 {
-  CHECK(encoded.size() >= encoded_size, core::error::incomplete);
+  CHECK(encoded.size() >= encoded_size, base::error::incomplete);
 
   size_t decoded_size = 0;
   uint8_t state = 0;

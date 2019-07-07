@@ -31,7 +31,7 @@ event receiver::process(frame frame, std::error_code &ec) noexcept
     case frame::type::goaway:
       // TODO: Implement CANCEL_PUSH
       // TODO: Implement GOAWAY
-      THROW(core::error::not_implemented);
+      THROW(base::error::not_implemented);
     case frame::type::max_push_id:
     case frame::type::priority:
       THROW(error::unexpected_frame);

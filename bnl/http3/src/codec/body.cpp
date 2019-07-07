@@ -50,7 +50,7 @@ buffer encoder::encode(std::error_code &ec) noexcept
   switch (state_) {
 
     case state::frame: {
-      CHECK(!buffers_.empty(), core::error::idle);
+      CHECK(!buffers_.empty(), base::error::idle);
 
       frame frame = frame::payload::data{ buffers_.front().size() };
       buffer encoded = TRY(frame_.encode(frame, ec));
@@ -98,7 +98,7 @@ buffer decoder::decode(buffers &encoded, std::error_code &ec) noexcept
     case state::frame: {
       frame::type type = TRY(frame_.peek(encoded, ec));
 
-      CHECK(type == frame::type::data, core::error::unknown);
+      CHECK(type == frame::type::data, base::error::unknown);
 
       frame frame = TRY(frame_.decode(encoded, ec));
 
@@ -107,7 +107,7 @@ buffer decoder::decode(buffers &encoded, std::error_code &ec) noexcept
     }
 
     case state::data: {
-      CHECK(!encoded.empty(), core::error::incomplete);
+      CHECK(!encoded.empty(), base::error::incomplete);
 
       size_t body_part_size = encoded.size() < remaining_
                                   ? encoded.size()

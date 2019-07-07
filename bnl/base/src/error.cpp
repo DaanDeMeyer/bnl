@@ -1,7 +1,7 @@
 #include <bnl/error.hpp>
 
 namespace bnl {
-namespace core {
+namespace base {
 
 class error_category_impl : public std::error_category {
 
@@ -13,7 +13,7 @@ public:
 
 const char *error_category_impl::name() const noexcept
 {
-  return "bnl-core";
+  return "bnl-base";
 }
 
 std::string error_category_impl::message(int condition) const noexcept
@@ -47,5 +47,5 @@ std::error_code make_error_code(error error) noexcept
   return { static_cast<int>(error), error_category() };
 }
 
-} // namespace core
+} // namespace base
 } // namespace bnl

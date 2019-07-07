@@ -21,7 +21,7 @@ quic::event server::send(std::error_code &ec) noexcept
 
   {
     quic::event event = control.send(ec);
-    if (ec != core::error::idle) {
+    if (ec != base::error::idle) {
       return event;
     }
   }
@@ -40,12 +40,12 @@ quic::event server::send(std::error_code &ec) noexcept
       requests_.erase(id);
     }
 
-    if (ec != core::error::idle) {
+    if (ec != base::error::idle) {
       return event;
     }
   }
 
-  THROW(core::error::idle);
+  THROW(base::error::idle);
 }
 
 nothing

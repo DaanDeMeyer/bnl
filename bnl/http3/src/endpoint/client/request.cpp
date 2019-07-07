@@ -23,7 +23,7 @@ event receiver::process(frame frame, std::error_code &ec) noexcept
     case frame::type::duplicate_push:
       // TODO: Implement PUSH_PROMISE
       // TODO: Implement DUPLICATE_PUSH
-      THROW(core::error::not_implemented);
+      THROW(base::error::not_implemented);
     case frame::type::headers:
     case frame::type::priority:
       THROW(error::unexpected_frame);

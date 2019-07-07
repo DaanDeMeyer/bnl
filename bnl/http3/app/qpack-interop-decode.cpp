@@ -19,7 +19,7 @@ using namespace bnl;
 uint64_t
 id_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
 {
-  CHECK(encoded.size() >= sizeof(uint64_t), core::error::incomplete);
+  CHECK(encoded.size() >= sizeof(uint64_t), base::error::incomplete);
 
   uint64_t id = static_cast<uint64_t>(encoded[0]) << 56U |
                 static_cast<uint64_t>(encoded[1]) << 48U |
@@ -38,7 +38,7 @@ id_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
 size_t
 size_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
 {
-  CHECK(encoded.size() >= sizeof(uint32_t), core::error::incomplete);
+  CHECK(encoded.size() >= sizeof(uint32_t), base::error::incomplete);
 
   size_t encoded_size = static_cast<uint32_t>(encoded[0]) << 24U |
                         static_cast<uint32_t>(encoded[1]) << 16U |

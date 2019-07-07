@@ -103,7 +103,7 @@ static uint64_t uint64_decode(Lookahead &encoded)
 template <typename Lookahead>
 uint64_t decoder::decode(Lookahead &encoded, std::error_code &ec) const noexcept
 {
-  CHECK(!encoded.empty(), core::error::incomplete);
+  CHECK(!encoded.empty(), base::error::incomplete);
 
   size_t varint_size = 1;
   uint8_t header = static_cast<uint8_t>(*encoded >> 6U);
@@ -111,7 +111,7 @@ uint64_t decoder::decode(Lookahead &encoded, std::error_code &ec) const noexcept
   // varint size = 2^header
   varint_size <<= header; // shift left => x2
 
-  CHECK(encoded.size() >= varint_size, core::error::incomplete);
+  CHECK(encoded.size() >= varint_size, base::error::incomplete);
 
   uint64_t varint = 0;
 

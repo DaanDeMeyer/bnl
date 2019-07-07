@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <bnl/class/macro.hpp>
 
@@ -14,7 +14,7 @@
 
 namespace bnl {
 
-class BNL_CORE_EXPORT buffer {
+class BNL_BASE_EXPORT buffer {
 public:
   class lookahead;
 
@@ -96,7 +96,7 @@ private:
   };
 };
 
-class BNL_CORE_EXPORT buffer::lookahead {
+class BNL_BASE_EXPORT buffer::lookahead {
 public:
   lookahead(const buffer &buffer) noexcept; // NOLINT
 

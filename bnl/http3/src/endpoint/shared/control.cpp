@@ -28,7 +28,7 @@ quic::event sender::send(std::error_code &ec) noexcept
     }
 
     case state::idle:
-      THROW(core::error::idle);
+      THROW(base::error::idle);
 
     case state::error:
       THROW(error::internal_error);
@@ -54,7 +54,7 @@ nothing receiver::recv(quic::event event,
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
-  CHECK(event == quic::event::type::data, core::error::not_implemented);
+  CHECK(event == quic::event::type::data, base::error::not_implemented);
 
   CHECK(!event.fin, error::closed_critical_stream);
 
@@ -63,7 +63,7 @@ nothing receiver::recv(quic::event event,
   while (true) {
     http3::event result = process(ec);
     if (ec) {
-      if (ec == core::error::incomplete) {
+      if (ec == base::error::incomplete) {
         ec = {};
       }
 

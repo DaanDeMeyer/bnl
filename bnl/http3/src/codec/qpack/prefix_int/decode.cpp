@@ -54,7 +54,7 @@ template <typename Lookahead>
 uint8_t decoder::uint8_decode(Lookahead &encoded, std::error_code &ec) const
     noexcept
 {
-  CHECK(!encoded.empty(), core::error::incomplete);
+  CHECK(!encoded.empty(), base::error::incomplete);
 
   uint8_t result = *encoded;
 

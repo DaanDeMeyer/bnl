@@ -27,11 +27,11 @@ void api::operator()(const char *file,
                      int line,
                      std::error_code ec) const
 {
-  if (ec.category() == core::error_category()) {
-    switch (static_cast<core::error>(ec.value())) {
-      case core::error::incomplete:
-      case core::error::idle:
-      case core::error::unknown:
+  if (ec.category() == base::error_category()) {
+    switch (static_cast<base::error>(ec.value())) {
+      case base::error::incomplete:
+      case base::error::idle:
+      case base::error::unknown:
         return;
       default:
         break;

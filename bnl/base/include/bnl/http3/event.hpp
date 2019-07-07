@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <bnl/http3/header.hpp>
 #include <bnl/http3/settings.hpp>
@@ -15,7 +15,7 @@
 namespace bnl {
 namespace http3 {
 
-class BNL_CORE_EXPORT event {
+class BNL_BASE_EXPORT event {
 public:
   using handler = function_view<void(event, std::error_code &)>;
 

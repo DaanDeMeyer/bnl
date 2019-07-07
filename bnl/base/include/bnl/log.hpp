@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bnl/core/export.hpp>
+#include <bnl/base/export.hpp>
 
 #include <bnl/class/macro.hpp>
 
@@ -20,7 +20,7 @@ enum class level {
   error,
 };
 
-class BNL_CORE_EXPORT api {
+class BNL_BASE_EXPORT api {
 public:
   api() = default;
 

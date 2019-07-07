@@ -115,7 +115,7 @@ nothing receiver::recv(quic::event event,
 
   CHECK(!fin_received_, error::internal_error);
 
-  CHECK(event == quic::event::type::data, core::error::not_implemented);
+  CHECK(event == quic::event::type::data, base::error::not_implemented);
 
   buffers_.push(std::move(event.data));
   fin_received_ = event.fin;
@@ -124,9 +124,9 @@ nothing receiver::recv(quic::event event,
     http3::event result = process(ec);
 
     if (ec) {
-      if (ec == core::error::incomplete && fin_received_) {
+      if (ec == base::error::incomplete && fin_received_) {
         ec = error::malformed_frame;
-      } else if (ec == core::error::incomplete) {
+      } else if (ec == base::error::incomplete) {
         ec = {};
       }
 
@@ -186,13 +186,13 @@ event receiver::process(std::error_code &ec) noexcept
       THROW(error::internal_error);
   };
 
-  if (ec == core::error::unknown) {
+  if (ec == base::error::unknown) {
     frame frame = TRY(frame_.decode(buffers_, ec));
 
     switch (frame) {
       case frame::type::headers:
         // TODO: Implement trailing HEADERS
-        CHECK(state_ != receiver::state::body, core::error::not_implemented);
+        CHECK(state_ != receiver::state::body, base::error::not_implemented);
         break;
       case frame::type::data:
         THROW(error::unexpected_frame);
