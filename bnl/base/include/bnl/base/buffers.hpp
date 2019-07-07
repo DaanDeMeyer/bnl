@@ -1,14 +1,13 @@
 #pragma once
 
-#include <bnl/buffer.hpp>
-
+#include <bnl/base/buffer.hpp>
 #include <bnl/base/export.hpp>
-
-#include <bnl/class/macro.hpp>
+#include <bnl/base/macro.hpp>
 
 #include <deque>
 
 namespace bnl {
+namespace base {
 
 class BNL_BASE_EXPORT buffers {
 public:
@@ -63,4 +62,5 @@ private:
   size_t position_ = 0;
 };
 
+} // namespace base
 } // namespace bnl

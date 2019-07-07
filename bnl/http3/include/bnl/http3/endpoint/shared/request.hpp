@@ -10,9 +10,10 @@
 
 #include <bnl/quic/event.hpp>
 
-#include <bnl/buffer.hpp>
-#include <bnl/buffers.hpp>
-#include <bnl/nothing.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/buffers.hpp>
+#include <bnl/base/macro.hpp>
+#include <bnl/base/nothing.hpp>
 
 namespace bnl {
 
@@ -29,17 +30,17 @@ class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(sender);
+  BNL_BASE_MOVE_ONLY(sender);
 
   bool finished() const noexcept;
 
   quic::event send(std::error_code &ec) noexcept;
 
-  nothing header(header_view header, std::error_code &ec);
-  nothing body(buffer body, std::error_code &ec);
+  base::nothing header(header_view header, std::error_code &ec);
+  base::nothing body(base::buffer body, std::error_code &ec);
 
-  nothing start(std::error_code &ec) noexcept;
-  nothing fin(std::error_code &ec) noexcept;
+  base::nothing start(std::error_code &ec) noexcept;
+  base::nothing fin(std::error_code &ec) noexcept;
 
 private:
   uint64_t id_;
@@ -57,8 +58,8 @@ class BNL_HTTP3_EXPORT receiver {
 public:
   receiver(uint64_t id, const log::api *logger) noexcept;
 
-  BNL_NO_COPY(receiver);
-  BNL_DEFAULT_MOVE(receiver);
+  BNL_BASE_NO_COPY(receiver);
+  BNL_BASE_DEFAULT_MOVE(receiver);
 
   virtual ~receiver() noexcept;
 
@@ -66,9 +67,11 @@ public:
 
   bool finished() const noexcept;
 
-  nothing start(std::error_code &ec) noexcept;
+  base::nothing start(std::error_code &ec) noexcept;
 
-  nothing recv(quic::event event, event::handler handler, std::error_code &ec);
+  base::nothing recv(quic::event event,
+                     event::handler handler,
+                     std::error_code &ec);
 
 protected:
   virtual event process(frame frame, std::error_code &ec) noexcept = 0;
@@ -89,7 +92,7 @@ private:
 
   state state_ = state::closed;
 
-  buffers buffers_;
+  base::buffers buffers_;
   bool fin_received_ = false;
 };
 

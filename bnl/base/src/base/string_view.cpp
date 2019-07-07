@@ -1,10 +1,11 @@
-#include <bnl/string_view.hpp>
+#include <bnl/base/string_view.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <ostream>
 
 namespace bnl {
+namespace base {
 
 string_view::string_view(const char *data, size_t size) noexcept
     : data_(data), size_(size)
@@ -67,4 +68,5 @@ std::ostream &operator<<(std::ostream &out, string_view string)
   return out;
 }
 
+} // namespace base
 } // namespace bnl

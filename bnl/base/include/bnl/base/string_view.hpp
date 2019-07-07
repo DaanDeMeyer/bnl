@@ -2,12 +2,13 @@
 
 #include <bnl/base/export.hpp>
 
-#include <bnl/string.hpp>
+#include <bnl/base/string.hpp>
 
 #include <cstddef>
 #include <iosfwd>
 
 namespace bnl {
+namespace base {
 
 class BNL_BASE_EXPORT string_view {
 public:
@@ -37,4 +38,5 @@ BNL_BASE_EXPORT bool operator!=(string_view lhs, string_view rhs) noexcept;
 
 BNL_BASE_EXPORT std::ostream &operator<<(std::ostream &out, string_view string);
 
+} // namespace base
 } // namespace bnl

@@ -1,9 +1,10 @@
-#include <bnl/buffer_view.hpp>
+#include <bnl/base/buffer_view.hpp>
 
 #include <algorithm>
 #include <cassert>
 
 namespace bnl {
+namespace base {
 
 buffer_view::buffer_view(const uint8_t *data, size_t size) noexcept
     : data_(data), size_(size)
@@ -79,4 +80,5 @@ buffer_view_mut::operator buffer_view() const noexcept
   return { data_, size() };
 }
 
+} // namespace base
 } // namespace bnl

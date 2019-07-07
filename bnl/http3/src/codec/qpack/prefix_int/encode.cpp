@@ -58,10 +58,10 @@ size_t encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const
   return static_cast<size_t>(dest - begin);
 }
 
-buffer encoder::encode(uint64_t value, uint8_t prefix) const
+base::buffer encoder::encode(uint64_t value, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(value, prefix);
-  buffer encoded(encoded_size);
+  base::buffer encoded(encoded_size);
 
   ASSERT(encoded_size == encode(encoded.data(), value, prefix));
 

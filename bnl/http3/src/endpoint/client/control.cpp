@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 static constexpr uint64_t CLIENT_STREAM_CONTROL_ID = 0x02;
 static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;

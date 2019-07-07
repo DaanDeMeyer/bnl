@@ -39,7 +39,7 @@ namespace huffman {
 
 encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
 
-size_t encoder::encoded_size(string_view string) const noexcept
+size_t encoder::encoded_size(base::string_view string) const noexcept
 {
   size_t num_bits = 0;
 
@@ -100,7 +100,7 @@ static size_t symbol_encode(uint8_t *dest,
   return static_cast<size_t>(dest - begin);
 }
 
-size_t encoder::encode(uint8_t *dest, string_view string) const noexcept
+size_t encoder::encode(uint8_t *dest, base::string_view string) const noexcept
 {
   uint8_t *begin = dest;
   size_t rem_bits = 8;
@@ -124,10 +124,10 @@ size_t encoder::encode(uint8_t *dest, string_view string) const noexcept
   return static_cast<size_t>(dest - begin);
 }
 
-buffer encoder::encode(string_view string) const
+base::buffer encoder::encode(base::string_view string) const
 {
   size_t encoded_size = this->encoded_size(string);
-  buffer encoded(encoded_size);
+  base::buffer encoded(encoded_size);
 
   ASSERT(encoded_size == encode(encoded.data(), string));
 

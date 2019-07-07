@@ -2,6 +2,9 @@
 
 #include <utility>
 
+namespace bnl {
+namespace base {
+
 template <typename Fn>
 class function_view;
 
@@ -41,3 +44,6 @@ private:
         std::forward<Params>(params)...);
   }
 };
+
+} // namespace base
+} // namespace bnl

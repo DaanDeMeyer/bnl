@@ -1,9 +1,10 @@
 #include <doctest/doctest.h>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
+#include <bnl/log.hpp>
+
 #include <bnl/http3/codec/qpack.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
 
 #include <algorithm>
 
@@ -20,7 +21,7 @@ static void encode_and_decode(const http3::header &header,
   REQUIRE(!ec);
   REQUIRE(encoded_size == N);
 
-  buffer encoded = encoder.encode(header, ec);
+  base::buffer encoded = encoder.encode(header, ec);
   REQUIRE(!ec);
   REQUIRE(encoded.size() == N);
 
@@ -63,7 +64,7 @@ TEST_CASE("qpack")
   SUBCASE("encode: malformed header")
   {
     http3::header via = { "Via", "1.0.fred" };
-    buffer encoded = encoder.encode(via, ec);
+    base::buffer encoded = encoder.encode(via, ec);
 
     REQUIRE(ec == http3::error::malformed_header);
     REQUIRE(encoded.empty());
@@ -72,7 +73,7 @@ TEST_CASE("qpack")
   SUBCASE("decode: incomplete")
   {
     http3::header location = { "location", "/pub/WWW/People.html" };
-    buffer encoded = encoder.encode(location, ec);
+    base::buffer encoded = encoder.encode(location, ec);
 
     encoded = encoded.slice(10);
 
@@ -85,7 +86,7 @@ TEST_CASE("qpack")
 
   SUBCASE("decode: qpack decompression failed (indexed header field)")
   {
-    buffer encoded(4);
+    base::buffer encoded(4);
     encoded[0] = 0;    // prefix
     encoded[1] = 0;    // prefix
     encoded[2] = 0xff; // 0xff = indexed header field
@@ -100,7 +101,7 @@ TEST_CASE("qpack")
 
   SUBCASE("decode: qpack decompression failed (literal with name reference)")
   {
-    buffer encoded(4);
+    base::buffer encoded(4);
     encoded[0] = 0;    // prefix
     encoded[1] = 0;    // prefix
     encoded[2] = 0x5f; // 0x5f = literal with name reference

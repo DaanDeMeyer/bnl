@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -109,10 +109,10 @@ size_t encoder::encode(uint8_t *dest,
   return varint_size;
 }
 
-buffer encoder::encode(uint64_t varint, std::error_code &ec) const
+base::buffer encoder::encode(uint64_t varint, std::error_code &ec) const
 {
   size_t encoded_size = this->encoded_size(varint, ec);
-  buffer encoded(encoded_size);
+  base::buffer encoded(encoded_size);
 
   ASSERT(encoded_size == TRY(encode(encoded.data(), varint, ec)));
 

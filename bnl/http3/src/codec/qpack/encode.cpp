@@ -5,7 +5,7 @@
 #include <bnl/util/error.hpp>
 #include <bnl/util/string.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 #include <algorithm>
 
@@ -134,10 +134,10 @@ size_t encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-buffer encoder::encode(header_view header, std::error_code &ec)
+base::buffer encoder::encode(header_view header, std::error_code &ec)
 {
   size_t encoded_size = TRY(this->encoded_size(header, ec));
-  buffer encoded(encoded_size);
+  base::buffer encoded(encoded_size);
 
   ASSERT(encoded_size == TRY(encode(encoded.data(), header, ec)));
 

@@ -7,8 +7,8 @@
 
 #include <bnl/quic/event.hpp>
 
-#include <bnl/buffer.hpp>
-#include <bnl/function_view.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/function_view.hpp>
 
 #include <system_error>
 
@@ -17,14 +17,14 @@ namespace http3 {
 
 class BNL_BASE_EXPORT event {
 public:
-  using handler = function_view<void(event, std::error_code &)>;
+  using handler = base::function_view<void(event, std::error_code &)>;
 
   enum class type { settings, header, body, error };
 
   struct payload {
     using settings = http3::settings;
     using header = http3::header;
-    using body = buffer;
+    using body = base::buffer;
     using error = quic::event::payload::error;
   };
 

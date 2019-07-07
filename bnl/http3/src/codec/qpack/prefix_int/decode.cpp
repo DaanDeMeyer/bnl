@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -13,18 +13,18 @@ namespace prefix_int {
 
 decoder::decoder(const log::api *logger) : logger_(logger) {}
 
-uint64_t decoder::decode(buffer::lookahead &encoded,
+uint64_t decoder::decode(base::buffer::lookahead &encoded,
                          uint8_t prefix,
                          std::error_code &ec) const noexcept
 {
-  return decode<buffer::lookahead>(encoded, prefix, ec);
+  return decode<base::buffer::lookahead>(encoded, prefix, ec);
 }
 
-uint64_t decoder::decode(buffers::lookahead &encoded,
+uint64_t decoder::decode(base::buffers::lookahead &encoded,
                          uint8_t prefix,
                          std::error_code &ec) const noexcept
 {
-  return decode<buffers::lookahead>(encoded, prefix, ec);
+  return decode<base::buffers::lookahead>(encoded, prefix, ec);
 }
 
 template <typename Lookahead>

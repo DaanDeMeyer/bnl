@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -18,11 +18,11 @@ sender::sender(uint64_t id, const log::api *logger) noexcept
 
 quic::event sender::send(std::error_code &ec) noexcept
 {
-  state_error_handler<sender::state> on_error(state_, ec);
+  base::state_error_handler<sender::state> on_error(state_, ec);
 
   switch (state_) {
     case state::settings: {
-      buffer encoded = TRY(frame_.encode(settings_, ec));
+      base::buffer encoded = TRY(frame_.encode(settings_, ec));
       state_ = state::idle;
       return { id_, false, std::move(encoded) };
     }
@@ -48,11 +48,11 @@ uint64_t receiver::id() const noexcept
   return id_;
 }
 
-nothing receiver::recv(quic::event event,
-                       event::handler handler,
-                       std::error_code &ec)
+base::nothing receiver::recv(quic::event event,
+                             event::handler handler,
+                             std::error_code &ec)
 {
-  state_error_handler<receiver::state> on_error(state_, ec);
+  base::state_error_handler<receiver::state> on_error(state_, ec);
 
   CHECK(event == quic::event::type::data, base::error::not_implemented);
 

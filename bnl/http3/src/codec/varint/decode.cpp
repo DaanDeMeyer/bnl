@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -12,36 +12,38 @@ namespace varint {
 
 decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
-uint64_t decoder::decode(buffer &encoded, std::error_code &ec) const noexcept
+uint64_t decoder::decode(base::buffer &encoded, std::error_code &ec) const
+    noexcept
 {
-  buffer::lookahead lookahead(encoded);
+  base::buffer::lookahead lookahead(encoded);
 
-  uint64_t varint = TRY(decode<buffer::lookahead>(lookahead, ec));
+  uint64_t varint = TRY(decode<base::buffer::lookahead>(lookahead, ec));
   encoded.consume(lookahead.consumed());
 
   return varint;
 }
 
-uint64_t decoder::decode(buffers &encoded, std::error_code &ec) const noexcept
+uint64_t decoder::decode(base::buffers &encoded, std::error_code &ec) const
+    noexcept
 {
-  buffers::lookahead view(encoded);
+  base::buffers::lookahead view(encoded);
 
-  uint64_t varint = TRY(decode<buffers::lookahead>(view, ec));
+  uint64_t varint = TRY(decode<base::buffers::lookahead>(view, ec));
   encoded.consume(view.consumed());
 
   return varint;
 }
 
-uint64_t decoder::decode(buffer::lookahead &encoded, std::error_code &ec) const
-    noexcept
+uint64_t decoder::decode(base::buffer::lookahead &encoded,
+                         std::error_code &ec) const noexcept
 {
-  return decode<buffer::lookahead>(encoded, ec);
+  return decode<base::buffer::lookahead>(encoded, ec);
 }
 
-uint64_t decoder::decode(buffers::lookahead &encoded, std::error_code &ec) const
-    noexcept
+uint64_t decoder::decode(base::buffers::lookahead &encoded,
+                         std::error_code &ec) const noexcept
 {
-  return decode<buffers::lookahead>(encoded, ec);
+  return decode<base::buffers::lookahead>(encoded, ec);
 }
 
 // All decode functions convert from network to host byte order and remove the

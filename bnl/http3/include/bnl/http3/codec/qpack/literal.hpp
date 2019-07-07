@@ -5,10 +5,9 @@
 #include <bnl/http3/codec/qpack/huffman.hpp>
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 
-#include <bnl/buffer.hpp>
-#include <bnl/buffers.hpp>
-
-#include <bnl/class/macro.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/buffers.hpp>
+#include <bnl/base/macro.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -27,14 +26,14 @@ class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(encoder);
+  BNL_BASE_MOVE_ONLY(encoder);
 
-  size_t encoded_size(string_view literal, uint8_t prefix) const noexcept;
+  size_t encoded_size(base::string_view literal, uint8_t prefix) const noexcept;
 
-  size_t encode(uint8_t *dest, string_view literal, uint8_t prefix) const
+  size_t encode(uint8_t *dest, base::string_view literal, uint8_t prefix) const
       noexcept;
 
-  buffer encode(string_view literal, uint8_t prefix) const;
+  base::buffer encode(base::string_view literal, uint8_t prefix) const;
 
 private:
   const log::api *logger_;
@@ -47,15 +46,15 @@ class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(decoder);
+  BNL_BASE_MOVE_ONLY(decoder);
 
-  string decode(buffer::lookahead &encoded,
-                uint8_t prefix,
-                std::error_code &ec) const;
+  base::string decode(base::buffer::lookahead &encoded,
+                      uint8_t prefix,
+                      std::error_code &ec) const;
 
-  string decode(buffers::lookahead &encoded,
-                uint8_t prefix,
-                std::error_code &ec) const;
+  base::string decode(base::buffers::lookahead &encoded,
+                      uint8_t prefix,
+                      std::error_code &ec) const;
 
 private:
   const log::api *logger_;
@@ -64,7 +63,9 @@ private:
   huffman::decoder huffman_;
 
   template <typename Lookahead>
-  string decode(Lookahead &encoded, uint8_t prefix, std::error_code &ec) const;
+  base::string decode(Lookahead &encoded,
+                      uint8_t prefix,
+                      std::error_code &ec) const;
 };
 
 } // namespace literal

@@ -5,7 +5,7 @@
 #include <bnl/util/error.hpp>
 #include <bnl/util/string.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 #include "decode_generated.cpp"
 
@@ -25,14 +25,14 @@ uint64_t decoder::count() const noexcept
 
 static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
-header decoder::decode(buffer &encoded, std::error_code &ec)
+header decoder::decode(base::buffer &encoded, std::error_code &ec)
 {
-  return decode<buffer>(encoded, ec);
+  return decode<base::buffer>(encoded, ec);
 }
 
-header decoder::decode(buffers &encoded, std::error_code &ec)
+header decoder::decode(base::buffers &encoded, std::error_code &ec)
 {
-  return decode<buffers>(encoded, ec);
+  return decode<base::buffers>(encoded, ec);
 }
 
 template <typename Sequence>
@@ -83,7 +83,7 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
           static_cast<uint8_t>(prefix_int_.decode(lookahead, 4, ec)));
 
       bool found = false;
-      string name;
+      base::string name;
       std::tie(found, name) = table::fixed::find_header_only(index);
 
       if (!found) {
@@ -91,21 +91,21 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
         THROW(error::qpack_decompression_failed);
       }
 
-      string value = TRY(literal_.decode(lookahead, 7, ec));
+      base::string value = TRY(literal_.decode(lookahead, 7, ec));
 
       header = http3::header(std::move(name), std::move(value));
       break;
     }
 
     case table::fixed::type::missing: {
-      string name = TRY(literal_.decode(lookahead, 3, ec));
+      base::string name = TRY(literal_.decode(lookahead, 3, ec));
 
-      if(!util::is_lowercase(name)) {
+      if (!util::is_lowercase(name)) {
         LOG_E("Header ({}) is not lowercase", name);
         THROW(error::malformed_header);
       }
 
-      string value = TRY(literal_.decode(lookahead, 7, ec));
+      base::string value = TRY(literal_.decode(lookahead, 7, ec));
 
       header = http3::header(std::move(name), std::move(value));
       break;

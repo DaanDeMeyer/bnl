@@ -2,8 +2,8 @@
 
 #include <bnl/base/export.hpp>
 
-#include <bnl/buffer.hpp>
-#include <bnl/function_view.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/function_view.hpp>
 
 #include <cstdint>
 #include <system_error>
@@ -13,12 +13,12 @@ namespace quic {
 
 class BNL_BASE_EXPORT event {
 public:
-  using handler = function_view<void(event, std::error_code &ec)>;
+  using handler = base::function_view<void(event, std::error_code &ec)>;
 
   enum class type { data, error };
 
   struct payload {
-    using data = buffer;
+    using data = base::buffer;
     using error = std::error_code;
   };
 

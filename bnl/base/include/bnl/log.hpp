@@ -1,15 +1,13 @@
 #pragma once
 
 #include <bnl/base/export.hpp>
-
-#include <bnl/class/macro.hpp>
+#include <bnl/base/macro.hpp>
 
 #include <fmt/core.h>
 
 #include <system_error>
 
 namespace bnl {
-
 namespace log {
 
 enum class level {
@@ -24,8 +22,8 @@ class BNL_BASE_EXPORT api {
 public:
   api() = default;
 
-  BNL_DEFAULT_COPY(api);
-  BNL_DEFAULT_MOVE(api);
+  BNL_BASE_DEFAULT_COPY(api);
+  BNL_BASE_DEFAULT_MOVE(api);
 
   virtual ~api() noexcept;
 
@@ -55,7 +53,6 @@ protected:
 };
 
 } // namespace log
-
 } // namespace bnl
 
 #pragma GCC diagnostic push

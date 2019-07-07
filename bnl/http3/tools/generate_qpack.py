@@ -230,7 +230,7 @@ for entry in static_table:
 find_header_value = find_header_value_template.format(cases)
 
 find_header_only_template = """\
-std::pair<bool, string> find_header_only(uint8_t index)
+std::pair<bool, base::string> find_header_only(uint8_t index)
 {{
   switch(index) {{
     {}
@@ -255,7 +255,7 @@ find_header_only = find_header_only_template.format(cases)
 decode_generated_template = """\
 #include <bnl/http3/header.hpp>
 
-#include <bnl/string.hpp>
+#include <bnl/base/string.hpp>
 
 #include <cstdint>
 #include <utility>

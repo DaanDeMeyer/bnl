@@ -1,4 +1,4 @@
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace base {

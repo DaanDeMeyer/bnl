@@ -1,9 +1,10 @@
-#include <bnl/buffers.hpp>
+#include <bnl/base/buffers.hpp>
 
 #include <algorithm>
 #include <cassert>
 
 namespace bnl {
+namespace base {
 
 static size_t find_first_not_empty(const std::deque<buffer> &buffers)
 {
@@ -203,4 +204,5 @@ buffer buffers::lookahead::copy(size_t size) const
   return result;
 }
 
+} // namespace base
 } // namespace bnl

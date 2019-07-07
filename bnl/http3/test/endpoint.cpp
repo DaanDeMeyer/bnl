@@ -5,8 +5,8 @@
 #include <bnl/http3/client.hpp>
 #include <bnl/http3/server.hpp>
 
+#include <bnl/base/error.hpp>
 #include <bnl/log.hpp>
-#include <bnl/error.hpp>
 
 #include <array>
 #include <map>
@@ -16,7 +16,7 @@ using namespace bnl;
 
 struct message {
   std::vector<http3::header> headers;
-  buffer body;
+  base::buffer body;
 };
 
 bool operator==(const message &first, const message &second)
@@ -40,8 +40,7 @@ bool operator!=(const message &first, const message &second)
 }
 
 template <typename Endpoint>
-static void
-start(Endpoint &endpoint, uint64_t id, const message &message)
+static void start(Endpoint &endpoint, uint64_t id, const message &message)
 {
   std::error_code ec;
 
@@ -87,7 +86,7 @@ static message transfer(Sender &sender, Receiver &receiver)
           break;
 
         case http3::event::type::body:
-          decoded.body = buffer::concat(decoded.body, event.body);
+          decoded.body = base::buffer::concat(decoded.body, event.body);
           break;
 
         case http3::event::type::error:

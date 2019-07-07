@@ -4,15 +4,15 @@
 
 #include <bnl/http3/codec/frame.hpp>
 
+#include <bnl/base/error.hpp>
 #include <bnl/log.hpp>
-#include <bnl/error.hpp>
 
 using namespace bnl;
 
 template <size_t N>
 static http3::frame encode_and_decode(const http3::frame &frame,
-                                    const http3::frame::encoder &encoder,
-                                    const http3::frame::decoder &decoder)
+                                      const http3::frame::encoder &encoder,
+                                      const http3::frame::decoder &decoder)
 {
   std::error_code error;
 
@@ -21,7 +21,7 @@ static http3::frame encode_and_decode(const http3::frame &frame,
   size_t encoded_size = encoder.encoded_size(frame, ec);
   REQUIRE(encoded_size == N);
 
-  buffer encoded = encoder.encode(frame, ec);
+  base::buffer encoded = encoder.encode(frame, ec);
 
   REQUIRE(!error);
   REQUIRE(encoded.size() == N);
@@ -101,7 +101,8 @@ TEST_CASE("frame")
 
   SUBCASE("push promise")
   {
-    http3::frame frame = http3::frame::payload::push_promise{ 16384, 1073741824 };
+    http3::frame frame = http3::frame::payload::push_promise{ 16384,
+                                                              1073741824 };
     http3::frame decoded = encode_and_decode<13>(frame, encoder, decoder);
     REQUIRE(decoded.push_promise.push_id == frame.push_promise.push_id);
     REQUIRE(decoded.push_promise.size == frame.push_promise.size);
@@ -135,7 +136,7 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::data{ 4611686018427387904 };
 
-    buffer encoded = encoder.encode(frame, ec);
+    base::buffer encoded = encoder.encode(frame, ec);
 
     REQUIRE(ec == http3::error::varint_overflow);
     REQUIRE(encoded.empty());
@@ -145,10 +146,10 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::duplicate_push{ 50 };
 
-    buffer encoded = encoder.encode(frame, ec);
+    base::buffer encoded = encoder.encode(frame, ec);
     REQUIRE(!ec);
 
-    buffer incomplete = encoded.copy(encoded.size() - 1);
+    base::buffer incomplete = encoded.copy(encoded.size() - 1);
 
     decoder.decode(incomplete, ec);
 
@@ -165,7 +166,7 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::cancel_push{ 16384 };
 
-    buffer encoded = encoder.encode(frame, ec);
+    base::buffer encoded = encoder.encode(frame, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == 6);

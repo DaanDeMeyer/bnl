@@ -1,6 +1,6 @@
 #include <bnl/http3/header.hpp>
 
-#include <bnl/string.hpp>
+#include <bnl/base/string.hpp>
 
 #include <cstdint>
 #include <utility>
@@ -206,7 +206,7 @@ std::pair<bool, header> find_header_value(uint8_t index)
   return { false, {} };
 }
 
-std::pair<bool, string> find_header_only(uint8_t index)
+std::pair<bool, base::string> find_header_only(uint8_t index)
 {
   switch (index) {
     case 0:

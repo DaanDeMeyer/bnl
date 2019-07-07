@@ -3,7 +3,7 @@
 namespace bnl {
 namespace util {
 
-bool is_lowercase(string_view string)
+bool is_lowercase(base::string_view string)
 {
   for (char character : string) {
     if (character >= 'A' && character <= 'Z') {

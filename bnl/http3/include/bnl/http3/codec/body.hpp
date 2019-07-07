@@ -4,12 +4,10 @@
 
 #include <bnl/http3/codec/frame.hpp>
 
-#include <bnl/buffer.hpp>
-#include <bnl/buffers.hpp>
-
-#include <bnl/nothing.hpp>
-
-#include <bnl/class/macro.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/buffers.hpp>
+#include <bnl/base/macro.hpp>
+#include <bnl/base/nothing.hpp>
 
 #include <queue>
 
@@ -26,14 +24,14 @@ class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(encoder);
+  BNL_BASE_MOVE_ONLY(encoder);
 
-  nothing add(buffer body, std::error_code &ec);
-  nothing fin(std::error_code &ec) noexcept;
+  base::nothing add(base::buffer body, std::error_code &ec);
+  base::nothing fin(std::error_code &ec) noexcept;
 
   bool finished() const noexcept;
 
-  buffer encode(std::error_code &ec) noexcept;
+  base::buffer encode(std::error_code &ec) noexcept;
 
 private:
   const log::api *logger_;
@@ -44,18 +42,18 @@ private:
 
   state state_ = state::frame;
   bool fin_ = false;
-  std::queue<buffer> buffers_;
+  std::queue<base::buffer> buffers_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(decoder);
+  BNL_BASE_MOVE_ONLY(decoder);
 
   bool in_progress() const noexcept;
 
-  buffer decode(buffers &encoded, std::error_code &ec) noexcept;
+  base::buffer decode(base::buffers &encoded, std::error_code &ec) noexcept;
 
 private:
   const log::api *logger_;

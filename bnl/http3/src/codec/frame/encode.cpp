@@ -5,7 +5,7 @@
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -193,10 +193,10 @@ size_t frame::encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-buffer frame::encoder::encode(const frame &frame, std::error_code &ec) const
+base::buffer frame::encoder::encode(const frame &frame, std::error_code &ec) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame, ec));
-  buffer encoded(encoded_size);
+  base::buffer encoded(encoded_size);
 
   ASSERT(encoded_size == TRY(encode(encoded.data(), frame, ec)));
 

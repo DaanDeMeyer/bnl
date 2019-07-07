@@ -6,10 +6,9 @@
 #include <bnl/http3/codec/qpack/literal.hpp>
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 
-#include <bnl/class/macro.hpp>
-
-#include <bnl/buffer.hpp>
-#include <bnl/buffers.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/buffers.hpp>
+#include <bnl/base/macro.hpp>
 
 #include <system_error>
 
@@ -32,16 +31,17 @@ class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(encoder);
+  BNL_BASE_MOVE_ONLY(encoder);
 
   uint64_t count() const noexcept;
 
   size_t encoded_size(header_view header, std::error_code &ec) const noexcept;
 
-  size_t
-  encode(uint8_t *dest, header_view header, std::error_code &ec) noexcept;
+  size_t encode(uint8_t *dest,
+                header_view header,
+                std::error_code &ec) noexcept;
 
-  buffer encode(header_view header, std::error_code &ec);
+  base::buffer encode(header_view header, std::error_code &ec);
 
 private:
   const log::api *logger_;
@@ -59,13 +59,13 @@ class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger);
 
-  BNL_MOVE_ONLY(decoder);
+  BNL_BASE_MOVE_ONLY(decoder);
 
   uint64_t count() const noexcept;
 
-  header decode(buffer &encoded, std::error_code &ec);
+  header decode(base::buffer &encoded, std::error_code &ec);
 
-  header decode(buffers &encoded, std::error_code &ec);
+  header decode(base::buffers &encoded, std::error_code &ec);
 
 private:
   const log::api *logger_;

@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -48,8 +48,9 @@ quic::event server::send(std::error_code &ec) noexcept
   THROW(base::error::idle);
 }
 
-nothing
-server::recv(quic::event event, event::handler handler, std::error_code &ec)
+base::nothing server::recv(quic::event event,
+                           event::handler handler,
+                           std::error_code &ec)
 {
   endpoint::server::control::receiver &control = control_.second;
 
@@ -94,7 +95,9 @@ server::recv(quic::event event, event::handler handler, std::error_code &ec)
   return {};
 }
 
-nothing server::header(uint64_t id, header_view header, std::error_code &ec)
+base::nothing server::header(uint64_t id,
+                             header_view header,
+                             std::error_code &ec)
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
@@ -104,7 +107,7 @@ nothing server::header(uint64_t id, header_view header, std::error_code &ec)
   return sender.header(header, ec);
 }
 
-nothing server::body(uint64_t id, buffer body, std::error_code &ec)
+base::nothing server::body(uint64_t id, base::buffer body, std::error_code &ec)
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
@@ -114,7 +117,7 @@ nothing server::body(uint64_t id, buffer body, std::error_code &ec)
   return sender.body(std::move(body), ec);
 }
 
-nothing server::start(uint64_t id, std::error_code &ec) noexcept
+base::nothing server::start(uint64_t id, std::error_code &ec) noexcept
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
@@ -124,7 +127,7 @@ nothing server::start(uint64_t id, std::error_code &ec) noexcept
   return sender.start(ec);
 }
 
-nothing server::fin(uint64_t id, std::error_code &ec) noexcept
+base::nothing server::fin(uint64_t id, std::error_code &ec) noexcept
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);

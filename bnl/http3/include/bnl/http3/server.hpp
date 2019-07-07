@@ -6,11 +6,10 @@
 #include <bnl/http3/endpoint/server/control.hpp>
 #include <bnl/http3/endpoint/server/request.hpp>
 
-#include <bnl/nothing.hpp>
+#include <bnl/base/macro.hpp>
+#include <bnl/base/nothing.hpp>
 
 #include <bnl/quic/event.hpp>
-
-#include <bnl/class/macro.hpp>
 
 #include <map>
 #include <utility>
@@ -27,17 +26,19 @@ class BNL_HTTP3_EXPORT server {
 public:
   explicit server(const log::api *logger);
 
-  BNL_MOVE_ONLY(server);
+  BNL_BASE_MOVE_ONLY(server);
 
   quic::event send(std::error_code &ec) noexcept;
 
-  nothing recv(quic::event event, event::handler handler, std::error_code &ec);
+  base::nothing recv(quic::event event,
+                     event::handler handler,
+                     std::error_code &ec);
 
-  nothing header(uint64_t id, header_view header, std::error_code &ec);
-  nothing body(uint64_t id, buffer body, std::error_code &ec);
+  base::nothing header(uint64_t id, header_view header, std::error_code &ec);
+  base::nothing body(uint64_t id, base::buffer body, std::error_code &ec);
 
-  nothing start(uint64_t id, std::error_code &ec) noexcept;
-  nothing fin(uint64_t id, std::error_code &ec) noexcept;
+  base::nothing start(uint64_t id, std::error_code &ec) noexcept;
+  base::nothing fin(uint64_t id, std::error_code &ec) noexcept;
 
 private:
   using control = std::pair<endpoint::server::control::sender,
@@ -55,7 +56,7 @@ private:
   control control_;
 
   std::map<uint64_t, request> requests_;
-  buffer buffered_;
+  base::buffer buffered_;
 };
 
 } // namespace http3

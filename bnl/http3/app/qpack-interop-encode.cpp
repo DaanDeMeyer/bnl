@@ -17,9 +17,9 @@ using namespace bnl;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 
-static buffer id_encode(uint64_t id)
+static base::buffer id_encode(uint64_t id)
 {
-  buffer encoded(sizeof(uint64_t));
+  base::buffer encoded(sizeof(uint64_t));
 
   encoded[0] = static_cast<uint8_t>(id >> 56U);
   encoded[1] = static_cast<uint8_t>(id >> 48U);
@@ -33,9 +33,9 @@ static buffer id_encode(uint64_t id)
   return encoded;
 }
 
-static buffer size_encode(uint32_t encoded_size)
+static base::buffer size_encode(uint32_t encoded_size)
 {
-  buffer encoded(sizeof(uint32_t));
+  base::buffer encoded(sizeof(uint32_t));
 
   encoded[0] = static_cast<uint8_t>(encoded_size >> 24U);
   encoded[1] = static_cast<uint8_t>(encoded_size >> 16U);
@@ -45,7 +45,7 @@ static buffer size_encode(uint32_t encoded_size)
   return encoded;
 }
 
-void write(std::ostream &dest, const buffer &encoded)
+void write(std::ostream &dest, const base::buffer &encoded)
 {
   dest.write(reinterpret_cast<const char *>(encoded.data()),
              static_cast<int32_t>(encoded.size()));
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
   // Read input
 
-  bnl::string line;
+  base::string line;
   uint64_t id = 1;
   std::vector<http3::header> headers;
 
@@ -106,10 +106,10 @@ int main(int argc, char *argv[])
       // Encode header block and write to output
 
       try {
-        std::queue<buffer> buffers;
+        std::queue<base::buffer> buffers;
 
         for (const http3::header &header : headers) {
-          buffer encoded = TRY(qpack.encode(header, ec));
+          base::buffer encoded = TRY(qpack.encode(header, ec));
           buffers.emplace(std::move(encoded));
         }
 
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
         write(output, size_encode(static_cast<uint32_t>(qpack.count())));
 
         while (!buffers.empty()) {
-          buffer encoded = std::move(buffers.front());
+          base::buffer encoded = std::move(buffers.front());
           buffers.pop();
           write(output, encoded);
         }
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
     }
 
     size_t i = line.find('\t');
-    if (i == bnl::string::npos) {
+    if (i == base::string::npos) {
       LOG_E("Missing TAB character");
       return 1;
     }

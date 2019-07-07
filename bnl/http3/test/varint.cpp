@@ -4,8 +4,8 @@
 
 #include <bnl/http3/codec/varint.hpp>
 
+#include <bnl/base/error.hpp>
 #include <bnl/log.hpp>
-#include <bnl/error.hpp>
 
 static constexpr uint8_t VARINT_UINT8_HEADER = 0x00;
 static constexpr uint8_t VARINT_UINT16_HEADER = 0x40;
@@ -32,7 +32,7 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded_size == sizeof(uint8_t));
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded_size == encoded.size());
@@ -54,7 +54,7 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded_size == sizeof(uint8_t));
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == encoded_size);
@@ -76,7 +76,7 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded_size == sizeof(uint16_t));
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == encoded_size);
@@ -99,7 +99,7 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded_size == sizeof(uint32_t));
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == encoded_size);
@@ -124,7 +124,7 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded_size == sizeof(uint64_t));
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == encoded_size);
@@ -153,7 +153,7 @@ TEST_CASE("varint")
     REQUIRE(!ec);
     REQUIRE(encoded_size == sizeof(uint64_t));
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == encoded_size);
@@ -182,7 +182,7 @@ TEST_CASE("varint")
     REQUIRE(ec == http3::error::varint_overflow);
     REQUIRE(encoded_size == 0);
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(ec == http3::error::varint_overflow);
     REQUIRE(encoded.empty());
@@ -192,12 +192,12 @@ TEST_CASE("varint")
   {
     uint64_t varint = 169;
 
-    buffer encoded = encoder.encode(varint, ec);
+    base::buffer encoded = encoder.encode(varint, ec);
 
     REQUIRE(!ec);
     REQUIRE(encoded.size() == sizeof(uint16_t));
 
-    buffer incomplete = encoded.copy(encoded.size() - 1);
+    base::buffer incomplete = encoded.copy(encoded.size() - 1);
 
     decoder.decode(incomplete, ec);
 

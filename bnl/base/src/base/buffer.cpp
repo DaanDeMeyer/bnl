@@ -1,9 +1,10 @@
-#include <bnl/buffer.hpp>
+#include <bnl/base/buffer.hpp>
 
 #include <algorithm>
 #include <cassert>
 
 namespace bnl {
+namespace base {
 
 buffer::buffer() noexcept : type_(type::sso), sso_() {} // NOLINT
 
@@ -311,4 +312,5 @@ buffer buffer::lookahead::copy(size_t size) const
   return buffer(buffer_.data() + position_, size);
 }
 
+} // namespace base
 } // namespace bnl

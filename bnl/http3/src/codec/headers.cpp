@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -14,17 +14,17 @@ encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger), qpack_(logger)
 {}
 
-nothing encoder::add(header_view header, std::error_code &ec)
+base::nothing encoder::add(header_view header, std::error_code &ec)
 {
   CHECK(state_ == state::idle, error::internal_error);
 
-  buffer encoded = qpack_.encode(header, ec);
+  base::buffer encoded = qpack_.encode(header, ec);
   buffers_.emplace(std::move(encoded));
 
   return {};
 }
 
-nothing encoder::fin(std::error_code &ec) noexcept
+base::nothing encoder::fin(std::error_code &ec) noexcept
 {
   CHECK(state_ == state::idle, error::internal_error);
 
@@ -38,9 +38,9 @@ bool encoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-buffer encoder::encode(std::error_code &ec) noexcept
+base::buffer encoder::encode(std::error_code &ec) noexcept
 {
-  state_error_handler<encoder::state> on_error(state_, ec);
+  base::state_error_handler<encoder::state> on_error(state_, ec);
 
   switch (state_) {
 
@@ -50,7 +50,7 @@ buffer encoder::encode(std::error_code &ec) noexcept
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
 
-      buffer encoded = TRY(frame_.encode(frame, ec));
+      base::buffer encoded = TRY(frame_.encode(frame, ec));
 
       state_ = state::qpack;
 
@@ -58,7 +58,7 @@ buffer encoder::encode(std::error_code &ec) noexcept
     }
 
     case state::qpack: {
-      buffer encoded = std::move(buffers_.front());
+      base::buffer encoded = std::move(buffers_.front());
       buffers_.pop();
 
       state_ = buffers_.empty() ? state::fin : state_;
@@ -88,9 +88,9 @@ bool decoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-header decoder::decode(buffers &encoded, std::error_code &ec) noexcept
+header decoder::decode(base::buffers &encoded, std::error_code &ec) noexcept
 {
-  state_error_handler<decoder::state> on_error(state_, ec);
+  base::state_error_handler<decoder::state> on_error(state_, ec);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"

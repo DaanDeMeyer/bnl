@@ -1,19 +1,19 @@
 #include <doctest/doctest.h>
 
-#include <bnl/buffers.hpp>
+#include <bnl/base/buffers.hpp>
 
 using namespace bnl;
 
 TEST_CASE("buffers")
 {
-  buffers buffers;
+  base::buffers buffers;
 
   REQUIRE(buffers.size() == 0);
   REQUIRE(buffers.consumed() == 0);
 
-  buffer first = "abc";
-  buffer second = "fdeapdf";
-  buffer third = "a";
+  base::buffer first = "abc";
+  base::buffer second = "fdeapdf";
+  base::buffer third = "a";
 
   buffers.push(first);
   buffers.push(second);

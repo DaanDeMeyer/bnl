@@ -6,6 +6,7 @@
 #include <cstdint>
 
 namespace bnl {
+namespace base {
 
 class BNL_BASE_EXPORT buffer_view {
 public:
@@ -51,4 +52,5 @@ private:
   size_t size_;
 };
 
+} // namespace base
 } // namespace bnl

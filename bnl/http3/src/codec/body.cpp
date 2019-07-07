@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -14,7 +14,7 @@ encoder::encoder(const log::api *logger) noexcept
     : logger_(logger), frame_(logger)
 {}
 
-nothing encoder::add(buffer body, std::error_code &ec)
+base::nothing encoder::add(base::buffer body, std::error_code &ec)
 {
   CHECK(!fin_, error::internal_error);
 
@@ -23,7 +23,7 @@ nothing encoder::add(buffer body, std::error_code &ec)
   return {};
 }
 
-nothing encoder::fin(std::error_code &ec) noexcept
+base::nothing encoder::fin(std::error_code &ec) noexcept
 {
   CHECK(state_ != state::fin, error::internal_error);
 
@@ -41,11 +41,11 @@ bool encoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-buffer encoder::encode(std::error_code &ec) noexcept
+base::buffer encoder::encode(std::error_code &ec) noexcept
 {
   // TODO: Implement PRIORITY
 
-  state_error_handler<encoder::state> on_error(state_, ec);
+  base::state_error_handler<encoder::state> on_error(state_, ec);
 
   switch (state_) {
 
@@ -53,7 +53,7 @@ buffer encoder::encode(std::error_code &ec) noexcept
       CHECK(!buffers_.empty(), base::error::idle);
 
       frame frame = frame::payload::data{ buffers_.front().size() };
-      buffer encoded = TRY(frame_.encode(frame, ec));
+      base::buffer encoded = TRY(frame_.encode(frame, ec));
 
       state_ = state::data;
 
@@ -61,7 +61,7 @@ buffer encoder::encode(std::error_code &ec) noexcept
     }
 
     case state::data: {
-      buffer body = std::move(buffers_.front());
+      base::buffer body = std::move(buffers_.front());
       buffers_.pop();
 
       state_ = fin_ && buffers_.empty() ? state::fin : state::frame;
@@ -86,9 +86,10 @@ bool decoder::in_progress() const noexcept
   return state_ == decoder::state::data;
 }
 
-buffer decoder::decode(buffers &encoded, std::error_code &ec) noexcept
+base::buffer decoder::decode(base::buffers &encoded,
+                             std::error_code &ec) noexcept
 {
-  state_error_handler<decoder::state> on_error(state_, ec);
+  base::state_error_handler<decoder::state> on_error(state_, ec);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
@@ -112,7 +113,7 @@ buffer decoder::decode(buffers &encoded, std::error_code &ec) noexcept
       size_t body_part_size = encoded.size() < remaining_
                                   ? encoded.size()
                                   : static_cast<size_t>(remaining_);
-      buffer body_part = encoded.slice(body_part_size);
+      base::buffer body_part = encoded.slice(body_part_size);
 
       remaining_ -= body_part_size;
 

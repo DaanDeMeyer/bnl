@@ -1,10 +1,8 @@
 #pragma once
 
+#include <bnl/base/buffer_view.hpp>
 #include <bnl/base/export.hpp>
-
-#include <bnl/class/macro.hpp>
-
-#include <bnl/buffer_view.hpp>
+#include <bnl/base/macro.hpp>
 
 #include <array>
 #include <cstddef>
@@ -13,6 +11,7 @@
 #include <memory>
 
 namespace bnl {
+namespace base {
 
 class BNL_BASE_EXPORT buffer {
 public:
@@ -27,8 +26,8 @@ public:
       : buffer(reinterpret_cast<const uint8_t *>(data), Size - 1)
   {}
 
-  BNL_CUSTOM_COPY(buffer);
-  BNL_CUSTOM_MOVE(buffer);
+  BNL_BASE_CUSTOM_COPY(buffer);
+  BNL_BASE_CUSTOM_MOVE(buffer);
 
   ~buffer() noexcept;
 
@@ -116,4 +115,5 @@ private:
   size_t position_ = 0;
 };
 
+} // namespace base
 } // namespace bnl

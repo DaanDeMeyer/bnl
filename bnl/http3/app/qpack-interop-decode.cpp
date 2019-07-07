@@ -6,7 +6,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 #include <fstream>
 #include <vector>
@@ -16,8 +16,9 @@ using namespace bnl;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 
-uint64_t
-id_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
+uint64_t id_decode(base::buffer &encoded,
+                   std::error_code &ec,
+                   const log::api *logger_)
 {
   CHECK(encoded.size() >= sizeof(uint64_t), base::error::incomplete);
 
@@ -35,8 +36,9 @@ id_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
   return id;
 }
 
-size_t
-size_decode(buffer &encoded, std::error_code &ec, const log::api *logger_)
+size_t size_decode(base::buffer &encoded,
+                   std::error_code &ec,
+                   const log::api *logger_)
 {
   CHECK(encoded.size() >= sizeof(uint32_t), base::error::incomplete);
 
@@ -83,14 +85,14 @@ int main(int argc, char *argv[])
 
   // Read input
 
-  buffer encoded;
+  base::buffer encoded;
 
   try {
     input.seekg(0, std::ios::end);
     std::streamsize size = input.tellg();
     input.seekg(0, std::ios::beg);
 
-    encoded = buffer(static_cast<size_t>(size));
+    encoded = base::buffer(static_cast<size_t>(size));
     input.read(reinterpret_cast<char *>(encoded.data()), size);
   } catch (const std::ios_base::failure &e) {
     LOG_E("Error reading input: {}", e.what());

@@ -17,14 +17,14 @@ class BNL_HTTP3_EXPORT sender : public shared::request::sender {
 public:
   using shared::request::sender::sender;
 
-  BNL_MOVE_ONLY(sender);
+  BNL_BASE_MOVE_ONLY(sender);
 };
 
 class BNL_HTTP3_EXPORT receiver : public shared::request::receiver {
 public:
   receiver(uint64_t id, const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(receiver);
+  BNL_BASE_MOVE_ONLY(receiver);
 
 private:
   event process(frame frame, std::error_code &ec) noexcept final;

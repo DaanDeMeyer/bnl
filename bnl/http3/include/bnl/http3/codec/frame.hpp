@@ -5,10 +5,9 @@
 
 #include <bnl/http3/codec/varint.hpp>
 
-#include <bnl/buffer.hpp>
-#include <bnl/buffers.hpp>
-
-#include <bnl/class/macro.hpp>
+#include <bnl/base/buffer.hpp>
+#include <bnl/base/buffers.hpp>
+#include <bnl/base/macro.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -128,14 +127,14 @@ class BNL_HTTP3_EXPORT frame::encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(encoder);
+  BNL_BASE_MOVE_ONLY(encoder);
 
   size_t encoded_size(const frame &frame, std::error_code &ec) const noexcept;
 
   size_t encode(uint8_t *dest, const frame &frame, std::error_code &ec) const
       noexcept;
 
-  buffer encode(const frame &frame, std::error_code &ec) const;
+  base::buffer encode(const frame &frame, std::error_code &ec) const;
 
 private:
   const log::api *logger_;
@@ -149,15 +148,17 @@ class BNL_HTTP3_EXPORT frame::decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
 
-  BNL_MOVE_ONLY(decoder);
+  BNL_BASE_MOVE_ONLY(decoder);
 
-  frame::type peek(const buffer &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(const base::buffer &encoded, std::error_code &ec) const
+      noexcept;
 
-  frame::type peek(const buffers &encoded, std::error_code &ec) const noexcept;
+  frame::type peek(const base::buffers &encoded, std::error_code &ec) const
+      noexcept;
 
-  frame decode(buffer &encoded, std::error_code &ec) const noexcept;
+  frame decode(base::buffer &encoded, std::error_code &ec) const noexcept;
 
-  frame decode(buffers &encoded, std::error_code &ec) const noexcept;
+  frame decode(base::buffers &encoded, std::error_code &ec) const noexcept;
 
 private:
   const log::api *logger_;

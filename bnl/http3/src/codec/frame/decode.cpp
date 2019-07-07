@@ -5,7 +5,7 @@
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -14,16 +14,16 @@ frame::decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), varint_(logger)
 {}
 
-frame::type frame::decoder::peek(const buffer &encoded,
+frame::type frame::decoder::peek(const base::buffer &encoded,
                                  std::error_code &ec) const noexcept
 {
-  return peek<buffer>(encoded, ec);
+  return peek<base::buffer>(encoded, ec);
 }
 
-frame::type frame::decoder::peek(const buffers &encoded,
+frame::type frame::decoder::peek(const base::buffers &encoded,
                                  std::error_code &ec) const noexcept
 {
-  return peek<buffers>(encoded, ec);
+  return peek<base::buffers>(encoded, ec);
 }
 
 template <typename Sequence>
@@ -54,16 +54,16 @@ frame::type frame::decoder::peek(const Sequence &encoded,
   NOTREACHED();
 }
 
-frame frame::decoder::decode(buffer &encoded, std::error_code &ec) const
+frame frame::decoder::decode(base::buffer &encoded, std::error_code &ec) const
     noexcept
 {
-  return decode<buffer>(encoded, ec);
+  return decode<base::buffer>(encoded, ec);
 }
 
-frame frame::decoder::decode(buffers &encoded, std::error_code &ec) const
+frame frame::decoder::decode(base::buffers &encoded, std::error_code &ec) const
     noexcept
 {
-  return decode<buffers>(encoded, ec);
+  return decode<base::buffers>(encoded, ec);
 }
 
 template <typename Sequence>

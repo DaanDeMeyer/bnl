@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -23,12 +23,12 @@ bool sender::finished() const noexcept
 
 quic::event sender::send(std::error_code &ec) noexcept
 {
-  state_error_handler<sender::state> on_error(state_, ec);
+  base::state_error_handler<sender::state> on_error(state_, ec);
 
   switch (state_) {
 
     case state::headers: {
-      buffer encoded = TRY(headers_.encode(ec));
+      base::buffer encoded = TRY(headers_.encode(ec));
 
       if (headers_.finished()) {
         state_ = state::body;
@@ -38,7 +38,7 @@ quic::event sender::send(std::error_code &ec) noexcept
     }
 
     case state::body: {
-      buffer encoded = TRY(body_.encode(ec));
+      base::buffer encoded = TRY(body_.encode(ec));
 
       if (body_.finished()) {
         state_ = state::fin;
@@ -55,22 +55,22 @@ quic::event sender::send(std::error_code &ec) noexcept
   NOTREACHED();
 }
 
-nothing sender::header(header_view header, std::error_code &ec)
+base::nothing sender::header(header_view header, std::error_code &ec)
 {
   return headers_.add(header, ec);
 }
 
-nothing sender::body(buffer body, std::error_code &ec)
+base::nothing sender::body(base::buffer body, std::error_code &ec)
 {
   return body_.add(std::move(body), ec);
 }
 
-nothing sender::start(std::error_code &ec) noexcept
+base::nothing sender::start(std::error_code &ec) noexcept
 {
   return headers_.fin(ec);
 }
 
-nothing sender::fin(std::error_code &ec) noexcept
+base::nothing sender::fin(std::error_code &ec) noexcept
 {
   return body_.fin(ec);
 }
@@ -91,7 +91,7 @@ bool receiver::finished() const noexcept
   return state_ == state::fin;
 }
 
-nothing receiver::start(std::error_code &ec) noexcept
+base::nothing receiver::start(std::error_code &ec) noexcept
 {
   CHECK(state_ == state::closed, error::internal_error);
 
@@ -105,11 +105,11 @@ const headers::decoder &receiver::headers() const noexcept
   return headers_;
 }
 
-nothing receiver::recv(quic::event event,
-                       event::handler handler,
-                       std::error_code &ec)
+base::nothing receiver::recv(quic::event event,
+                             event::handler handler,
+                             std::error_code &ec)
 {
-  state_error_handler<receiver::state> on_error(state_, ec);
+  base::state_error_handler<receiver::state> on_error(state_, ec);
 
   // TODO: Handle `quic::event::type::error`.
 
@@ -164,7 +164,7 @@ event receiver::process(std::error_code &ec) noexcept
     }
 
     case state::body: {
-      buffer body = body_.decode(buffers_, ec);
+      base::buffer body = body_.decode(buffers_, ec);
       if (ec) {
         break;
       }

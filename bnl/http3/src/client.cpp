@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -51,8 +51,9 @@ quic::event client::send(std::error_code &ec) noexcept
   THROW(base::error::idle);
 }
 
-nothing
-client::recv(quic::event event, event::handler handler, std::error_code &ec)
+base::nothing client::recv(quic::event event,
+                           event::handler handler,
+                           std::error_code &ec)
 {
   endpoint::client::control::receiver &control = control_.second;
 
@@ -110,7 +111,9 @@ uint64_t client::request(std::error_code & /* ec */)
   return id;
 }
 
-nothing client::header(uint64_t id, header_view header, std::error_code &ec)
+base::nothing client::header(uint64_t id,
+                             header_view header,
+                             std::error_code &ec)
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
@@ -120,7 +123,7 @@ nothing client::header(uint64_t id, header_view header, std::error_code &ec)
   return sender.header(header, ec);
 }
 
-nothing client::body(uint64_t id, buffer body, std::error_code &ec)
+base::nothing client::body(uint64_t id, base::buffer body, std::error_code &ec)
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
@@ -130,7 +133,7 @@ nothing client::body(uint64_t id, buffer body, std::error_code &ec)
   return sender.body(std::move(body), ec);
 }
 
-nothing client::start(uint64_t id, std::error_code &ec) noexcept
+base::nothing client::start(uint64_t id, std::error_code &ec) noexcept
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
@@ -140,7 +143,7 @@ nothing client::start(uint64_t id, std::error_code &ec) noexcept
   return sender.start(ec);
 }
 
-nothing client::fin(uint64_t id, std::error_code &ec) noexcept
+base::nothing client::fin(uint64_t id, std::error_code &ec) noexcept
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);

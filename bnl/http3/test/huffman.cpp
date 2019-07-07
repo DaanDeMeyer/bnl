@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 #include <bnl/log.hpp>
 
 #include <bnl/http3/codec/qpack/huffman.hpp>
@@ -9,7 +9,7 @@
 
 using namespace bnl;
 
-static string random_string(size_t length)
+static base::string random_string(size_t length)
 {
   static const char characters[] = "0123456789"
                                    "abcdefghijklmnopqrstuvwxyz"
@@ -18,7 +18,7 @@ static string random_string(size_t length)
   static std::mt19937 rg{ std::random_device{}() };
   static std::uniform_int_distribution<size_t> pick(0, sizeof(characters) - 1);
 
-  bnl::string string;
+  base::string string;
   string.resize(length);
 
   for (char &character : string) {
@@ -28,14 +28,14 @@ static string random_string(size_t length)
   return string;
 }
 
-static void encode_and_decode(string_view string,
+static void encode_and_decode(base::string_view string,
                               const http3::qpack::huffman::encoder &encoder,
                               const http3::qpack::huffman::decoder &decoder)
 {
-  buffer encoded = encoder.encode(string);
+  base::buffer encoded = encoder.encode(string);
 
   std::error_code ec;
-  bnl::string decoded = decoder.decode(encoded, encoded.size(), ec);
+  base::string decoded = decoder.decode(encoded, encoded.size(), ec);
 
   REQUIRE(!ec);
   REQUIRE(decoded.size() == string.size());
@@ -52,17 +52,17 @@ TEST_CASE("huffman")
   SUBCASE("random")
   {
     for (size_t i = 0; i < 1000; i++) {
-      bnl::string string = random_string(20);
+      base::string string = random_string(20);
       encode_and_decode(string, encoder, decoder);
     }
   }
 
   SUBCASE("incomplete")
   {
-    bnl::string data("abcde");
-    buffer encoded = encoder.encode(data);
+    base::string data("abcde");
+    base::buffer encoded = encoder.encode(data);
 
-    buffer incomplete = encoded.copy(2);
+    base::buffer incomplete = encoded.copy(2);
 
     std::error_code ec;
     decoder.decode(incomplete, encoded.size(), ec);

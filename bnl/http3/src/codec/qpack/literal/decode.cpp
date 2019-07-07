@@ -4,7 +4,7 @@
 
 #include <bnl/util/error.hpp>
 
-#include <bnl/error.hpp>
+#include <bnl/base/error.hpp>
 
 #include <algorithm>
 
@@ -17,22 +17,22 @@ decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-string decoder::decode(buffer::lookahead &encoded,
+base::string decoder::decode(base::buffer::lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
-  return decode<buffer::lookahead>(encoded, prefix, ec);
+  return decode<base::buffer::lookahead>(encoded, prefix, ec);
 }
 
-string decoder::decode(buffers::lookahead &encoded,
+base::string decoder::decode(base::buffers::lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
-  return decode<buffers::lookahead>(encoded, prefix, ec);
+  return decode<base::buffers::lookahead>(encoded, prefix, ec);
 }
 
 template <typename Lookahead>
-string decoder::decode(Lookahead &encoded,
+base::string decoder::decode(Lookahead &encoded,
                        uint8_t prefix,
                        std::error_code &ec) const
 {
@@ -47,7 +47,7 @@ string decoder::decode(Lookahead &encoded,
 
   size_t bounded_encoded_size = static_cast<size_t>(literal_encoded_size);
 
-  string literal;
+  base::string literal;
 
   if (is_huffman) {
     literal = huffman_.decode(encoded, bounded_encoded_size, ec);
