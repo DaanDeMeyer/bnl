@@ -43,13 +43,13 @@ mark_as_advanced(
 ### clang-tidy ###
 
 if(BNL_TIDY)
-  find_program(BNL_CLANG_TIDY_PROGRAM clang-tidy)
-  mark_as_advanced(BNL_CLANG_TIDY_PROGRAM)
+  find_program(BNL_TIDY_PROGRAM clang-tidy)
+  mark_as_advanced(BNL_TIDY_PROGRAM)
 
-  if(BNL_CLANG_TIDY_PROGRAM)
+  if(BNL_TIDY_PROGRAM)
     if(BNL_WARNINGS_AS_ERRORS)
-      set(BNL_CLANG_TIDY_PROGRAM
-          ${BNL_CLANG_TIDY_PROGRAM} -warnings-as-errors=*)
+      set(BNL_TIDY_PROGRAM
+          ${BNL_TIDY_PROGRAM} -warnings-as-errors=*)
     endif()
   else()
     message(FATAL_ERROR "clang-tidy not found")
@@ -102,11 +102,11 @@ function(bnl_add_common TARGET OUTPUT_DIRECTORY)
     LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}"
   )
 
-  if(BNL_TIDY AND BNL_CLANG_TIDY_PROGRAM)
+  if(BNL_TIDY)
     set_target_properties(${TARGET} PROPERTIES
-      # CLANG_TIDY_PROGRAM is a list so we surround it with quotes to pass it as
-      # a single argument.
-      CXX_CLANG_TIDY "${BNL_CLANG_TIDY_PROGRAM}"
+      # BNL_TIDY_PROGRAM is a list so we surround it with quotes to pass it as a
+      # single argument.
+      CXX_CLANG_TIDY "${BNL_TIDY_PROGRAM}"
     )
   endif()
 
