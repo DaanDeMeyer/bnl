@@ -44,7 +44,6 @@
   {                                                                            \
     auto result = expression;                                                  \
     if (!result) {                                                             \
-      LOG_E("Check failed: {}", #expression);                                  \
       THROW(error);                                                            \
     }                                                                          \
   }                                                                            \
