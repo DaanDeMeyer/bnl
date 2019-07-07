@@ -34,16 +34,6 @@ std::string error_category_impl::message(int condition) const noexcept
     case error::qpack_decompression_failed:
       return "qpack decompression failed";
 
-    case error::not_implemented:
-      return "not implemented";
-    case error::invalid_argument:
-      return "invalid argument";
-    case error::incomplete:
-      return "incomplete";
-    case error::idle:
-      return "idle";
-    case error::unknown:
-      return "unknown";
     case error::varint_overflow:
       return "varint overflow";
     case error::malformed_header:
@@ -52,7 +42,7 @@ std::string error_category_impl::message(int condition) const noexcept
       return "stream closed";
   }
 
-  return "unknown error";
+  return "error not recognized";
 }
 
 const std::error_category &error_category() noexcept

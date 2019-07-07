@@ -5,6 +5,7 @@
 #include <bnl/http3/codec/varint.hpp>
 
 #include <bnl/log.hpp>
+#include <bnl/error.hpp>
 
 static constexpr uint8_t VARINT_UINT8_HEADER = 0x00;
 static constexpr uint8_t VARINT_UINT16_HEADER = 0x40;
@@ -200,7 +201,7 @@ TEST_CASE("varint")
 
     decoder.decode(incomplete, ec);
 
-    REQUIRE(ec == http3::error::incomplete);
+    REQUIRE(ec == core::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
     decoder.decode(encoded, ec);

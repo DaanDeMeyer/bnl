@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 namespace endpoint {
@@ -113,7 +115,7 @@ nothing receiver::recv(quic::event event,
 
   CHECK(!fin_received_, error::internal_error);
 
-  CHECK(event == quic::event::type::data, error::not_implemented);
+  CHECK(event == quic::event::type::data, core::error::not_implemented);
 
   buffers_.push(std::move(event.data));
   fin_received_ = event.fin;
@@ -122,9 +124,9 @@ nothing receiver::recv(quic::event event,
     http3::event result = process(ec);
 
     if (ec) {
-      if (ec == error::incomplete && fin_received_) {
+      if (ec == core::error::incomplete && fin_received_) {
         ec = error::malformed_frame;
-      } else if (ec == error::incomplete) {
+      } else if (ec == core::error::incomplete) {
         ec = {};
       }
 
@@ -184,13 +186,13 @@ event receiver::process(std::error_code &ec) noexcept
       THROW(error::internal_error);
   };
 
-  if (ec == error::unknown) {
+  if (ec == core::error::unknown) {
     frame frame = TRY(frame_.decode(buffers_, ec));
 
     switch (frame) {
       case frame::type::headers:
         // TODO: Implement trailing HEADERS
-        CHECK(state_ != receiver::state::body, error::not_implemented);
+        CHECK(state_ != receiver::state::body, core::error::not_implemented);
         break;
       case frame::type::data:
         THROW(error::unexpected_frame);

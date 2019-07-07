@@ -31,6 +31,8 @@
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 #include "decode_generated.cpp"
 
 namespace bnl {
@@ -117,7 +119,7 @@ size_t decoder::decoded_size(const Lookahead &encoded,
                              size_t encoded_size,
                              std::error_code &ec) const noexcept
 {
-  CHECK(encoded.size() >= encoded_size, error::incomplete);
+  CHECK(encoded.size() >= encoded_size, core::error::incomplete);
 
   size_t decoded_size = 0;
   uint8_t state = 0;

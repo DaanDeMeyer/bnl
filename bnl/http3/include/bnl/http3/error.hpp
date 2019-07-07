@@ -26,12 +26,7 @@ enum class error : uint32_t {
   // QUIC's error codes are limited to 16 bytes which leaves all numbers larger
   // than 16 bytes for library error codes.
 
-  not_implemented = UINT16_MAX + 1,
-  invalid_argument,
-  incomplete,
-  idle,
-  unknown,
-  varint_overflow,
+  varint_overflow = UINT16_MAX + 1,
   malformed_header,
   stream_closed
 };
@@ -49,37 +44,3 @@ template <>
 struct is_error_code_enum<bnl::http3::error> : true_type {};
 
 } // namespace std
-
-namespace bnl {
-namespace http3 {
-
-template <typename State>
-class state_error_handler {
-public:
-  state_error_handler(State &state, std::error_code &ec) noexcept
-      : state_(state), ec_(ec)
-  {}
-
-  state_error_handler<State>(const state_error_handler<State> &) noexcept = default;
-  state_error_handler<State> &
-  operator=(const state_error_handler<State> &) noexcept = default;
-
-  state_error_handler<State>(state_error_handler<State> &&) noexcept = default;
-  state_error_handler<State> &
-  operator=(state_error_handler<State> &&) noexcept = default;
-
-  ~state_error_handler()
-  {
-    if (ec_ && ec_ != error::idle && ec_ != error::incomplete &&
-        ec_ != error::unknown) {
-      state_ = State::error;
-    }
-  }
-
-private:
-  State &state_;
-  std::error_code &ec_;
-};
-
-} // namespace http3
-} // namespace bnl

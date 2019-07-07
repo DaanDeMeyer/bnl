@@ -5,6 +5,8 @@
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 
@@ -249,7 +251,7 @@ template <typename Lookahead>
 uint8_t frame::decoder::uint8_decode(Lookahead &encoded,
                                      std::error_code &ec) const noexcept
 {
-  CHECK(!encoded.empty(), error::incomplete);
+  CHECK(!encoded.empty(), core::error::incomplete);
 
   uint8_t result = *encoded;
 

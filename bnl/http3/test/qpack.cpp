@@ -1,9 +1,8 @@
 #include <doctest/doctest.h>
 
-#include <bnl/http3/error.hpp>
-
+#include <bnl/error.hpp>
 #include <bnl/http3/codec/qpack.hpp>
-
+#include <bnl/http3/error.hpp>
 #include <bnl/log.hpp>
 
 #include <algorithm>
@@ -79,7 +78,7 @@ TEST_CASE("qpack")
 
     http3::header decoded = decoder.decode(encoded, ec);
 
-    REQUIRE(ec == http3::error::incomplete);
+    REQUIRE(ec == core::error::incomplete);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 8);
   }

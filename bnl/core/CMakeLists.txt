@@ -9,6 +9,7 @@ target_sources(bnl-core PRIVATE
   src/buffer_view.cpp
   src/buffer.cpp
   src/buffers.cpp
+  src/error.cpp
   src/log.cpp
   src/string_view.cpp
 )

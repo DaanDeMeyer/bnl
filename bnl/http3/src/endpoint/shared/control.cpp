@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 namespace endpoint {
@@ -26,7 +28,7 @@ quic::event sender::send(std::error_code &ec) noexcept
     }
 
     case state::idle:
-      THROW(error::idle);
+      THROW(core::error::idle);
 
     case state::error:
       THROW(error::internal_error);
@@ -52,7 +54,7 @@ nothing receiver::recv(quic::event event,
 {
   state_error_handler<receiver::state> on_error(state_, ec);
 
-  CHECK(event == quic::event::type::data, error::not_implemented);
+  CHECK(event == quic::event::type::data, core::error::not_implemented);
 
   CHECK(!event.fin, error::closed_critical_stream);
 
@@ -61,7 +63,7 @@ nothing receiver::recv(quic::event event,
   while (true) {
     http3::event result = process(ec);
     if (ec) {
-      if (ec == error::incomplete) {
+      if (ec == core::error::incomplete) {
         ec = {};
       }
 

@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 
@@ -19,7 +21,7 @@ quic::event server::send(std::error_code &ec) noexcept
 
   {
     quic::event event = control.send(ec);
-    if (ec != error::idle) {
+    if (ec != core::error::idle) {
       return event;
     }
   }
@@ -38,12 +40,12 @@ quic::event server::send(std::error_code &ec) noexcept
       requests_.erase(id);
     }
 
-    if (ec != error::idle) {
+    if (ec != core::error::idle) {
       return event;
     }
   }
 
-  THROW(error::idle);
+  THROW(core::error::idle);
 }
 
 nothing

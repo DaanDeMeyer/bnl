@@ -5,6 +5,8 @@
 #include <bnl/util/error.hpp>
 #include <bnl/util/string.hpp>
 
+#include <bnl/error.hpp>
+
 #include "decode_generated.cpp"
 
 namespace bnl {
@@ -37,7 +39,7 @@ template <typename Sequence>
 header decoder::decode(Sequence &encoded, std::error_code &ec)
 {
   if (state_ == state::prefix) {
-    CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, error::incomplete);
+    CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, core::error::incomplete);
 
     encoded.consume(QPACK_PREFIX_ENCODED_SIZE);
     count_ += QPACK_PREFIX_ENCODED_SIZE;
@@ -47,7 +49,7 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
   header header;
   typename Sequence::lookahead lookahead(encoded);
 
-  CHECK(!lookahead.empty(), error::incomplete);
+  CHECK(!lookahead.empty(), core::error::incomplete);
 
   switch (table::fixed::find_type(*lookahead)) {
 

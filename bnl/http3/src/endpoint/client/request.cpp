@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 namespace endpoint {
@@ -21,7 +23,7 @@ event receiver::process(frame frame, std::error_code &ec) noexcept
     case frame::type::duplicate_push:
       // TODO: Implement PUSH_PROMISE
       // TODO: Implement DUPLICATE_PUSH
-      THROW(error::not_implemented);
+      THROW(core::error::not_implemented);
     case frame::type::headers:
     case frame::type::priority:
       THROW(error::unexpected_frame);

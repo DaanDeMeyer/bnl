@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 namespace headers {
@@ -43,7 +45,7 @@ buffer encoder::encode(std::error_code &ec) noexcept
   switch (state_) {
 
     case state::idle:
-      THROW(error::idle);
+      THROW(core::error::idle);
 
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
@@ -98,7 +100,7 @@ header decoder::decode(buffers &encoded, std::error_code &ec) noexcept
     case state::frame: {
       frame::type type = TRY(frame_.peek(encoded, ec));
 
-      CHECK(type == frame::type::headers, error::unknown);
+      CHECK(type == frame::type::headers, core::error::unknown);
 
       frame frame = TRY(frame_.decode(encoded, ec));
 

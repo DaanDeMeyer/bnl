@@ -1,10 +1,9 @@
 #include <doctest/doctest.h>
 
-#include <bnl/http3/error.hpp>
+#include <bnl/error.hpp>
+#include <bnl/log.hpp>
 
 #include <bnl/http3/codec/qpack/huffman.hpp>
-
-#include <bnl/log.hpp>
 
 #include <random>
 
@@ -68,7 +67,7 @@ TEST_CASE("huffman")
     std::error_code ec;
     decoder.decode(incomplete, encoded.size(), ec);
 
-    REQUIRE(ec == http3::error::incomplete);
+    REQUIRE(ec == core::error::incomplete);
     REQUIRE(incomplete.size() == 2);
 
     decoder.decode(encoded, encoded.size(), ec);

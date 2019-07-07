@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 namespace bnl {
 namespace http3 {
 namespace varint {
@@ -83,7 +85,7 @@ size_t encoder::encode(uint8_t *dest,
                        uint64_t varint,
                        std::error_code &ec) const noexcept
 {
-  CHECK(dest != nullptr, error::invalid_argument);
+  CHECK(dest != nullptr, core::error::invalid_argument);
 
   size_t varint_size = TRY(this->encoded_size(varint, ec));
 

@@ -6,6 +6,7 @@
 #include <bnl/http3/server.hpp>
 
 #include <bnl/log.hpp>
+#include <bnl/error.hpp>
 
 #include <array>
 #include <map>
@@ -67,7 +68,7 @@ static message transfer(Sender &sender, Receiver &receiver)
 
   while (true) {
     quic::event event = sender.send(ec);
-    if (ec == http3::error::idle) {
+    if (ec == core::error::idle) {
       break;
     }
 

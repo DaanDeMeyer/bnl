@@ -5,6 +5,8 @@
 #include <bnl/util/error.hpp>
 #include <bnl/util/string.hpp>
 
+#include <bnl/error.hpp>
+
 #include <algorithm>
 
 #include "encode_generated.cpp"
@@ -83,7 +85,7 @@ size_t encoder::encode(uint8_t *dest,
                        header_view header,
                        std::error_code &ec) noexcept
 {
-  CHECK(dest != nullptr, error::invalid_argument);
+  CHECK(dest != nullptr, core::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(header, ec));
   uint8_t *begin = dest;

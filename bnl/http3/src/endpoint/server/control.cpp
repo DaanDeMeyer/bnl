@@ -4,6 +4,8 @@
 
 #include <bnl/util/error.hpp>
 
+#include <bnl/error.hpp>
+
 static constexpr uint64_t CLIENT_STREAM_CONTROL_ID = 0x02;
 static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;
 
@@ -31,7 +33,7 @@ event receiver::process(frame frame, std::error_code &ec) noexcept
       // TODO: Implement CANCEL_PUSH
       // TODO: Implement MAX_PUSH_ID
       // TODO: Implement PRIORITY
-      THROW(error::not_implemented);
+      THROW(core::error::not_implemented);
     case frame::type::goaway:
       THROW(error::unexpected_frame);
     default:
