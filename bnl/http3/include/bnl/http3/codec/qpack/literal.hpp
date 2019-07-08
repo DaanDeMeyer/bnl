@@ -46,11 +46,8 @@ public:
 
   BNL_BASE_MOVE_ONLY(decoder);
 
-  base::string decode(base::buffer::lookahead &encoded,
-                      uint8_t prefix,
-                      std::error_code &ec) const;
-
-  base::string decode(base::buffers::lookahead &encoded,
+  template <typename Sequence>
+  base::string decode(Sequence &encoded,
                       uint8_t prefix,
                       std::error_code &ec) const;
 
@@ -59,12 +56,15 @@ private:
 
   prefix_int::decoder prefix_int_;
   huffman::decoder huffman_;
-
-  template <typename Lookahead>
-  base::string decode(Lookahead &encoded,
-                      uint8_t prefix,
-                      std::error_code &ec) const;
 };
+
+#define BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL(T)                                 \
+  template BNL_HTTP3_EXPORT base::string decoder::decode<T>(                   \
+      T &, uint8_t, /* NOLINT */                                               \
+      std::error_code &) const
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
 
 } // namespace literal
 } // namespace qpack

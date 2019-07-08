@@ -61,9 +61,8 @@ public:
 
   uint64_t count() const noexcept;
 
-  header decode(base::buffer &encoded, std::error_code &ec);
-
-  header decode(base::buffers &encoded, std::error_code &ec);
+  template <typename Lookahead>
+  header decode(Lookahead &encoded, std::error_code &ec);
 
 private:
   const log::api *logger_;
@@ -75,10 +74,13 @@ private:
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
-
-  template <typename Lookahead>
-  header decode(Lookahead &encoded, std::error_code &ec);
 };
+
+#define BNL_HTTP3_QPACK_DECODE_IMPL(T)                                         \
+  template BNL_HTTP3_EXPORT header                                             \
+  decoder::decode<T>(T &, std::error_code &) // NOLINT
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_DECODE_IMPL);
 
 } // namespace qpack
 } // namespace http3

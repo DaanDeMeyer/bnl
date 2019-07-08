@@ -86,7 +86,8 @@ bool decoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-header decoder::decode(base::buffers &encoded, std::error_code &ec) noexcept
+template <typename Sequence>
+header decoder::decode(Sequence &encoded, std::error_code &ec)
 {
   base::state_error_handler<decoder::state> on_error(state_, ec);
 
@@ -128,6 +129,8 @@ header decoder::decode(base::buffers &encoded, std::error_code &ec) noexcept
 
   NOTREACHED();
 }
+
+BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_HEADERS_DECODE_IMPL);
 
 } // namespace headers
 } // namespace http3

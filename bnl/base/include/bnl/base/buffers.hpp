@@ -13,6 +13,8 @@ class BNL_BASE_EXPORT buffers {
 public:
   class lookahead;
 
+  using lookahead_type = lookahead;
+
   buffers() = default;
 
   size_t size() const noexcept;
@@ -44,7 +46,16 @@ private:
 
 class BNL_BASE_EXPORT buffers::lookahead {
 public:
+  using lookahead_type = lookahead;
+
   lookahead(const buffers &buffers) noexcept; // NOLINT
+
+  lookahead(const lookahead &other) noexcept;
+  lookahead& operator=(const lookahead &) = delete;
+
+  BNL_BASE_NO_MOVE(lookahead);
+
+  ~lookahead() = default;
 
   size_t size() const noexcept;
   bool empty() const noexcept;
@@ -59,6 +70,7 @@ public:
 
 private:
   const buffers &buffers_;
+  size_t previous_ = 0;
   size_t position_ = 0;
 };
 

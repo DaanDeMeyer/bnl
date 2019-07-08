@@ -40,48 +40,8 @@ namespace huffman {
 
 decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
-base::string decoder::decode(base::buffer &encoded,
-                             size_t encoded_size,
-                             std::error_code &ec) const
-{
-  base::buffer::lookahead lookahead(encoded);
-
-  base::string decoded = TRY(
-      decode<base::buffer::lookahead>(lookahead, encoded_size, ec));
-  encoded.consume(lookahead.consumed());
-
-  return decoded;
-}
-
-base::string decoder::decode(base::buffers &encoded,
-                             size_t encoded_size,
-                             std::error_code &ec) const
-{
-  base::buffers::lookahead view(encoded);
-
-  base::string decoded = TRY(
-      decode<base::buffers::lookahead>(view, encoded_size, ec));
-  encoded.consume(view.consumed());
-
-  return decoded;
-}
-
-base::string decoder::decode(base::buffer::lookahead &encoded,
-                             size_t encoded_size,
-                             std::error_code &ec) const
-{
-  return decode<base::buffer::lookahead>(encoded, encoded_size, ec);
-}
-
-base::string decoder::decode(base::buffers::lookahead &encoded,
-                             size_t encoded_size,
-                             std::error_code &ec) const
-{
-  return decode<base::buffers::lookahead>(encoded, encoded_size, ec);
-}
-
-template <typename Lookahead>
-base::string decoder::decode(Lookahead &encoded,
+template <typename Sequence>
+base::string decoder::decode(Sequence &encoded,
                              size_t encoded_size,
                              std::error_code &ec) const
 {
@@ -151,6 +111,9 @@ size_t decoder::decoded_size(const Lookahead &encoded,
 
   return decoded_size;
 }
+
+BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_IMPL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
 
 } // namespace huffman
 } // namespace qpack

@@ -51,7 +51,8 @@ public:
 
   bool in_progress() const noexcept;
 
-  base::buffer decode(base::buffers &encoded, std::error_code &ec) noexcept;
+  template <typename Sequence>
+  base::buffer decode(Sequence &encoded, std::error_code &ec);
 
 private:
   const log::api *logger_;
@@ -63,6 +64,12 @@ private:
   state state_ = state::frame;
   uint64_t remaining_ = 0;
 };
+
+#define BNL_HTTP3_BODY_DECODE_IMPL(T)                                          \
+  template BNL_HTTP3_EXPORT base::buffer decoder::decode<T>(                   \
+      T &, /* NOLINT */ std::error_code &)
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_BODY_DECODE_IMPL);
 
 } // namespace body
 } // namespace http3

@@ -159,9 +159,13 @@ buffers::lookahead::lookahead(const buffers &buffers) noexcept
     : buffers_(buffers)
 {}
 
+buffers::lookahead::lookahead(const lookahead &other) noexcept
+    : buffers_(other.buffers_), previous_(other.previous_ + other.position_)
+{}
+
 size_t buffers::lookahead::size() const noexcept
 {
-  return buffers_.size() - position_;
+  return buffers_.size() - position_ - previous_;
 }
 
 bool buffers::lookahead::empty() const noexcept
@@ -172,18 +176,17 @@ bool buffers::lookahead::empty() const noexcept
 uint8_t buffers::lookahead::operator[](size_t index) const noexcept
 {
   assert(index < size());
-  return buffers_[position_ + index];
+  return buffers_[previous_ + position_ + index];
 }
 
 uint8_t buffers::lookahead::operator*() const noexcept
 {
-  return buffers_[position_];
+  return buffers_[previous_ + position_];
 }
 
 void buffers::lookahead::consume(size_t size) noexcept
 {
   assert(size <= this->size());
-
   position_ += size;
 }
 

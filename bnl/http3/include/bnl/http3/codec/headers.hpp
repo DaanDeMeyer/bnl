@@ -55,7 +55,8 @@ public:
 
   bool finished() const noexcept;
 
-  header decode(base::buffers &encoded, std::error_code &ec) noexcept;
+  template <typename Sequence>
+  header decode(Sequence &encoded, std::error_code &ec);
 
 private:
   const log::api *logger_;
@@ -68,6 +69,12 @@ private:
   state state_ = state::frame;
   uint64_t headers_size_ = 0;
 };
+
+#define BNL_HTTP3_HEADERS_DECODE_IMPL(T)                                       \
+  template BNL_HTTP3_EXPORT header                                             \
+  decoder::decode<T>(T &, std::error_code &) // NOLINT
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_HEADERS_DECODE_IMPL);
 
 } // namespace headers
 } // namespace http3

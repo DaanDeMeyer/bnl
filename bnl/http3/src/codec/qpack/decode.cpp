@@ -23,16 +23,6 @@ uint64_t decoder::count() const noexcept
 
 static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
-header decoder::decode(base::buffer &encoded, std::error_code &ec)
-{
-  return decode<base::buffer>(encoded, ec);
-}
-
-header decoder::decode(base::buffers &encoded, std::error_code &ec)
-{
-  return decode<base::buffers>(encoded, ec);
-}
-
 template <typename Sequence>
 header decoder::decode(Sequence &encoded, std::error_code &ec)
 {
@@ -45,7 +35,7 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
   }
 
   header header;
-  typename Sequence::lookahead lookahead(encoded);
+  typename Sequence::lookahead_type lookahead(encoded);
 
   CHECK(!lookahead.empty(), base::error::incomplete);
 
@@ -120,6 +110,8 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
 
   return header;
 }
+
+BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_DECODE_IMPL);
 
 } // namespace qpack
 } // namespace http3

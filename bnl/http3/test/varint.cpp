@@ -202,6 +202,8 @@ TEST_CASE("varint")
     REQUIRE(ec == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
+    ec.clear();
+
     decoder.decode(encoded, ec);
 
     REQUIRE(!ec);

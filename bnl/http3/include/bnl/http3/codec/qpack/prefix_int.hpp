@@ -40,24 +40,25 @@ public:
 
   BNL_BASE_MOVE_ONLY(decoder);
 
-  uint64_t decode(base::buffer::lookahead &encoded,
-                  uint8_t prefix,
-                  std::error_code &ec) const noexcept;
-
-  uint64_t decode(base::buffers::lookahead &encoded,
-                  uint8_t prefix,
-                  std::error_code &ec) const noexcept;
+  template <typename Sequence>
+  uint64_t decode(Sequence &encoded, uint8_t prefix, std::error_code &ec) const
+      noexcept;
 
 private:
   const log::api *logger_;
 
   template <typename Lookahead>
-  uint64_t decode(Lookahead &encoded, uint8_t prefix, std::error_code &ec) const
-      noexcept;
-
-  template <typename Lookahead>
   uint8_t uint8_decode(Lookahead &encoded, std::error_code &ec) const noexcept;
 };
+
+#define BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL(T)                              \
+  template BNL_HTTP3_EXPORT uint64_t decoder::decode<T>(T &, /* NOLINT */      \
+                                                        uint8_t,               \
+                                                        std::error_code &)     \
+      const noexcept
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL);
 
 } // namespace prefix_int
 } // namespace qpack

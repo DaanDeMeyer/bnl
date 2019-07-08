@@ -15,31 +15,21 @@ decoder::decoder(const log::api *logger) noexcept
     : logger_(logger), prefix_int_(logger), huffman_(logger)
 {}
 
-base::string decoder::decode(base::buffer::lookahead &encoded,
+template <typename Sequence>
+base::string decoder::decode(Sequence &encoded,
                              uint8_t prefix,
                              std::error_code &ec) const
 {
-  return decode<base::buffer::lookahead>(encoded, prefix, ec);
-}
+  typename Sequence::lookahead_type lookahead(encoded);
 
-base::string decoder::decode(base::buffers::lookahead &encoded,
-                             uint8_t prefix,
-                             std::error_code &ec) const
-{
-  return decode<base::buffers::lookahead>(encoded, prefix, ec);
-}
+  CHECK(!lookahead.empty(), base::error::incomplete);
 
-template <typename Lookahead>
-base::string decoder::decode(Lookahead &encoded,
-                             uint8_t prefix,
-                             std::error_code &ec) const
-{
-  CHECK(!encoded.empty(), base::error::incomplete);
+  bool is_huffman = static_cast<uint8_t>(*lookahead >> prefix) & 0x01; // NOLINT
 
-  bool is_huffman = static_cast<uint8_t>(*encoded >> prefix) & 0x01; // NOLINT
-  uint64_t literal_encoded_size = TRY(prefix_int_.decode(encoded, prefix, ec));
+  uint64_t literal_encoded_size = TRY(
+      prefix_int_.decode(lookahead, prefix, ec));
 
-  if (literal_encoded_size > encoded.size()) {
+  if (literal_encoded_size > lookahead.size()) {
     THROW(base::error::incomplete);
   }
 
@@ -48,19 +38,24 @@ base::string decoder::decode(Lookahead &encoded,
   base::string literal;
 
   if (is_huffman) {
-    literal = huffman_.decode(encoded, bounded_encoded_size, ec);
+    literal = huffman_.decode(lookahead, bounded_encoded_size, ec);
   } else {
     literal.resize(bounded_encoded_size);
 
     for (size_t i = 0; i < bounded_encoded_size; i++) {
-      literal[i] = static_cast<char>(encoded[i]);
+      literal[i] = static_cast<char>(lookahead[i]);
     }
 
-    encoded.consume(bounded_encoded_size);
+    lookahead.consume(bounded_encoded_size);
   }
+
+  encoded.consume(lookahead.consumed());
 
   return literal;
 }
+
+BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_IMPL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
 
 } // namespace literal
 } // namespace qpack

@@ -148,35 +148,42 @@ public:
 
   BNL_BASE_MOVE_ONLY(decoder);
 
-  frame::type peek(const base::buffer &encoded, std::error_code &ec) const
-      noexcept;
-
-  frame::type peek(const base::buffers &encoded, std::error_code &ec) const
-      noexcept;
-
-  frame decode(base::buffer &encoded, std::error_code &ec) const noexcept;
-
-  frame decode(base::buffers &encoded, std::error_code &ec) const noexcept;
-
-private:
-  const log::api *logger_;
-
-  varint::decoder varint_;
-
   template <typename Sequence>
   frame::type peek(const Sequence &encoded, std::error_code &ec) const noexcept;
 
   template <typename Sequence>
   frame decode(Sequence &encoded, std::error_code &ec) const noexcept;
 
+private:
+  const log::api *logger_;
+
+  varint::decoder varint_;
+
   template <typename Lookahead>
-  frame decode(Lookahead &encoded,
+  frame decode(Lookahead &lookahead,
                bool *is_unknown_frame_type,
                std::error_code &ec) const noexcept;
 
   template <typename Lookahead>
-  uint8_t uint8_decode(Lookahead &encoded, std::error_code &ec) const noexcept;
+  uint8_t uint8_decode(Lookahead &lookahead, std::error_code &ec) const
+      noexcept;
 };
+
+#define BNL_HTTP3_FRAME_PEEK_IMPL(T)                                           \
+  template frame::type frame::decoder::peek<T>(const T &, /* NOLINT */         \
+                                               std::error_code &)              \
+      const noexcept
+
+#define BNL_HTTP3_FRAME_DECODE_IMPL(T)                                         \
+  template BNL_HTTP3_EXPORT frame frame::decoder::decode<T>(T &, /* NOLINT */  \
+                                                            std::error_code &) \
+      const noexcept
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);
+BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_FRAME_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_FRAME_DECODE_IMPL);
 
 } // namespace http3
 } // namespace bnl

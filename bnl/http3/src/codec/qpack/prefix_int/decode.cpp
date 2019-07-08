@@ -11,25 +11,13 @@ namespace prefix_int {
 
 decoder::decoder(const log::api *logger) : logger_(logger) {}
 
-uint64_t decoder::decode(base::buffer::lookahead &encoded,
+template <typename Sequence>
+uint64_t decoder::decode(Sequence &encoded,
                          uint8_t prefix,
                          std::error_code &ec) const noexcept
 {
-  return decode<base::buffer::lookahead>(encoded, prefix, ec);
-}
+  typename Sequence::lookahead_type lookahead(encoded);
 
-uint64_t decoder::decode(base::buffers::lookahead &encoded,
-                         uint8_t prefix,
-                         std::error_code &ec) const noexcept
-{
-  return decode<base::buffers::lookahead>(encoded, prefix, ec);
-}
-
-template <typename Lookahead>
-uint64_t decoder::decode(Lookahead &encoded,
-                         uint8_t prefix,
-                         std::error_code &ec) const noexcept
-{
   uint64_t result = TRY(uint8_decode(encoded, ec));
 
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
@@ -44,6 +32,8 @@ uint64_t decoder::decode(Lookahead &encoded,
       offset += 7;
     } while ((byte & 128U) == 128);
   }
+
+  encoded.consume(lookahead.consumed());
 
   return result;
 }
@@ -60,6 +50,9 @@ uint8_t decoder::uint8_decode(Lookahead &encoded, std::error_code &ec) const
 
   return result;
 }
+
+BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_IMPL(BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL);
 
 } // namespace prefix_int
 } // namespace qpack

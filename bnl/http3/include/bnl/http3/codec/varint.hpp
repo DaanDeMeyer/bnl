@@ -45,22 +45,19 @@ public:
 
   BNL_BASE_MOVE_ONLY(decoder);
 
-  uint64_t decode(base::buffer &encoded, std::error_code &ec) const noexcept;
-
-  uint64_t decode(base::buffers &encoded, std::error_code &ec) const noexcept;
-
-  uint64_t decode(base::buffer::lookahead &encoded, std::error_code &ec) const
-      noexcept;
-
-  uint64_t decode(base::buffers::lookahead &encoded, std::error_code &ec) const
-      noexcept;
+  template <typename Sequence>
+  uint64_t decode(Sequence &encoded, std::error_code &ec) const noexcept;
 
 private:
   const log::api *logger_;
-
-  template <typename Lookahead>
-  uint64_t decode(Lookahead &encoded, std::error_code &ec) const noexcept;
 };
+
+#define BNL_HTTP3_VARINT_DECODE_IMPL(T)                                        \
+  template BNL_HTTP3_EXPORT uint64_t                                           \
+  decoder::decode<T>(T &, std::error_code &) /* NOLINT */ const noexcept
+
+BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);
+BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);
 
 } // namespace varint
 
