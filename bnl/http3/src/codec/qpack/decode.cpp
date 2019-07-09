@@ -13,7 +13,7 @@ namespace qpack {
 
 // TODO: Find out what is best for max header and max value size.
 decoder::decoder(const log::api *logger)
-    : logger_(logger), prefix_int_(logger), literal_(logger)
+    : prefix_int_(logger), literal_(logger), logger_(logger)
 {}
 
 uint64_t decoder::count() const noexcept

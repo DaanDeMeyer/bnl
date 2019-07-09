@@ -9,7 +9,7 @@ namespace http3 {
 namespace headers {
 
 encoder::encoder(const log::api *logger) noexcept
-    : logger_(logger), frame_(logger), qpack_(logger)
+    : frame_(logger), qpack_(logger), logger_(logger)
 {}
 
 base::nothing encoder::add(header_view header, std::error_code &ec)
@@ -73,7 +73,7 @@ base::buffer encoder::encode(std::error_code &ec) noexcept
 }
 
 decoder::decoder(const log::api *logger) noexcept
-    : logger_(logger), frame_(logger), qpack_(logger)
+    : frame_(logger), qpack_(logger), logger_(logger)
 {}
 
 bool decoder::started() const noexcept

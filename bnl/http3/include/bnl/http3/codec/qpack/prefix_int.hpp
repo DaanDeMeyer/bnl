@@ -45,10 +45,11 @@ public:
       noexcept;
 
 private:
-  const log::api *logger_;
-
   template <typename Lookahead>
   uint8_t uint8_decode(Lookahead &encoded, std::error_code &ec) const noexcept;
+
+private:
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL(T)                              \

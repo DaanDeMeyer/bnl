@@ -12,7 +12,7 @@ namespace qpack {
 namespace literal {
 
 decoder::decoder(const log::api *logger) noexcept
-    : logger_(logger), prefix_int_(logger), huffman_(logger)
+    : prefix_int_(logger), huffman_(logger), logger_(logger)
 {}
 
 template <typename Sequence>

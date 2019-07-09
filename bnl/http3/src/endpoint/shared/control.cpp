@@ -11,7 +11,7 @@ namespace shared {
 namespace control {
 
 sender::sender(uint64_t id, const log::api *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger)
+    : frame_(logger), id_(id), logger_(logger)
 {}
 
 quic::event sender::send(std::error_code &ec) noexcept
@@ -36,7 +36,7 @@ quic::event sender::send(std::error_code &ec) noexcept
 }
 
 receiver::receiver(uint64_t id, const log::api *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger)
+    : frame_(logger), id_(id), logger_(logger)
 {}
 
 receiver::~receiver() noexcept = default;

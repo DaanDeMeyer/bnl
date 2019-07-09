@@ -31,6 +31,7 @@ public:
 private:
   event process(frame frame, std::error_code &ec) noexcept final;
 
+private:
   const log::api *logger_;
 };
 

@@ -28,15 +28,15 @@ public:
   quic::event send(std::error_code &ec) noexcept;
 
 private:
-  uint64_t id_;
-  const log::api *logger_;
-
-  frame::encoder frame_;
-
   enum class state : uint8_t { settings, idle, error };
 
   state state_ = state::settings;
   settings settings_;
+
+  frame::encoder frame_;
+
+  uint64_t id_;
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT receiver {
@@ -60,16 +60,16 @@ protected:
 private:
   event process(std::error_code &ec) noexcept;
 
-  uint64_t id_;
-  const log::api *logger_;
-
-  frame::decoder frame_;
-
+private:
   enum class state : uint8_t { settings, active, error };
 
   state state_ = state::settings;
-
   base::buffers buffers_;
+
+  frame::decoder frame_;
+
+  uint64_t id_;
+  const log::api *logger_;
 };
 
 } // namespace control

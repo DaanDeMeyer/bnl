@@ -135,11 +135,12 @@ public:
   base::buffer encode(const frame &frame, std::error_code &ec) const;
 
 private:
-  const log::api *logger_;
+  uint64_t payload_size(const frame &frame, std::error_code &ec) const noexcept;
 
+private:
   varint::encoder varint_;
 
-  uint64_t payload_size(const frame &frame, std::error_code &ec) const noexcept;
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT frame::decoder {
@@ -155,10 +156,6 @@ public:
   frame decode(Sequence &encoded, std::error_code &ec) const noexcept;
 
 private:
-  const log::api *logger_;
-
-  varint::decoder varint_;
-
   template <typename Lookahead>
   frame decode(Lookahead &lookahead,
                bool *is_unknown_frame_type,
@@ -167,6 +164,11 @@ private:
   template <typename Lookahead>
   uint8_t uint8_decode(Lookahead &lookahead, std::error_code &ec) const
       noexcept;
+
+private:
+  varint::decoder varint_;
+
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_FRAME_PEEK_IMPL(T)                                           \

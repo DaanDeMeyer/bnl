@@ -16,7 +16,7 @@ namespace http3 {
 namespace qpack {
 
 encoder::encoder(const log::api *logger) noexcept
-    : logger_(logger), prefix_int_(logger), literal_(logger)
+    : prefix_int_(logger), literal_(logger), logger_(logger)
 {}
 
 uint64_t encoder::count() const noexcept

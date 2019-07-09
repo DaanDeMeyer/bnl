@@ -42,15 +42,15 @@ public:
   base::buffer encode(header_view header, std::error_code &ec);
 
 private:
-  const log::api *logger_;
-
-  prefix_int::encoder prefix_int_;
-  literal::encoder literal_;
-
   enum class state { prefix, header };
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
+
+  prefix_int::encoder prefix_int_;
+  literal::encoder literal_;
+
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
@@ -65,15 +65,15 @@ public:
   header decode(Lookahead &encoded, std::error_code &ec);
 
 private:
-  const log::api *logger_;
-
-  prefix_int::decoder prefix_int_;
-  literal::decoder literal_;
-
   enum class state { prefix, header };
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
+
+  prefix_int::decoder prefix_int_;
+  literal::decoder literal_;
+
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_DECODE_IMPL(T)                                         \

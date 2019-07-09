@@ -48,12 +48,13 @@ public:
                       std::error_code &ec) const;
 
 private:
-  const log::api *logger_;
-
   template <typename Lookahead>
   size_t decoded_size(const Lookahead &encoded,
                       size_t encoded_size,
                       std::error_code &ec) const noexcept;
+
+private:
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL(T)                                 \

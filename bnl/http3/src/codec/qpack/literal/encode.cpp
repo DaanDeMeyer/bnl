@@ -10,7 +10,7 @@ namespace qpack {
 namespace literal {
 
 encoder::encoder(const log::api *logger) noexcept
-    : logger_(logger), prefix_int_(logger), huffman_(logger)
+    : prefix_int_(logger), huffman_(logger), logger_(logger)
 {}
 
 size_t encoder::encoded_size(base::string_view literal, uint8_t prefix) const

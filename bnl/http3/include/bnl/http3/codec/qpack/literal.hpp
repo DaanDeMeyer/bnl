@@ -34,10 +34,10 @@ public:
   base::buffer encode(base::string_view literal, uint8_t prefix) const;
 
 private:
-  const log::api *logger_;
-
   prefix_int::encoder prefix_int_;
   huffman::encoder huffman_;
+  
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
@@ -52,10 +52,10 @@ public:
                       std::error_code &ec) const;
 
 private:
-  const log::api *logger_;
-
   prefix_int::decoder prefix_int_;
   huffman::decoder huffman_;
+
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL(T)                                 \

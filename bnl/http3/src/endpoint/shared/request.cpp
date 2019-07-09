@@ -11,7 +11,7 @@ namespace shared {
 namespace request {
 
 sender::sender(uint64_t id, const log::api *logger) noexcept
-    : id_(id), logger_(logger), headers_(logger), body_(logger)
+    : headers_(logger), body_(logger), id_(id), logger_(logger)
 {}
 
 bool sender::finished() const noexcept
@@ -74,7 +74,7 @@ base::nothing sender::fin(std::error_code &ec) noexcept
 }
 
 receiver::receiver(uint64_t id, const log::api *logger) noexcept
-    : id_(id), logger_(logger), frame_(logger), headers_(logger), body_(logger)
+    : frame_(logger), headers_(logger), body_(logger), id_(id), logger_(logger)
 {}
 
 receiver::~receiver() noexcept = default;

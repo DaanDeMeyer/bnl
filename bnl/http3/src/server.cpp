@@ -8,9 +8,9 @@ namespace bnl {
 namespace http3 {
 
 server::server(const log::api *logger)
-    : logger_(logger),
-      control_{ endpoint::server::control::sender(logger),
-                endpoint::server::control::receiver(logger) }
+    : control_{ endpoint::server::control::sender(logger),
+                endpoint::server::control::receiver(logger) },
+      logger_(logger)
 {}
 
 quic::event server::send(std::error_code &ec) noexcept

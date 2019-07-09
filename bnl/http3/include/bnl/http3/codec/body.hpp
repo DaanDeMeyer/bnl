@@ -32,15 +32,15 @@ public:
   base::buffer encode(std::error_code &ec) noexcept;
 
 private:
-  const log::api *logger_;
-
-  frame::encoder frame_;
-
   enum class state : uint8_t { frame, data, fin, error };
 
   state state_ = state::frame;
   bool fin_ = false;
   std::queue<base::buffer> buffers_;
+
+  frame::encoder frame_;
+
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
@@ -55,14 +55,14 @@ public:
   base::buffer decode(Sequence &encoded, std::error_code &ec);
 
 private:
-  const log::api *logger_;
-
-  frame::decoder frame_;
-
   enum class state : uint8_t { frame, data, error };
 
   state state_ = state::frame;
   uint64_t remaining_ = 0;
+
+  frame::decoder frame_;
+
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_BODY_DECODE_IMPL(T)                                          \

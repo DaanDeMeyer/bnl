@@ -10,7 +10,7 @@ namespace bnl {
 namespace http3 {
 
 frame::decoder::decoder(const log::api *logger) noexcept
-    : logger_(logger), varint_(logger)
+    : varint_(logger), logger_(logger)
 {}
 
 template <typename Sequence>

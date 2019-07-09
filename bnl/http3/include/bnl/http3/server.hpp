@@ -43,17 +43,15 @@ private:
   using request = std::pair<endpoint::server::request::sender,
                             endpoint::server::request::receiver>;
 
-  const log::api *logger_;
-
   struct {
     settings local;
     settings remote;
   } settings_;
 
   control control_;
-
   std::map<uint64_t, request> requests_;
-  base::buffer buffered_;
+
+  const log::api *logger_;
 };
 
 } // namespace http3

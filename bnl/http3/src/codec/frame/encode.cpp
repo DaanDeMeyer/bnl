@@ -10,7 +10,7 @@ namespace bnl {
 namespace http3 {
 
 frame::encoder::encoder(const log::api *logger) noexcept
-    : logger_(logger), varint_(logger)
+    : varint_(logger), logger_(logger)
 {}
 
 uint64_t frame::encoder::payload_size(const frame &frame,

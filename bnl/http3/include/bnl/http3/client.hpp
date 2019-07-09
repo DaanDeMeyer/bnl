@@ -46,17 +46,16 @@ private:
   using request_t = std::pair<endpoint::client::request::sender,
                               endpoint::client::request::receiver>;
 
-  const log::api *logger_;
-
   struct {
     settings local;
     settings remote;
   } settings_;
 
   control_t control_;
-
   std::map<uint64_t, request_t> requests_;
   uint64_t next_stream_id_ = 0;
+
+  const log::api *logger_;
 };
 
 } // namespace http3

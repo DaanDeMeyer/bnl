@@ -40,15 +40,15 @@ public:
   base::nothing fin(std::error_code &ec) noexcept;
 
 private:
-  uint64_t id_;
-  const log::api *logger_;
+  enum class state : uint8_t { headers, body, fin, error };
+
+  state state_ = state::headers;
 
   headers::encoder headers_;
   body::encoder body_;
 
-  enum class state : uint8_t { headers, body, fin, error };
-
-  state state_ = state::headers;
+  uint64_t id_;
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT receiver {
@@ -78,19 +78,19 @@ protected:
 private:
   event process(std::error_code &ec) noexcept;
 
-  uint64_t id_;
-  const log::api *logger_;
+private:
+  enum class state : uint8_t { closed, headers, body, fin, error };
+
+  state state_ = state::closed;
+  base::buffers buffers_;
+  bool fin_received_ = false;
 
   frame::decoder frame_;
   headers::decoder headers_;
   body::decoder body_;
 
-  enum class state : uint8_t { closed, headers, body, fin, error };
-
-  state state_ = state::closed;
-
-  base::buffers buffers_;
-  bool fin_received_ = false;
+  uint64_t id_;
+  const log::api *logger_;
 };
 
 } // namespace request

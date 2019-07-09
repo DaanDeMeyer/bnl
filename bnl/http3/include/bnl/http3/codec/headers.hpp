@@ -34,15 +34,15 @@ public:
   base::buffer encode(std::error_code &ec) noexcept;
 
 private:
-  const log::api *logger_;
-
-  frame::encoder frame_;
-  qpack::encoder qpack_;
-
   enum class state : uint8_t { idle, frame, qpack, fin, error };
 
   state state_ = state::idle;
   std::queue<base::buffer> buffers_;
+
+  frame::encoder frame_;
+  qpack::encoder qpack_;
+
+  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
@@ -59,15 +59,15 @@ public:
   header decode(Sequence &encoded, std::error_code &ec);
 
 private:
-  const log::api *logger_;
-
-  frame::decoder frame_;
-  qpack::decoder qpack_;
-
   enum class state : uint8_t { frame, qpack, fin, error };
 
   state state_ = state::frame;
   uint64_t headers_size_ = 0;
+
+  frame::decoder frame_;
+  qpack::decoder qpack_;
+
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_HEADERS_DECODE_IMPL(T)                                       \
