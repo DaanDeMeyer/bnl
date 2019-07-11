@@ -18,6 +18,15 @@ matrix:
       addons:
         apt:
           sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: CC=gcc-5 CXX=g++-5
+
+    - os: linux
+      addons:
+        apt:
+          sources:
             - llvm-toolchain-xenial-6.0
           packages:
             - clang-6.0
