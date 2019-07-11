@@ -1,14 +1,5 @@
+# -m32: See https://gitlab.kitware.com/cmake/cmake/issues/16259.
 jobs:
-- template: ci/windows.yml
-  parameters:
-    name: windows_vs2015_x64_msvc
-    image: vs2015-win2012r2
-    variables:
-      VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
-      PLATFORM: x64
-      CC: cl.exe
-      CXX: cl.exe
-
 - template: ci/windows.yml
   parameters:
     name: windows_vs2015_x86_clang
@@ -18,19 +9,30 @@ jobs:
       PLATFORM: x86
       CC: clang-cl.exe
       CXX: clang-cl.exe
-      # https://gitlab.kitware.com/cmake/cmake/issues/16259.
       CFLAGS: -m32
       CXXFLAGS: -m32
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs2017_x86_msvc
+    name: windows_vs2015_x64_clang
+    image: vs2015-win2012r2
+    variables:
+      VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
+      PLATFORM: x64
+      CC: clang-cl.exe
+      CXX: clang-cl.exe
+
+- template: ci/windows.yml
+  parameters:
+    name: windows_vs2017_x86_clang
     image: vs2017-win2016
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
       PLATFORM: x86
-      CC: cl.exe
-      CXX: cl.exe
+      CC: clang-cl.exe
+      CXX: clang-cl.exe
+      CFLAGS: -m32
+      CXXFLAGS: -m32
 
 - template: ci/windows.yml
   parameters:
@@ -56,13 +58,13 @@ jobs:
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs_2019_x64_msvc
+    name: windows_vs_2019_x64_clang
     image: windows-2019
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
       PLATFORM: x64
-      CC: cl.exe
-      CXX: cl.exe
+      CC: clang-cl.exe
+      CXX: clang-cl.exe
 
 - template: ci/macos.yml
   parameters:

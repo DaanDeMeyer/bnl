@@ -67,7 +67,7 @@ static uint64_t uint64_decode(Lookahead &lookahead)
 }
 
 template <typename Sequence>
-uint64_t decoder::decode(Sequence &encoded, std::error_code &ec) const noexcept
+base::result<uint64_t> decoder::decode(Sequence &encoded) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 

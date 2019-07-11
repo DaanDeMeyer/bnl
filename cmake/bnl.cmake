@@ -132,12 +132,10 @@ function(bnl_add_common TARGET OUTPUT_DIRECTORY)
     target_compile_options(${TARGET} PRIVATE
       -Wall
       -Wextra
-      -pedantic
       -Wconversion
       -Wsign-conversion
       -Wno-unknown-pragmas
       $<$<BOOL:${BNL_WARNINGS_AS_ERRORS}>:-Werror>
-      $<$<BOOL:${BNL_WARNINGS_AS_ERRORS}>:-pedantic-errors>
     )
   endif()
 

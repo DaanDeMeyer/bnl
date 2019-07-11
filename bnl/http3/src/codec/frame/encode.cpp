@@ -13,8 +13,8 @@ frame::encoder::encoder(const log::api *logger) noexcept
     : varint_(logger), logger_(logger)
 {}
 
-uint64_t frame::encoder::payload_size(const frame &frame,
-                                      std::error_code &ec) const noexcept
+base::result<uint64_t> frame::encoder::payload_size(const frame &frame) const
+    noexcept
 {
   uint64_t payload_size = 0;
 
@@ -32,10 +32,10 @@ uint64_t frame::encoder::payload_size(const frame &frame,
                       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
 
       uint64_t prioritized_element_id = frame.priority.prioritized_element_id;
-      payload_size += TRY(varint_.encoded_size(prioritized_element_id, ec));
+      payload_size += TRY(varint_.encoded_size(prioritized_element_id));
 
       uint64_t element_dependency_id = frame.priority.element_dependency_id;
-      payload_size += TRY(varint_.encoded_size(element_dependency_id, ec));
+      payload_size += TRY(varint_.encoded_size(element_dependency_id));
 
       payload_size++; // Weight
       break;
@@ -43,48 +43,48 @@ uint64_t frame::encoder::payload_size(const frame &frame,
 
     case frame::type::cancel_push: {
       uint64_t push_id = frame.cancel_push.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id, ec));
+      payload_size += TRY(varint_.encoded_size(push_id));
       break;
     }
 
     case frame::type::settings:
       for (auto setting : frame.settings.array()) {
-        payload_size += TRY(varint_.encoded_size(setting.first, ec));
-        payload_size += TRY(varint_.encoded_size(setting.second, ec));
+        payload_size += TRY(varint_.encoded_size(setting.first));
+        payload_size += TRY(varint_.encoded_size(setting.second));
       }
       break;
 
     case frame::type::push_promise: {
       uint64_t push_id = frame.push_promise.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id, ec));
+      payload_size += TRY(varint_.encoded_size(push_id));
       payload_size += frame.push_promise.size;
       break;
     }
 
     case frame::type::goaway: {
-      payload_size += TRY(varint_.encoded_size(frame.goaway.stream_id, ec));
+      payload_size += TRY(varint_.encoded_size(frame.goaway.stream_id));
       break;
     }
 
     case frame::type::max_push_id: {
       uint64_t push_id = frame.max_push_id.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id, ec));
+      payload_size += TRY(varint_.encoded_size(push_id));
       break;
     }
 
     case frame::type::duplicate_push:
       uint64_t push_id = frame.duplicate_push.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id, ec));
+      payload_size += TRY(varint_.encoded_size(push_id));
       break;
   }
 
   return payload_size;
 }
 
-size_t frame::encoder::encoded_size(const frame &frame,
-                                    std::error_code &ec) const noexcept
+base::result<size_t> frame::encoder::encoded_size(const frame &frame) const
+    noexcept
 {
-  uint64_t payload_size = TRY(this->payload_size(frame, ec));
+  uint64_t payload_size = TRY(this->payload_size(frame));
   size_t payload_encoded_size = 0;
 
   // `payload_size` includes the size of the DATA frame payload and
@@ -99,7 +99,7 @@ size_t frame::encoder::encoded_size(const frame &frame,
 
     case frame::type::push_promise: {
       uint64_t push_id = frame.push_promise.push_id;
-      payload_encoded_size = TRY(varint_.encoded_size(push_id, ec));
+      payload_encoded_size = TRY(varint_.encoded_size(push_id));
       break;
     }
 
@@ -114,26 +114,25 @@ size_t frame::encoder::encoded_size(const frame &frame,
   size_t encoded_size = 0;
 
   uint64_t type = util::to_underlying(frame.type_);
-  encoded_size += TRY(varint_.encoded_size(type, ec));
-  encoded_size += TRY(varint_.encoded_size(payload_size, ec));
+  encoded_size += TRY(varint_.encoded_size(type));
+  encoded_size += TRY(varint_.encoded_size(payload_size));
   encoded_size += payload_encoded_size;
 
   return encoded_size;
 }
 
-size_t frame::encoder::encode(uint8_t *dest,
-                              const frame &frame,
-                              std::error_code &ec) const noexcept
+base::result<size_t> frame::encoder::encode(uint8_t *dest,
+                                            const frame &frame) const noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
-  size_t encoded_size = TRY(this->encoded_size(frame, ec));
+  size_t encoded_size = TRY(this->encoded_size(frame));
   uint8_t *begin = dest;
 
-  uint64_t payload_size = this->payload_size(frame, ec);
+  uint64_t payload_size = TRY(this->payload_size(frame));
 
-  dest += TRY(varint_.encode(dest, util::to_underlying(frame.type_), ec));
-  dest += TRY(varint_.encode(dest, payload_size, ec));
+  dest += TRY(varint_.encode(dest, util::to_underlying(frame.type_)));
+  dest += TRY(varint_.encode(dest, payload_size));
 
   switch (frame) {
     case frame::type::data:
@@ -158,32 +157,32 @@ size_t frame::encoder::encode(uint8_t *dest,
       uint64_t prioritized_element_id = frame.priority.prioritized_element_id;
       uint64_t element_dependency_id = frame.priority.element_dependency_id;
 
-      dest += TRY(varint_.encode(dest, prioritized_element_id, ec));
-      dest += TRY(varint_.encode(dest, element_dependency_id, ec));
+      dest += TRY(varint_.encode(dest, prioritized_element_id));
+      dest += TRY(varint_.encode(dest, element_dependency_id));
 
       *dest++ = frame.priority.weight;
       break;
     }
     case frame::type::cancel_push:
-      dest += TRY(varint_.encode(dest, frame.cancel_push.push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.cancel_push.push_id));
       break;
     case frame::type::settings:
       for (auto setting : frame.settings.array()) {
-        dest += TRY(varint_.encode(dest, setting.first, ec));
-        dest += TRY(varint_.encode(dest, setting.second, ec));
+        dest += TRY(varint_.encode(dest, setting.first));
+        dest += TRY(varint_.encode(dest, setting.second));
       }
       break;
     case frame::type::push_promise:
-      dest += TRY(varint_.encode(dest, frame.push_promise.push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.push_promise.push_id));
       break;
     case frame::type::goaway:
-      dest += TRY(varint_.encode(dest, frame.goaway.stream_id, ec));
+      dest += TRY(varint_.encode(dest, frame.goaway.stream_id));
       break;
     case frame::type::max_push_id:
-      dest += TRY(varint_.encode(dest, frame.max_push_id.push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.max_push_id.push_id));
       break;
     case frame::type::duplicate_push:
-      dest += TRY(varint_.encode(dest, frame.duplicate_push.push_id, ec));
+      dest += TRY(varint_.encode(dest, frame.duplicate_push.push_id));
       break;
   }
 
@@ -192,13 +191,12 @@ size_t frame::encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-base::buffer frame::encoder::encode(const frame &frame,
-                                    std::error_code &ec) const
+base::result<base::buffer> frame::encoder::encode(const frame &frame) const
 {
-  size_t encoded_size = TRY(this->encoded_size(frame, ec));
+  size_t encoded_size = TRY(this->encoded_size(frame));
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(encoded.data(), frame, ec)));
+  ASSERT(encoded_size == TRY(encode(encoded.data(), frame)));
 
   return encoded;
 }

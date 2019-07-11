@@ -1,9 +1,10 @@
+#include <doctest/doctest.h>
+
 #include <bnl/base/error.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/log.hpp>
-
-#include <doctest/doctest.h>
+#include <bnl/util/test.hpp>
 
 using namespace bnl;
 
@@ -12,21 +13,13 @@ static http3::frame encode_and_decode(const http3::frame &frame,
                                       const http3::frame::encoder &encoder,
                                       const http3::frame::decoder &decoder)
 {
-  std::error_code error;
-
-  std::error_code ec;
-
-  size_t encoded_size = encoder.encoded_size(frame, ec);
+  size_t encoded_size = EXTRACT(encoder.encoded_size(frame));
   REQUIRE(encoded_size == N);
 
-  base::buffer encoded = encoder.encode(frame, ec);
-
-  REQUIRE(!error);
+  base::buffer encoded = EXTRACT(encoder.encode(frame));
   REQUIRE(encoded.size() == N);
 
-  http3::frame decoded = decoder.decode(encoded, ec);
-
-  REQUIRE(!error);
+  http3::frame decoded = EXTRACT(decoder.decode(encoded));
   REQUIRE(encoded.empty());
 
   REQUIRE(decoded == frame);
@@ -40,8 +33,6 @@ TEST_CASE("frame")
 
   http3::frame::encoder encoder(&logger);
   http3::frame::decoder decoder(&logger);
-
-  std::error_code ec;
 
   SUBCASE("data")
   {
@@ -134,47 +125,41 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::data{ 4611686018427387904 };
 
-    base::buffer encoded = encoder.encode(frame, ec);
-
-    REQUIRE(ec == http3::error::varint_overflow);
-    REQUIRE(encoded.empty());
+    base::result<base::buffer> result = encoder.encode(frame);
+    REQUIRE(result == http3::error::varint_overflow);
   }
 
   SUBCASE("decode: incomplete")
   {
     http3::frame frame = http3::frame::payload::duplicate_push{ 50 };
 
-    base::buffer encoded = encoder.encode(frame, ec);
-    REQUIRE(!ec);
-
+    base::buffer encoded = EXTRACT(encoder.encode(frame));
     base::buffer incomplete = encoded.copy(encoded.size() - 1);
 
-    decoder.decode(incomplete, ec);
+    base::result<http3::frame> result = decoder.decode(incomplete);
 
-    REQUIRE(ec == base::error::incomplete);
+    REQUIRE(result == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
-    decoder.decode(encoded, ec);
+    http3::frame decoded = EXTRACT(decoder.decode(encoded));
 
-    REQUIRE(!ec);
     REQUIRE(encoded.empty());
+    REQUIRE(frame == decoded);
   }
 
   SUBCASE("decode: frame malformed")
   {
     http3::frame frame = http3::frame::payload::cancel_push{ 16384 };
 
-    base::buffer encoded = encoder.encode(frame, ec);
-
-    REQUIRE(!ec);
+    base::buffer encoded = EXTRACT(encoder.encode(frame));
     REQUIRE(encoded.size() == 6);
 
     // Mangle the frame length.
     const_cast<uint8_t *>(encoded.data())[1] = 16; // NOLINT
 
-    decoder.decode(encoded, ec);
+    base::result<http3::frame> result = decoder.decode(encoded);
 
-    REQUIRE(ec == http3::error::malformed_frame);
+    REQUIRE(result == http3::error::malformed_frame);
     REQUIRE(encoded.size() == 6);
   }
 }

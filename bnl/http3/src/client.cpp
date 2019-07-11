@@ -13,13 +13,13 @@ client::client(const log::api *logger)
       logger_(logger)
 {}
 
-quic::event client::send(std::error_code &ec) noexcept
+base::result<quic::event> client::send() noexcept
 {
   endpoint::client::control::sender &control = control_.first;
 
   {
-    quic::event event = control.send(ec);
-    if (ec != base::error::idle) {
+    base::result<quic::event> event = control.send();
+    if (event != base::error::idle) {
       return event;
     }
   }
@@ -31,14 +31,13 @@ quic::event client::send(std::error_code &ec) noexcept
       continue;
     }
 
-    quic::event event = sender.send(ec);
-    if (ec != base::error::idle) {
-      if (!ec) {
+    base::result<quic::event> event = sender.send();
+    if (event != base::error::idle) {
+      if (event) {
         endpoint::client::request::receiver &receiver = entry.second.second;
 
         if (receiver.closed()) {
-          // TODO: Handle error
-          receiver.start(ec);
+          TRY(receiver.start());
         }
       }
 
@@ -49,15 +48,12 @@ quic::event client::send(std::error_code &ec) noexcept
   THROW(base::error::idle);
 }
 
-base::nothing client::recv(quic::event event,
-                           event::handler handler,
-                           std::error_code &ec)
+std::error_code client::recv(quic::event event, event::handler handler)
 {
   endpoint::client::control::receiver &control = control_.second;
 
   if (event.id == control.id()) {
-    auto control_handler = [this, &handler](http3::event event,
-                                            std::error_code &ec) {
+    auto control_handler = [this, &handler](http3::event event) {
       switch (event) {
         case event::type::settings:
           settings_.remote = event.settings;
@@ -66,10 +62,10 @@ base::nothing client::recv(quic::event event,
           break;
       }
 
-      handler(std::move(event), ec);
+      return handler(std::move(event));
     };
 
-    control.recv(std::move(event), control_handler, ec);
+    control.recv(std::move(event), control_handler);
 
     return {};
   }
@@ -80,12 +76,8 @@ base::nothing client::recv(quic::event event,
 
   endpoint::client::request::receiver &request = match->second.second;
 
-  auto request_handler = [&handler](http3::event event, std::error_code &ec) {
-    handler(std::move(event), ec);
-  };
-
   uint64_t id = event.id;
-  request.recv(std::move(event), request_handler, ec);
+  TRY(request.recv(std::move(event), handler));
 
   if (request.finished()) {
     requests_.erase(id);
@@ -109,46 +101,44 @@ uint64_t client::request(std::error_code & /* ec */)
   return id;
 }
 
-base::nothing client::header(uint64_t id,
-                             header_view header,
-                             std::error_code &ec)
+std::error_code client::header(uint64_t id, header_view header)
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
   endpoint::client::request::sender &sender = match->second.first;
 
-  return sender.header(header, ec);
+  return sender.header(header);
 }
 
-base::nothing client::body(uint64_t id, base::buffer body, std::error_code &ec)
+std::error_code client::body(uint64_t id, base::buffer body)
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
   endpoint::client::request::sender &sender = match->second.first;
 
-  return sender.body(std::move(body), ec);
+  return sender.body(std::move(body));
 }
 
-base::nothing client::start(uint64_t id, std::error_code &ec) noexcept
+std::error_code client::start(uint64_t id) noexcept
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
   endpoint::client::request::sender &sender = match->second.first;
 
-  return sender.start(ec);
+  return sender.start();
 }
 
-base::nothing client::fin(uint64_t id, std::error_code &ec) noexcept
+std::error_code client::fin(uint64_t id) noexcept
 {
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
   endpoint::client::request::sender &sender = match->second.first;
 
-  return sender.fin(ec);
+  return sender.fin();
 }
 
 } // namespace http3

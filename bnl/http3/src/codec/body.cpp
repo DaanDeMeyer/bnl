@@ -12,7 +12,7 @@ encoder::encoder(const log::api *logger) noexcept
     : frame_(logger), logger_(logger)
 {}
 
-base::nothing encoder::add(base::buffer body, std::error_code &ec)
+std::error_code encoder::add(base::buffer body)
 {
   CHECK(!fin_, error::internal_error);
 
@@ -21,7 +21,7 @@ base::nothing encoder::add(base::buffer body, std::error_code &ec)
   return {};
 }
 
-base::nothing encoder::fin(std::error_code &ec) noexcept
+std::error_code encoder::fin() noexcept
 {
   CHECK(state_ != state::fin, error::internal_error);
 
@@ -39,11 +39,9 @@ bool encoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-base::buffer encoder::encode(std::error_code &ec) noexcept
+base::result<base::buffer> encoder::encode() noexcept
 {
   // TODO: Implement PRIORITY
-
-  base::state_error_handler<encoder::state> on_error(state_, ec);
 
   switch (state_) {
 
@@ -51,7 +49,7 @@ base::buffer encoder::encode(std::error_code &ec) noexcept
       CHECK(!buffers_.empty(), base::error::idle);
 
       frame frame = frame::payload::data{ buffers_.front().size() };
-      base::buffer encoded = TRY(frame_.encode(frame, ec));
+      base::buffer encoded = TRY(frame_.encode(frame));
 
       state_ = state::data;
 
@@ -68,7 +66,6 @@ base::buffer encoder::encode(std::error_code &ec) noexcept
     }
 
     case state::fin:
-    case state::error:
       THROW(error::internal_error);
   }
 
@@ -85,26 +82,21 @@ bool decoder::in_progress() const noexcept
 }
 
 template <typename Sequence>
-base::buffer decoder::decode(Sequence &encoded, std::error_code &ec)
+base::result<base::buffer> decoder::decode(Sequence &encoded)
 {
-  base::state_error_handler<decoder::state> on_error(state_, ec);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-
   switch (state_) {
 
     case state::frame: {
-      frame::type type = TRY(frame_.peek(encoded, ec));
+      frame::type type = TRY(frame_.peek(encoded));
 
       CHECK(type == frame::type::data, base::error::unknown);
 
-      frame frame = TRY(frame_.decode(encoded, ec));
+      frame frame = TRY(frame_.decode(encoded));
 
       state_ = state::data;
       remaining_ = frame.data.size;
     }
-
+    /* FALLTHRU */
     case state::data: {
       CHECK(!encoded.empty(), base::error::incomplete);
 
@@ -121,12 +113,7 @@ base::buffer decoder::decode(Sequence &encoded, std::error_code &ec)
 
       return body_part;
     }
-
-    case state::error:
-      THROW(error::internal_error);
   }
-
-#pragma GCC diagnostic pop
 
   NOTREACHED();
 }

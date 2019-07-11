@@ -22,7 +22,7 @@ receiver::receiver(const log::api *logger) noexcept
       logger_(logger)
 {}
 
-event receiver::process(frame frame, std::error_code &ec) noexcept
+base::result<event> receiver::process(frame frame) noexcept
 {
   switch (frame) {
     case frame::type::cancel_push:

@@ -36,7 +36,7 @@ public:
 private:
   prefix_int::encoder prefix_int_;
   huffman::encoder huffman_;
-  
+
   const log::api *logger_;
 };
 
@@ -47,9 +47,7 @@ public:
   BNL_BASE_MOVE_ONLY(decoder);
 
   template <typename Sequence>
-  base::string decode(Sequence &encoded,
-                      uint8_t prefix,
-                      std::error_code &ec) const;
+  base::result<base::string> decode(Sequence &encoded, uint8_t prefix) const;
 
 private:
   prefix_int::decoder prefix_int_;
@@ -59,9 +57,8 @@ private:
 };
 
 #define BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL(T)                                 \
-  template BNL_HTTP3_EXPORT base::string decoder::decode<T>(                   \
-      T &, uint8_t, /* NOLINT */                                               \
-      std::error_code &) const
+  template BNL_HTTP3_EXPORT base::result<base::string> decoder::decode<T>(     \
+      T &, uint8_t /* NOLINT */) const
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);

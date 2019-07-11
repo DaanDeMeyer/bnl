@@ -16,9 +16,8 @@ decoder::decoder(const log::api *logger) noexcept
 {}
 
 template <typename Sequence>
-base::string decoder::decode(Sequence &encoded,
-                             uint8_t prefix,
-                             std::error_code &ec) const
+base::result<base::string> decoder::decode(Sequence &encoded,
+                                           uint8_t prefix) const
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
@@ -26,8 +25,7 @@ base::string decoder::decode(Sequence &encoded,
 
   bool is_huffman = static_cast<uint8_t>(*lookahead >> prefix) & 0x01; // NOLINT
 
-  uint64_t literal_encoded_size = TRY(
-      prefix_int_.decode(lookahead, prefix, ec));
+  uint64_t literal_encoded_size = TRY(prefix_int_.decode(lookahead, prefix));
 
   if (literal_encoded_size > lookahead.size()) {
     THROW(base::error::incomplete);
@@ -38,7 +36,7 @@ base::string decoder::decode(Sequence &encoded,
   base::string literal;
 
   if (is_huffman) {
-    literal = huffman_.decode(lookahead, bounded_encoded_size, ec);
+    literal = TRY(huffman_.decode(lookahead, bounded_encoded_size));
   } else {
     literal.resize(bounded_encoded_size);
 

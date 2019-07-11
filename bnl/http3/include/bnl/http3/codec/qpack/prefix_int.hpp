@@ -3,6 +3,7 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
+#include <bnl/base/result.hpp>
 #include <bnl/http3/export.hpp>
 
 #include <cstdint>
@@ -41,22 +42,20 @@ public:
   BNL_BASE_MOVE_ONLY(decoder);
 
   template <typename Sequence>
-  uint64_t decode(Sequence &encoded, uint8_t prefix, std::error_code &ec) const
+  base::result<uint64_t> decode(Sequence &encoded, uint8_t prefix) const
       noexcept;
 
 private:
   template <typename Lookahead>
-  uint8_t uint8_decode(Lookahead &encoded, std::error_code &ec) const noexcept;
+  base::result<uint8_t> uint8_decode(Lookahead &encoded) const noexcept;
 
 private:
   const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL(T)                              \
-  template BNL_HTTP3_EXPORT uint64_t decoder::decode<T>(T &, /* NOLINT */      \
-                                                        uint8_t,               \
-                                                        std::error_code &)     \
-      const noexcept
+  template BNL_HTTP3_EXPORT base::result<uint64_t> decoder::decode<T>(         \
+      T &, /* NOLINT */ uint8_t) const noexcept
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_QPACK_PREFIX_INT_DECODE_IMPL);

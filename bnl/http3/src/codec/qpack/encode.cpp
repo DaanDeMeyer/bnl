@@ -24,8 +24,7 @@ uint64_t encoder::count() const noexcept
   return count_;
 }
 
-size_t encoder::encoded_size(header_view header, std::error_code &ec) const
-    noexcept
+base::result<size_t> encoder::encoded_size(header_view header) const noexcept
 {
   if (!util::is_lowercase(header.name())) {
     fmt::string_view view(header.name().data(), header.name().size());
@@ -79,13 +78,11 @@ static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x50;
 static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
-size_t encoder::encode(uint8_t *dest,
-                       header_view header,
-                       std::error_code &ec) noexcept
+base::result<size_t> encoder::encode(uint8_t *dest, header_view header) noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
-  size_t encoded_size = TRY(this->encoded_size(header, ec));
+  size_t encoded_size = TRY(this->encoded_size(header));
   uint8_t *begin = dest;
 
   if (state_ == state::prefix) {
@@ -132,12 +129,12 @@ size_t encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-base::buffer encoder::encode(header_view header, std::error_code &ec)
+base::result<base::buffer> encoder::encode(header_view header)
 {
-  size_t encoded_size = TRY(this->encoded_size(header, ec));
+  size_t encoded_size = TRY(this->encoded_size(header));
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(encoded.data(), header, ec)));
+  ASSERT(encoded_size == TRY(encode(encoded.data(), header)));
 
   return encoded;
 }

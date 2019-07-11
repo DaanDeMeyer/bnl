@@ -10,8 +10,7 @@ namespace varint {
 
 encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
 
-size_t encoder::encoded_size(uint64_t varint, std::error_code &ec) const
-    noexcept
+base::result<size_t> encoder::encoded_size(uint64_t varint) const noexcept
 {
   if (varint < 0x40U) {
     return sizeof(uint8_t);
@@ -79,13 +78,12 @@ static void uint64_encode(uint8_t *dest, uint64_t number)
   dest[0] |= UINT64_HEADER;
 }
 
-size_t encoder::encode(uint8_t *dest,
-                       uint64_t varint,
-                       std::error_code &ec) const noexcept
+base::result<size_t> encoder::encode(uint8_t *dest, uint64_t varint) const
+    noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
-  size_t varint_size = TRY(this->encoded_size(varint, ec));
+  size_t varint_size = TRY(this->encoded_size(varint));
 
   switch (varint_size) {
     case sizeof(uint8_t):
@@ -107,12 +105,13 @@ size_t encoder::encode(uint8_t *dest,
   return varint_size;
 }
 
-base::buffer encoder::encode(uint64_t varint, std::error_code &ec) const
+base::result<base::buffer> encoder::encode(uint64_t varint) const
 {
-  size_t encoded_size = this->encoded_size(varint, ec);
+  size_t encoded_size = TRY(this->encoded_size(varint));
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(encoded.data(), varint, ec)));
+  size_t actual_encoded_size = TRY(encode(encoded.data(), varint));
+  ASSERT(encoded_size == actual_encoded_size);
 
   return encoded;
 }

@@ -3,6 +3,7 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
+#include <bnl/base/result.hpp>
 #include <bnl/http3/export.hpp>
 
 #include <cstddef>
@@ -28,12 +29,11 @@ public:
 
   BNL_BASE_MOVE_ONLY(encoder);
 
-  size_t encoded_size(uint64_t varint, std::error_code &ec) const noexcept;
+  base::result<size_t> encoded_size(uint64_t varint) const noexcept;
 
-  size_t encode(uint8_t *dest, uint64_t varint, std::error_code &ec) const
-      noexcept;
+  base::result<size_t> encode(uint8_t *dest, uint64_t varint) const noexcept;
 
-  base::buffer encode(uint64_t varint, std::error_code &ec) const;
+  base::result<base::buffer> encode(uint64_t varint) const;
 
 private:
   const log::api *logger_;
@@ -46,15 +46,15 @@ public:
   BNL_BASE_MOVE_ONLY(decoder);
 
   template <typename Sequence>
-  uint64_t decode(Sequence &encoded, std::error_code &ec) const noexcept;
+  base::result<uint64_t> decode(Sequence &encoded) const noexcept;
 
 private:
   const log::api *logger_;
 };
 
 #define BNL_HTTP3_VARINT_DECODE_IMPL(T)                                        \
-  template BNL_HTTP3_EXPORT uint64_t                                           \
-  decoder::decode<T>(T &, std::error_code &) /* NOLINT */ const noexcept
+  template BNL_HTTP3_EXPORT base::result<uint64_t> decoder::decode<T>(         \
+      T &) /* NOLINT */ const noexcept
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);

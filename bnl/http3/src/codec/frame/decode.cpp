@@ -14,13 +14,13 @@ frame::decoder::decoder(const log::api *logger) noexcept
 {}
 
 template <typename Sequence>
-frame::type frame::decoder::peek(const Sequence &encoded,
-                                 std::error_code &ec) const noexcept
+base::result<frame::type> frame::decoder::peek(const Sequence &encoded) const
+    noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
   while (true) {
-    uint64_t type = TRY(varint_.decode(lookahead, ec));
+    uint64_t type = TRY(varint_.decode(lookahead));
 
     switch (static_cast<frame::type>(type)) {
       case frame::type::data:
@@ -42,8 +42,7 @@ frame::type frame::decoder::peek(const Sequence &encoded,
 }
 
 template <typename Sequence>
-frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
-    noexcept
+base::result<frame> frame::decoder::decode(Sequence &encoded) const noexcept
 {
   // frame has no copy constructor so we check the while condition inside the
   // while loop instead.
@@ -51,7 +50,7 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
     bool is_unknown_frame_type = false;
     typename Sequence::lookahead_type lookahead(encoded);
 
-    frame frame = TRY(decode(lookahead, &is_unknown_frame_type, ec));
+    frame frame = TRY(decode(lookahead, &is_unknown_frame_type));
     encoded.consume(lookahead.consumed());
 
     if (!is_unknown_frame_type) {
@@ -61,15 +60,15 @@ frame frame::decoder::decode(Sequence &encoded, std::error_code &ec) const
 }
 
 template <typename Lookahead>
-frame frame::decoder::decode(Lookahead &lookahead,
-                             bool *is_unknown_frame_type,
-                             std::error_code &ec) const noexcept
+base::result<frame> frame::decoder::decode(Lookahead &lookahead,
+                                           bool *is_unknown_frame_type) const
+    noexcept
 {
-  uint64_t type = TRY(varint_.decode(lookahead, ec));
-  uint64_t payload_encoded_size = TRY(varint_.decode(lookahead, ec));
+  uint64_t type = TRY(varint_.decode(lookahead));
+  uint64_t payload_encoded_size = TRY(varint_.decode(lookahead));
 
   // Use lambda to get around lack of copy assignment operator on `frame`.
-  auto payload_decode = [&]() -> frame {
+  auto payload_decode = [&]() -> base::result<frame> {
     switch (static_cast<frame::type>(type)) {
       case frame::type::data: {
         frame::payload::data data{};
@@ -77,7 +76,7 @@ frame frame::decoder::decode(Lookahead &lookahead,
         data.size = payload_encoded_size;
         payload_encoded_size = 0;
 
-        return data;
+        return frame(data);
       }
 
       case frame::type::headers: {
@@ -86,33 +85,33 @@ frame frame::decoder::decode(Lookahead &lookahead,
         headers.size = payload_encoded_size;
         payload_encoded_size = 0;
 
-        return headers;
+        return frame(headers);
       }
 
       case frame::type::priority: {
         frame::payload::priority priority{};
 
-        uint8_t byte = TRY(uint8_decode(lookahead, ec));
+        uint8_t byte = TRY(uint8_decode(lookahead));
         priority.prioritized_element_type =
             static_cast<frame::payload::priority::type>(byte >> 6U);
         priority.element_dependency_type =
             static_cast<frame::payload::priority::type>(
                 static_cast<uint8_t>(byte >> 4U) & 0x03U);
 
-        priority.prioritized_element_id = TRY(varint_.decode(lookahead, ec));
-        priority.element_dependency_id = TRY(varint_.decode(lookahead, ec));
+        priority.prioritized_element_id = TRY(varint_.decode(lookahead));
+        priority.element_dependency_id = TRY(varint_.decode(lookahead));
 
-        priority.weight = TRY(uint8_decode(lookahead, ec));
+        priority.weight = TRY(uint8_decode(lookahead));
 
-        return priority;
+        return frame(priority);
       }
 
       case frame::type::cancel_push: {
         frame::payload::cancel_push cancel_push{};
 
-        cancel_push.push_id = TRY(varint_.decode(lookahead, ec));
+        cancel_push.push_id = TRY(varint_.decode(lookahead));
 
-        return cancel_push;
+        return frame(cancel_push);
       }
 
       case frame::type::settings: {
@@ -122,8 +121,8 @@ frame frame::decoder::decode(Lookahead &lookahead,
 
         while (settings_encoded_size < payload_encoded_size) {
           size_t before = lookahead.consumed();
-          uint64_t id = TRY(varint_.decode(lookahead, ec));
-          uint64_t value = TRY(varint_.decode(lookahead, ec));
+          uint64_t id = TRY(varint_.decode(lookahead));
+          uint64_t value = TRY(varint_.decode(lookahead));
 
           settings_encoded_size += lookahead.consumed() - before;
 
@@ -146,14 +145,14 @@ frame frame::decoder::decode(Lookahead &lookahead,
           }
         }
 
-        return settings;
+        return frame(settings);
       }
 
       case frame::type::push_promise: {
         frame::payload::push_promise push_promise{};
 
         size_t before = lookahead.consumed();
-        push_promise.push_id = TRY(varint_.decode(lookahead, ec));
+        push_promise.push_id = TRY(varint_.decode(lookahead));
 
         size_t varint_encoded_size = lookahead.consumed() - before;
 
@@ -168,31 +167,31 @@ frame frame::decoder::decode(Lookahead &lookahead,
           payload_encoded_size = varint_encoded_size;
         }
 
-        return push_promise;
+        return frame(push_promise);
       }
 
       case frame::type::goaway: {
         frame::payload::goaway goaway{};
 
-        goaway.stream_id = TRY(varint_.decode(lookahead, ec));
+        goaway.stream_id = TRY(varint_.decode(lookahead));
 
-        return goaway;
+        return frame(goaway);
       }
 
       case frame::type::max_push_id: {
         frame::payload::max_push_id max_push_id{};
 
-        max_push_id.push_id = TRY(varint_.decode(lookahead, ec));
+        max_push_id.push_id = TRY(varint_.decode(lookahead));
 
-        return max_push_id;
+        return frame(max_push_id);
       }
 
       case frame::type::duplicate_push: {
         frame::payload::duplicate_push duplicate_push{};
 
-        duplicate_push.push_id = TRY(varint_.decode(lookahead, ec));
+        duplicate_push.push_id = TRY(varint_.decode(lookahead));
 
-        return duplicate_push;
+        return frame(duplicate_push);
       }
 
       default:
@@ -205,7 +204,7 @@ frame frame::decoder::decode(Lookahead &lookahead,
         lookahead.consume(static_cast<size_t>(payload_encoded_size));
 
         payload_encoded_size = 0;
-        return {};
+        return frame();
     }
   };
 
@@ -223,8 +222,8 @@ frame frame::decoder::decode(Lookahead &lookahead,
 }
 
 template <typename Lookahead>
-uint8_t frame::decoder::uint8_decode(Lookahead &lookahead,
-                                     std::error_code &ec) const noexcept
+base::result<uint8_t> frame::decoder::uint8_decode(Lookahead &lookahead) const
+    noexcept
 {
   CHECK(!lookahead.empty(), base::error::incomplete);
 

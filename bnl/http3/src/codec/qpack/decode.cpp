@@ -24,7 +24,7 @@ uint64_t decoder::count() const noexcept
 static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 template <typename Sequence>
-header decoder::decode(Sequence &encoded, std::error_code &ec)
+base::result<header> decoder::decode(Sequence &encoded)
 {
   if (state_ == state::prefix) {
     CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, base::error::incomplete);
@@ -47,8 +47,8 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
         THROW(error::qpack_decompression_failed);
       }
 
-      uint8_t index = TRY(
-          static_cast<uint8_t>(prefix_int_.decode(lookahead, 6, ec)));
+      uint8_t index = static_cast<uint8_t>(
+          TRY(prefix_int_.decode(lookahead, 6)));
 
       bool found = false;
       std::tie(found, header) = table::fixed::find_header_value(index);
@@ -67,8 +67,8 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
         THROW(error::qpack_decompression_failed);
       }
 
-      uint8_t index = TRY(
-          static_cast<uint8_t>(prefix_int_.decode(lookahead, 4, ec)));
+      uint8_t index = static_cast<uint8_t>(
+          TRY(prefix_int_.decode(lookahead, 4)));
 
       bool found = false;
       base::string name;
@@ -79,21 +79,21 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
         THROW(error::qpack_decompression_failed);
       }
 
-      base::string value = TRY(literal_.decode(lookahead, 7, ec));
+      base::string value = TRY(literal_.decode(lookahead, 7));
 
       header = http3::header(std::move(name), std::move(value));
       break;
     }
 
     case table::fixed::type::missing: {
-      base::string name = TRY(literal_.decode(lookahead, 3, ec));
+      base::string name = TRY(literal_.decode(lookahead, 3));
 
       if (!util::is_lowercase(name)) {
         LOG_E("Header ({}) is not lowercase", name);
         THROW(error::malformed_header);
       }
 
-      base::string value = TRY(literal_.decode(lookahead, 7, ec));
+      base::string value = TRY(literal_.decode(lookahead, 7));
 
       header = http3::header(std::move(name), std::move(value));
       break;

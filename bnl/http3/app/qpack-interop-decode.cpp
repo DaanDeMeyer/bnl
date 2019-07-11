@@ -16,7 +16,7 @@ using namespace bnl;
 // pointer.
 static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
 
-uint64_t id_decode(base::buffer &encoded, std::error_code &ec)
+static base::result<uint64_t> id_decode(base::buffer &encoded)
 {
   CHECK(encoded.size() >= sizeof(uint64_t), base::error::incomplete);
 
@@ -34,7 +34,7 @@ uint64_t id_decode(base::buffer &encoded, std::error_code &ec)
   return id;
 }
 
-size_t size_decode(base::buffer &encoded, std::error_code &ec)
+static base::result<size_t> size_decode(base::buffer &encoded)
 {
   CHECK(encoded.size() >= sizeof(uint32_t), base::error::incomplete);
 
@@ -48,13 +48,38 @@ size_t size_decode(base::buffer &encoded, std::error_code &ec)
   return encoded_size;
 }
 
-void write(std::ostream &dest, const std::vector<http3::header> &headers)
+static void write(std::ostream &dest, const std::vector<http3::header> &headers)
 {
   for (const http3::header &header : headers) {
     dest << header.name() << '\t' << header.value() << '\n';
   }
 
   dest << '\n';
+}
+
+static std::error_code decode(base::buffer &encoded, std::ofstream &output)
+{
+  TRY(id_decode(encoded));
+  size_t encoded_size = TRY(size_decode(encoded));
+
+  http3::qpack::decoder qpack(logger_.get());
+  std::vector<http3::header> headers;
+
+  while (qpack.count() != encoded_size) {
+    http3::header header = TRY(qpack.decode(encoded));
+    headers.emplace_back(std::move(header));
+  }
+
+  // Write output
+
+  try {
+    write(output, headers);
+  } catch (std::ios_base::failure &e) {
+    LOG_E("Error writing output: {}", e.what());
+    return e.code();
+  }
+
+  return {};
 }
 
 int main(int argc, char *argv[])
@@ -105,26 +130,10 @@ int main(int argc, char *argv[])
 
   // Decode input
 
-  std::error_code ec;
-  http3::qpack::decoder qpack(logger_.get());
-
   while (!encoded.empty()) {
-    TRY(id_decode(encoded, ec));
-    size_t encoded_size = TRY(size_decode(encoded, ec));
-
-    std::vector<http3::header> headers;
-
-    while (qpack.count() != encoded_size) {
-      http3::header header = TRY(qpack.decode(encoded, ec));
-      headers.emplace_back(std::move(header));
-    }
-
-    // Write output
-
-    try {
-      write(output, headers);
-    } catch (std::ios_base::failure &e) {
-      LOG_E("Error writing output: {}", e.what());
+    std::error_code ec = decode(encoded, output);
+    if (ec) {
+      LOG_E("Error decoding headers");
       return 1;
     }
   }

@@ -14,7 +14,7 @@ namespace http3 {
 
 class BNL_BASE_EXPORT event {
 public:
-  using handler = base::function_view<void(event, std::error_code &)>;
+  using handler = base::function_view<std::error_code(event)>;
 
   enum class type { settings, header, body, error };
 

@@ -3,7 +3,6 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
-#include <bnl/base/nothing.hpp>
 #include <bnl/http3/codec/body.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/codec/headers.hpp>
@@ -31,16 +30,16 @@ public:
 
   bool finished() const noexcept;
 
-  quic::event send(std::error_code &ec) noexcept;
+  base::result<quic::event> send() noexcept;
 
-  base::nothing header(header_view header, std::error_code &ec);
-  base::nothing body(base::buffer body, std::error_code &ec);
+  std::error_code header(header_view header);
+  std::error_code body(base::buffer body);
 
-  base::nothing start(std::error_code &ec) noexcept;
-  base::nothing fin(std::error_code &ec) noexcept;
+  std::error_code start() noexcept;
+  std::error_code fin() noexcept;
 
 private:
-  enum class state : uint8_t { headers, body, fin, error };
+  enum class state : uint8_t { headers, body, fin };
 
   state state_ = state::headers;
 
@@ -64,22 +63,20 @@ public:
 
   bool finished() const noexcept;
 
-  base::nothing start(std::error_code &ec) noexcept;
+  std::error_code start() noexcept;
 
-  base::nothing recv(quic::event event,
-                     event::handler handler,
-                     std::error_code &ec);
+  std::error_code recv(quic::event event, event::handler handler);
 
 protected:
-  virtual event process(frame frame, std::error_code &ec) noexcept = 0;
+  virtual base::result<event> process(frame frame) noexcept = 0;
 
   const headers::decoder &headers() const noexcept;
 
 private:
-  event process(std::error_code &ec) noexcept;
+  base::result<event> process() noexcept;
 
 private:
-  enum class state : uint8_t { closed, headers, body, fin, error };
+  enum class state : uint8_t { closed, headers, body, fin };
 
   state state_ = state::closed;
   base::buffers buffers_;

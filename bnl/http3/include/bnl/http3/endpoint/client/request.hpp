@@ -29,7 +29,7 @@ public:
   BNL_BASE_MOVE_ONLY(receiver);
 
 private:
-  event process(frame frame, std::error_code &ec) noexcept final;
+  base::result<event> process(frame frame) noexcept final;
 
 private:
   const log::api *logger_;

@@ -52,6 +52,40 @@ void write(std::ostream &dest, const base::buffer &encoded)
              static_cast<int32_t>(encoded.size()));
 }
 
+static std::error_code encode(uint64_t id,
+                              const std::vector<http3::header> &headers,
+                              std::ofstream &output)
+{
+  http3::qpack::encoder qpack(logger_.get());
+
+  std::queue<base::buffer> buffers;
+
+  for (const http3::header &header : headers) {
+    base::result<base::buffer> result = TRY(qpack.encode(header));
+    buffers.emplace(std::move(result.value()));
+  }
+
+  if (qpack.count() > UINT32_MAX) {
+    LOG_E("Headers encoded size does not fit in an unsigned 32-bit integer");
+  }
+
+  try {
+    write(output, id_encode(id));
+    write(output, size_encode(static_cast<uint32_t>(qpack.count())));
+
+    while (!buffers.empty()) {
+      base::buffer encoded = std::move(buffers.front());
+      buffers.pop();
+      write(output, encoded);
+    }
+  } catch (const std::ios_base::failure &e) {
+    LOG_E("Error writing to output file: {}", e.what());
+    return e.code();
+  }
+
+  return {};
+}
+
 int main(int argc, char *argv[])
 {
   if (argc < 3) {
@@ -91,7 +125,6 @@ int main(int argc, char *argv[])
   uint64_t id = 1;
   std::vector<http3::header> headers;
 
-  http3::qpack::encoder qpack(logger_.get());
   std::error_code ec;
 
   while (std::getline(input, line)) {
@@ -100,31 +133,9 @@ int main(int argc, char *argv[])
         continue;
       }
 
-      // Encode header block and write to output
-
-      try {
-        std::queue<base::buffer> buffers;
-
-        for (const http3::header &header : headers) {
-          base::buffer encoded = TRY(qpack.encode(header, ec));
-          buffers.emplace(std::move(encoded));
-        }
-
-        if (qpack.count() > UINT32_MAX) {
-          LOG_E("Headers encoded size does not fit in an unsigned 32-bit "
-                "integer");
-        }
-
-        write(output, id_encode(id));
-        write(output, size_encode(static_cast<uint32_t>(qpack.count())));
-
-        while (!buffers.empty()) {
-          base::buffer encoded = std::move(buffers.front());
-          buffers.pop();
-          write(output, encoded);
-        }
-      } catch (const std::ios_base::failure &e) {
-        LOG_E("Error writing to output file: {}", e.what());
+      std::error_code ec = encode(id, headers, output);
+      if (ec) {
+        LOG_E("Error encoding headers");
         return 1;
       }
 

@@ -3,7 +3,7 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
-#include <bnl/base/nothing.hpp>
+#include <bnl/base/result.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/export.hpp>
 
@@ -24,15 +24,15 @@ public:
 
   BNL_BASE_MOVE_ONLY(encoder);
 
-  base::nothing add(base::buffer body, std::error_code &ec);
-  base::nothing fin(std::error_code &ec) noexcept;
+  std::error_code add(base::buffer body);
+  std::error_code fin() noexcept;
 
   bool finished() const noexcept;
 
-  base::buffer encode(std::error_code &ec) noexcept;
+  base::result<base::buffer> encode() noexcept;
 
 private:
-  enum class state : uint8_t { frame, data, fin, error };
+  enum class state : uint8_t { frame, data, fin };
 
   state state_ = state::frame;
   bool fin_ = false;
@@ -52,10 +52,10 @@ public:
   bool in_progress() const noexcept;
 
   template <typename Sequence>
-  base::buffer decode(Sequence &encoded, std::error_code &ec);
+  base::result<base::buffer> decode(Sequence &encoded);
 
 private:
-  enum class state : uint8_t { frame, data, error };
+  enum class state : uint8_t { frame, data };
 
   state state_ = state::frame;
   uint64_t remaining_ = 0;
@@ -66,8 +66,8 @@ private:
 };
 
 #define BNL_HTTP3_BODY_DECODE_IMPL(T)                                          \
-  template BNL_HTTP3_EXPORT base::buffer decoder::decode<T>(                   \
-      T &, /* NOLINT */ std::error_code &)
+  template BNL_HTTP3_EXPORT base::result<base::buffer> decoder::decode<T>(     \
+      T & /* NOLINT */)
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_BODY_DECODE_IMPL);
 

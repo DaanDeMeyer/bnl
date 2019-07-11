@@ -41,11 +41,10 @@ namespace huffman {
 decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
 
 template <typename Sequence>
-base::string decoder::decode(Sequence &encoded,
-                             size_t encoded_size,
-                             std::error_code &ec) const
+base::result<base::string> decoder::decode(Sequence &encoded,
+                                           size_t encoded_size) const
 {
-  size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size, ec));
+  size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size));
   base::string decoded;
   decoded.resize(decoded_size);
 
@@ -74,9 +73,8 @@ base::string decoder::decode(Sequence &encoded,
 }
 
 template <typename Lookahead>
-size_t decoder::decoded_size(const Lookahead &encoded,
-                             size_t encoded_size,
-                             std::error_code &ec) const noexcept
+base::result<size_t> decoder::decoded_size(const Lookahead &encoded,
+                                           size_t encoded_size) const noexcept
 {
   CHECK(encoded.size() >= encoded_size, base::error::incomplete);
 

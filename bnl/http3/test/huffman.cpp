@@ -1,8 +1,9 @@
+#include <doctest/doctest.h>
+
 #include <bnl/base/error.hpp>
 #include <bnl/http3/codec/qpack/huffman.hpp>
 #include <bnl/log.hpp>
-
-#include <doctest/doctest.h>
+#include <bnl/util/test.hpp>
 
 #include <random>
 
@@ -33,10 +34,8 @@ static void encode_and_decode(base::string_view string,
 {
   base::buffer encoded = encoder.encode(string);
 
-  std::error_code ec;
-  base::string decoded = decoder.decode(encoded, encoded.size(), ec);
+  base::string decoded = EXTRACT(decoder.decode(encoded, encoded.size()));
 
-  REQUIRE(!ec);
   REQUIRE(decoded.size() == string.size());
   REQUIRE(string == decoded);
 }
@@ -63,15 +62,10 @@ TEST_CASE("huffman")
 
     base::buffer incomplete = encoded.copy(2);
 
-    std::error_code ec;
-    decoder.decode(incomplete, encoded.size(), ec);
+    base::result<base::string> result = decoder.decode(incomplete,
+                                                       encoded.size());
 
-    REQUIRE(ec == base::error::incomplete);
+    REQUIRE(result == base::error::incomplete);
     REQUIRE(incomplete.size() == 2);
-
-    decoder.decode(encoded, encoded.size(), ec);
-
-    REQUIRE(!ec);
-    REQUIRE(encoded.empty());
   }
 }

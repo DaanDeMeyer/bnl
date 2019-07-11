@@ -15,6 +15,8 @@ Checks:
 -cppcoreguidelines-non-private-member-variables-in-classes,
 -fuchsia-default-arguments,
 -fuchsia-overloaded-operator,
+-fuchsia-statically-constructed-objects,
+-fuchsia-trailing-return,
 -google-build-using-namespace,
 -google-readability-function-size,
 -google-readability-todo,

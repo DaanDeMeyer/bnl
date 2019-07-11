@@ -14,7 +14,7 @@ receiver::receiver(uint64_t id, const log::api *logger) noexcept
     : shared::request::receiver(id, logger), logger_(logger)
 {}
 
-event receiver::process(frame frame, std::error_code &ec) noexcept
+base::result<event> receiver::process(frame frame) noexcept
 {
   switch (frame) {
     case frame::type::priority:

@@ -12,17 +12,17 @@ encoder::encoder(const log::api *logger) noexcept
     : frame_(logger), qpack_(logger), logger_(logger)
 {}
 
-base::nothing encoder::add(header_view header, std::error_code &ec)
+std::error_code encoder::add(header_view header)
 {
   CHECK(state_ == state::idle, error::internal_error);
 
-  base::buffer encoded = qpack_.encode(header, ec);
+  base::buffer encoded = TRY(qpack_.encode(header));
   buffers_.emplace(std::move(encoded));
 
   return {};
 }
 
-base::nothing encoder::fin(std::error_code &ec) noexcept
+std::error_code encoder::fin() noexcept
 {
   CHECK(state_ == state::idle, error::internal_error);
 
@@ -36,10 +36,8 @@ bool encoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-base::buffer encoder::encode(std::error_code &ec) noexcept
+base::result<base::buffer> encoder::encode() noexcept
 {
-  base::state_error_handler<encoder::state> on_error(state_, ec);
-
   switch (state_) {
 
     case state::idle:
@@ -48,7 +46,7 @@ base::buffer encoder::encode(std::error_code &ec) noexcept
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
 
-      base::buffer encoded = TRY(frame_.encode(frame, ec));
+      base::buffer encoded = TRY(frame_.encode(frame));
 
       state_ = state::qpack;
 
@@ -65,7 +63,6 @@ base::buffer encoder::encode(std::error_code &ec) noexcept
     }
 
     case state::fin:
-    case state::error:
       THROW(error::internal_error);
   }
 
@@ -87,30 +84,25 @@ bool decoder::finished() const noexcept
 }
 
 template <typename Sequence>
-header decoder::decode(Sequence &encoded, std::error_code &ec)
+base::result<header> decoder::decode(Sequence &encoded)
 {
-  base::state_error_handler<decoder::state> on_error(state_, ec);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-
   switch (state_) {
 
     case state::frame: {
-      frame::type type = TRY(frame_.peek(encoded, ec));
+      frame::type type = TRY(frame_.peek(encoded));
 
       CHECK(type == frame::type::headers, base::error::unknown);
 
-      frame frame = TRY(frame_.decode(encoded, ec));
+      frame frame = TRY(frame_.decode(encoded));
 
       state_ = state::qpack;
       headers_size_ = frame.headers.size;
 
       CHECK(headers_size_ != 0, error::malformed_frame);
     }
-
+    /* FALLTHRU */
     case state::qpack: {
-      header header = TRY(qpack_.decode(encoded, ec));
+      header header = TRY(qpack_.decode(encoded));
 
       CHECK(qpack_.count() <= headers_size_, error::malformed_frame);
 
@@ -121,11 +113,8 @@ header decoder::decode(Sequence &encoded, std::error_code &ec)
     }
 
     case state::fin:
-    case state::error:
       THROW(error::internal_error);
   }
-
-#pragma GCC diagnostic pop
 
   NOTREACHED();
 }

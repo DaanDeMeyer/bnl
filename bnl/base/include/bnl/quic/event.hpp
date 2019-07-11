@@ -12,7 +12,7 @@ namespace quic {
 
 class BNL_BASE_EXPORT event {
 public:
-  using handler = base::function_view<void(event, std::error_code &ec)>;
+  using handler = base::function_view<std::error_code(event)>;
 
   enum class type { data, error };
 

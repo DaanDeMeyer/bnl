@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bnl/base/macro.hpp>
-#include <bnl/base/nothing.hpp>
 #include <bnl/http3/endpoint/server/control.hpp>
 #include <bnl/http3/endpoint/server/request.hpp>
 #include <bnl/http3/event.hpp>
@@ -25,17 +24,15 @@ public:
 
   BNL_BASE_MOVE_ONLY(server);
 
-  quic::event send(std::error_code &ec) noexcept;
+  base::result<quic::event> send() noexcept;
 
-  base::nothing recv(quic::event event,
-                     event::handler handler,
-                     std::error_code &ec);
+  std::error_code recv(quic::event event, event::handler handler);
 
-  base::nothing header(uint64_t id, header_view header, std::error_code &ec);
-  base::nothing body(uint64_t id, base::buffer body, std::error_code &ec);
+  std::error_code header(uint64_t id, header_view header);
+  std::error_code body(uint64_t id, base::buffer body);
 
-  base::nothing start(uint64_t id, std::error_code &ec) noexcept;
-  base::nothing fin(uint64_t id, std::error_code &ec) noexcept;
+  std::error_code start(uint64_t id) noexcept;
+  std::error_code fin(uint64_t id) noexcept;
 
 private:
   using control = std::pair<endpoint::server::control::sender,

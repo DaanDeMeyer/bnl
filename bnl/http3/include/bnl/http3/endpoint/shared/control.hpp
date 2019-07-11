@@ -2,7 +2,6 @@
 
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
-#include <bnl/base/nothing.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
@@ -25,10 +24,10 @@ public:
 
   BNL_BASE_MOVE_ONLY(sender);
 
-  quic::event send(std::error_code &ec) noexcept;
+  base::result<quic::event> send() noexcept;
 
 private:
-  enum class state : uint8_t { settings, idle, error };
+  enum class state : uint8_t { settings, idle };
 
   state state_ = state::settings;
   settings settings_;
@@ -50,18 +49,16 @@ public:
 
   uint64_t id() const noexcept;
 
-  base::nothing recv(quic::event event,
-                     event::handler handler,
-                     std::error_code &ec);
+  std::error_code recv(quic::event event, event::handler handler);
 
 protected:
-  virtual event process(frame frame, std::error_code &ec) = 0;
+  virtual base::result<event> process(frame frame) noexcept = 0;
 
 private:
-  event process(std::error_code &ec) noexcept;
+  base::result<event> process() noexcept;
 
 private:
-  enum class state : uint8_t { settings, active, error };
+  enum class state : uint8_t { settings, active };
 
   state state_ = state::settings;
   base::buffers buffers_;

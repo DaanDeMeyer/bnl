@@ -3,6 +3,7 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
 #include <bnl/base/macro.hpp>
+#include <bnl/base/result.hpp>
 #include <bnl/base/string_view.hpp>
 #include <bnl/http3/export.hpp>
 
@@ -43,24 +44,21 @@ public:
   BNL_BASE_MOVE_ONLY(decoder);
 
   template <typename Sequence>
-  base::string decode(Sequence &encoded,
-                      size_t encoded_size,
-                      std::error_code &ec) const;
+  base::result<base::string> decode(Sequence &encoded,
+                                    size_t encoded_size) const;
 
 private:
   template <typename Lookahead>
-  size_t decoded_size(const Lookahead &encoded,
-                      size_t encoded_size,
-                      std::error_code &ec) const noexcept;
+  base::result<size_t> decoded_size(const Lookahead &encoded,
+                                    size_t encoded_size) const noexcept;
 
 private:
   const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL(T)                                 \
-  template BNL_HTTP3_EXPORT base::string decoder::decode<T>(                   \
-      T &, size_t, /* NOLINT */                                                \
-      std::error_code &) const
+  template BNL_HTTP3_EXPORT base::result<base::string> decoder::decode<T>(     \
+      T &, size_t /* NOLINT */) const
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);

@@ -55,8 +55,6 @@ protected:
 } // namespace log
 } // namespace bnl
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 
@@ -84,4 +82,3 @@ protected:
   BNL_LOG(logger, bnl::log::level::error, (format), ##__VA_ARGS__)
 
 #pragma clang diagnostic pop
-#pragma GCC diagnostic pop

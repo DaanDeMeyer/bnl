@@ -41,19 +41,18 @@ template <typename Endpoint>
 static void start(Endpoint &endpoint, uint64_t id, const message &message)
 {
   std::error_code ec;
-
   for (const http3::header &header : message.headers) {
-    endpoint.header(id, header, ec);
+    ec = endpoint.header(id, header);
     REQUIRE(!ec);
   }
 
-  endpoint.start(id, ec);
+  ec = endpoint.start(id);
   REQUIRE(!ec);
 
-  endpoint.body(id, message.body, ec);
+  ec = endpoint.body(id, message.body);
   REQUIRE(!ec);
 
-  endpoint.fin(id, ec);
+  ec = endpoint.fin(id);
   REQUIRE(!ec);
 }
 
@@ -61,20 +60,17 @@ template <typename Sender, typename Receiver>
 static message transfer(Sender &sender, Receiver &receiver)
 {
   message decoded;
-  std::error_code ec;
 
   while (true) {
-    quic::event event = sender.send(ec);
-    if (ec == base::error::idle) {
+    base::result<quic::event> event = sender.send();
+    if (event == base::error::idle) {
       break;
     }
 
-    REQUIRE(event == quic::event::type::data);
-    REQUIRE(!ec);
+    REQUIRE(event);
+    REQUIRE(event.value() == quic::event::type::data);
 
-    auto handler = [&decoded](http3::event event, std::error_code &ec) {
-      REQUIRE(!ec);
-
+    auto handler = [&decoded](http3::event event) -> std::error_code {
       switch (event) {
         case http3::event::type::settings:
           break;
@@ -90,10 +86,11 @@ static message transfer(Sender &sender, Receiver &receiver)
         case http3::event::type::error:
           REQUIRE(false);
       }
+
+      return {};
     };
 
-    receiver.recv(std::move(event), handler, ec);
-
+    std::error_code ec = receiver.recv(std::move(event.value()), handler);
     REQUIRE(!ec);
   }
 

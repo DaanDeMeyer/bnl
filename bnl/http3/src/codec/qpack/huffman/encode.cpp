@@ -26,7 +26,6 @@
 
 #include <bnl/http3/codec/qpack/huffman.hpp>
 
-#include <bnl/http3/error.hpp>
 #include <bnl/util/error.hpp>
 
 #include "encode_generated.cpp"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bnl/base/result.hpp>
 #include <bnl/util/log.hpp>
 
 #include <cstdlib>
@@ -19,25 +20,19 @@
   std::abort();                                                                \
   (void) 0
 
-#define TRY(expression)                                                        \
-  [&]() {                                                                      \
-    ec = {};                                                                   \
-    return expression;                                                         \
-  }();                                                                         \
-  if (ec) {                                                                    \
-    return {};                                                                 \
-  };                                                                           \
-  (void) 0
+#define TRY BNL_TRY
 
 #define THROW(err)                                                             \
-  ec = err;                                                                    \
+  {                                                                            \
+    std::error_code ec = err;                                                  \
                                                                                \
-  if (logger_) {                                                               \
-    logger_->operator()(__FILE__, static_cast<const char *>(__func__),         \
-                        __LINE__, ec);                                         \
+    if (logger_) {                                                             \
+      logger_->operator()(__FILE__, static_cast<const char *>(__func__),       \
+                          __LINE__, ec);                                       \
+    }                                                                          \
+                                                                               \
+    return ec;                                                                 \
   }                                                                            \
-                                                                               \
-  return {};                                                                   \
   (void) 0
 
 #define CHECK(expression, error)                                               \

@@ -14,22 +14,17 @@ sender::sender(uint64_t id, const log::api *logger) noexcept
     : frame_(logger), id_(id), logger_(logger)
 {}
 
-quic::event sender::send(std::error_code &ec) noexcept
+base::result<quic::event> sender::send() noexcept
 {
-  base::state_error_handler<sender::state> on_error(state_, ec);
-
   switch (state_) {
     case state::settings: {
-      base::buffer encoded = TRY(frame_.encode(settings_, ec));
+      base::buffer encoded = TRY(frame_.encode(settings_));
       state_ = state::idle;
-      return { id_, false, std::move(encoded) };
+      return quic::event(id_, false, std::move(encoded));
     }
 
     case state::idle:
       THROW(base::error::idle);
-
-    case state::error:
-      THROW(error::internal_error);
   }
 
   NOTREACHED();
@@ -46,40 +41,35 @@ uint64_t receiver::id() const noexcept
   return id_;
 }
 
-base::nothing receiver::recv(quic::event event,
-                             event::handler handler,
-                             std::error_code &ec)
+std::error_code receiver::recv(quic::event event, event::handler handler)
 {
-  base::state_error_handler<receiver::state> on_error(state_, ec);
-
   CHECK(event == quic::event::type::data, base::error::not_implemented);
-
   CHECK(!event.fin, error::closed_critical_stream);
 
   buffers_.push(std::move(event.data));
 
   while (true) {
-    http3::event result = process(ec);
-    if (ec) {
-      if (ec == base::error::incomplete) {
-        ec = {};
+    base::result<http3::event> result = process();
+    if (!result) {
+      if (result == base::error::incomplete) {
+        return {};
       }
 
-      break;
+      return result.error();
     }
 
-    handler(std::move(result), ec);
+    TRY(handler(std::move(result.value())));
   }
 
   return {};
 }
 
-event receiver::process(std::error_code &ec) noexcept
+base::result<event> receiver::process() noexcept
 {
   switch (state_) {
 
     case state::settings: {
-      frame frame = TRY(frame_.decode(buffers_, ec));
+      frame frame = TRY(frame_.decode(buffers_));
 
       // First frame on the control stream has to be a SETTINGS frame.
       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-settings
@@ -87,11 +77,11 @@ event receiver::process(std::error_code &ec) noexcept
 
       state_ = state::active;
 
-      return { id_, false, frame.settings };
+      return event{ id_, false, frame.settings };
     }
 
     case state::active: {
-      frame frame = TRY(frame_.decode(buffers_, ec));
+      frame frame = TRY(frame_.decode(buffers_));
 
       switch (frame) {
         case frame::type::headers: // TODO: STANDARDIZE
@@ -105,11 +95,8 @@ event receiver::process(std::error_code &ec) noexcept
           break;
       }
 
-      return process(frame, ec);
+      return process(frame);
     }
-
-    case state::error:
-      THROW(error::internal_error);
   }
 
   NOTREACHED();

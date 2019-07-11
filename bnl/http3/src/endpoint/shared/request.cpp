@@ -19,58 +19,55 @@ bool sender::finished() const noexcept
   return state_ == state::fin;
 }
 
-quic::event sender::send(std::error_code &ec) noexcept
+base::result<quic::event> sender::send() noexcept
 {
-  base::state_error_handler<sender::state> on_error(state_, ec);
-
   switch (state_) {
 
     case state::headers: {
-      base::buffer encoded = TRY(headers_.encode(ec));
+      base::buffer encoded = TRY(headers_.encode());
 
       if (headers_.finished()) {
         state_ = state::body;
       }
 
-      return { id_, false, std::move(encoded) };
+      return quic::event(id_, false, std::move(encoded));
     }
 
     case state::body: {
-      base::buffer encoded = TRY(body_.encode(ec));
+      base::buffer encoded = TRY(body_.encode());
 
       if (body_.finished()) {
         state_ = state::fin;
       }
 
-      return { id_, body_.finished(), std::move(encoded) };
+      return quic::event(id_, body_.finished(), std::move(encoded));
     }
 
     case state::fin:
-    case state::error:
       THROW(error::internal_error);
   }
 
   NOTREACHED();
 }
 
-base::nothing sender::header(header_view header, std::error_code &ec)
+std::error_code sender::header(header_view header)
 {
-  return headers_.add(header, ec);
+  return headers_.add(header);
 }
 
-base::nothing sender::body(base::buffer body, std::error_code &ec)
+std::error_code sender::body(base::buffer body)
 {
-  return body_.add(std::move(body), ec);
+  return body_.add(std::move(body));
 }
 
-base::nothing sender::start(std::error_code &ec) noexcept
+std::error_code sender::start() noexcept
 {
-  return headers_.fin(ec);
+  return headers_.fin();
 }
 
-base::nothing sender::fin(std::error_code &ec) noexcept
+std::error_code sender::fin() noexcept
 {
-  return body_.fin(ec);
+  return body_.fin();
 }
 
 receiver::receiver(uint64_t id, const log::api *logger) noexcept
@@ -89,7 +86,7 @@ bool receiver::finished() const noexcept
   return state_ == state::fin;
 }
 
-base::nothing receiver::start(std::error_code &ec) noexcept
+std::error_code receiver::start() noexcept
 {
   CHECK(state_ == state::closed, error::internal_error);
 
@@ -103,12 +100,8 @@ const headers::decoder &receiver::headers() const noexcept
   return headers_;
 }
 
-base::nothing receiver::recv(quic::event event,
-                             event::handler handler,
-                             std::error_code &ec)
+std::error_code receiver::recv(quic::event event, event::handler handler)
 {
-  base::state_error_handler<receiver::state> on_error(state_, ec);
-
   // TODO: Handle `quic::event::type::error`.
 
   CHECK(!fin_received_, error::internal_error);
@@ -119,34 +112,39 @@ base::nothing receiver::recv(quic::event event,
   fin_received_ = event.fin;
 
   while (!finished()) {
-    http3::event result = process(ec);
+    base::result<http3::event> result = process();
 
-    if (ec) {
-      if (ec == base::error::incomplete && fin_received_) {
-        ec = error::malformed_frame;
-      } else if (ec == base::error::incomplete) {
-        ec = {};
+    if (!result) {
+      if (result == base::error::incomplete && fin_received_) {
+        return error::malformed_frame;
       }
 
-      break;
+      if (result == base::error::incomplete) {
+        return {};
+      }
+
+      return result.error();
     }
 
-    handler(std::move(result), ec);
+    TRY(handler(std::move(result.value())));
   }
 
   return {};
 }
 
-event receiver::process(std::error_code &ec) noexcept
+base::result<event> receiver::process() noexcept
 {
+  std::error_code ec;
+
   switch (state_) {
 
     case state::closed:
       THROW(error::internal_error);
 
     case state::headers: {
-      header header = headers_.decode(buffers_, ec);
-      if (ec) {
+      base::result<header> result = headers_.decode(buffers_);
+      if (!result) {
+        ec = result.error();
         break;
       }
 
@@ -158,12 +156,13 @@ event receiver::process(std::error_code &ec) noexcept
         state_ = state::body;
       }
 
-      return { id_, headers_.finished(), std::move(header) };
+      return event(id_, headers_.finished(), std::move(result.value()));
     }
 
     case state::body: {
-      base::buffer body = body_.decode(buffers_, ec);
-      if (ec) {
+      base::result<base::buffer> result = body_.decode(buffers_);
+      if (!result) {
+        ec = result.error();
         break;
       }
 
@@ -176,16 +175,15 @@ event receiver::process(std::error_code &ec) noexcept
         state_ = state::fin;
       }
 
-      return { id_, fin, std::move(body) };
+      return event(id_, fin, std::move(result.value()));
     }
 
     case state::fin:
-    case state::error:
       THROW(error::internal_error);
   };
 
   if (ec == base::error::unknown) {
-    frame frame = TRY(frame_.decode(buffers_, ec));
+    frame frame = TRY(frame_.decode(buffers_));
 
     switch (frame) {
       case frame::type::headers:
@@ -200,11 +198,11 @@ event receiver::process(std::error_code &ec) noexcept
       case frame::type::goaway:
         THROW(error::wrong_stream);
       default:
-        return process(frame, ec);
+        return process(frame);
     }
   }
 
-  return {};
+  return ec;
 }
 
 } // namespace request

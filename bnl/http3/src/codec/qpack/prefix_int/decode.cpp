@@ -12,13 +12,12 @@ namespace prefix_int {
 decoder::decoder(const log::api *logger) : logger_(logger) {}
 
 template <typename Sequence>
-uint64_t decoder::decode(Sequence &encoded,
-                         uint8_t prefix,
-                         std::error_code &ec) const noexcept
+base::result<uint64_t> decoder::decode(Sequence &encoded, uint8_t prefix) const
+    noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
-  uint64_t result = TRY(uint8_decode(encoded, ec));
+  uint64_t result = TRY(uint8_decode(encoded));
 
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
   result &= prefix_max;
@@ -27,7 +26,7 @@ uint64_t decoder::decode(Sequence &encoded,
     uint64_t offset = 0;
     uint8_t byte = 0;
     do {
-      byte = TRY(uint8_decode(encoded, ec));
+      byte = TRY(uint8_decode(encoded));
       result += (byte & 127U) * (1U << offset);
       offset += 7;
     } while ((byte & 128U) == 128);
@@ -39,8 +38,7 @@ uint64_t decoder::decode(Sequence &encoded,
 }
 
 template <typename Lookahead>
-uint8_t decoder::uint8_decode(Lookahead &encoded, std::error_code &ec) const
-    noexcept
+base::result<uint8_t> decoder::uint8_decode(Lookahead &encoded) const noexcept
 {
   CHECK(!encoded.empty(), base::error::incomplete);
 
