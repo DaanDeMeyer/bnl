@@ -13,12 +13,47 @@ class result {
 public:
   using value_type = T;
 
-  result(T &&value) : value_(std::forward<T>(value)) {} // NOLINT
-  result(std::error_code ec) : ec_(ec) {}               // NOLINT
+  result(T &&value) noexcept // NOLINT
+      : type_(type::value), value_(std::forward<T>(value))
+  {}
+
+  result(std::error_code ec) noexcept : type_(type::error), ec_(ec) {} // NOLINT
+
+  BNL_BASE_NO_COPY(result);
+
+  result(result<T> &&other) noexcept : type_(type::error), ec_()
+  {
+    operator=(std::move(other));
+  }
+
+  result<T> &operator=(result<T> &&other) noexcept
+  {
+    if (&other != this) {
+      destroy();
+
+      type_ = other.type_;
+
+      switch (type_) {
+        case type::value:
+          new (&value_) T(std::move(other.value()));
+          break;
+        case type::error:
+          new (&ec_) std::error_code(other.ec_);
+          break;
+      }
+    }
+
+    return *this;
+  };
+
+  ~result()
+  {
+    destroy();
+  }
 
   value_type &value() &
   {
-    if (ec_) {
+    if (type_ == type::error) {
       throw std::system_error(ec_);
     }
 
@@ -27,7 +62,7 @@ public:
 
   value_type &&value() &&
   {
-    if (ec_) {
+    if (type_ == type::error) {
       throw std::system_error(ec_);
     }
 
@@ -36,17 +71,36 @@ public:
 
   std::error_code error() const noexcept
   {
-    return ec_;
+    return type_ == type::value ? std::error_code() : ec_;
   }
 
   explicit operator bool() const noexcept
   {
-    return !ec_;
+    return type_ == type::value;
   }
 
 private:
-  T value_;
-  std::error_code ec_;
+  void destroy()
+  {
+    switch (type_) {
+      case type::value:
+        value_.~T();
+        break;
+      case type::error:
+        ec_.~error_code();
+        break;
+    }
+  }
+
+private:
+  enum class type : uint8_t { value, error };
+
+  type type_;
+
+  union {
+    T value_;
+    std::error_code ec_;
+  };
 };
 
 template <typename T>
@@ -86,13 +140,13 @@ inline bool BNL_TRY_IS_ERROR(const std::error_code &result)
 }
 
 template <typename T>
-std::error_code BNL_TRY_GET_ERROR(T &&result)
+std::error_code BNL_TRY_GET_ERROR(const T &result)
 {
   return result.error();
 }
 
 template <>
-inline std::error_code BNL_TRY_GET_ERROR(std::error_code &&result)
+inline std::error_code BNL_TRY_GET_ERROR(const std::error_code &result)
 {
   return result;
 }
@@ -104,7 +158,7 @@ inline std::error_code BNL_TRY_GET_ERROR(std::error_code &&result)
   ({                                                                           \
     auto &&res = (__VA_ARGS__);                                                \
     if (bnl::base::BNL_TRY_IS_ERROR(res)) {                                    \
-      return bnl::base::BNL_TRY_GET_ERROR(std::move(res));                     \
+      return bnl::base::BNL_TRY_GET_ERROR(res);                                \
     }                                                                          \
                                                                                \
     std::move(res).value();                                                    \
