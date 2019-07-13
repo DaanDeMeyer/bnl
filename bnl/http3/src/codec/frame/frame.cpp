@@ -46,5 +46,57 @@ frame::operator frame::type() const noexcept
   return type_;
 }
 
+bool operator==(const frame &lhs, const frame &rhs)
+{
+  if (lhs.type_ != rhs.type_) {
+    return false;
+  }
+
+  switch (lhs) {
+    case frame::type::data:
+      return lhs.data.size == rhs.data.size;
+
+    case frame::type::headers:
+      return lhs.headers.size == rhs.headers.size;
+
+    case frame::type::priority:
+      return lhs.priority.element_dependency_id ==
+                 rhs.priority.element_dependency_id &&
+             lhs.priority.element_dependency_type ==
+                 rhs.priority.element_dependency_type &&
+             lhs.priority.prioritized_element_id ==
+                 rhs.priority.prioritized_element_id &&
+             lhs.priority.prioritized_element_type ==
+                 rhs.priority.prioritized_element_type &&
+             lhs.priority.weight == rhs.priority.weight;
+
+    case frame::type::cancel_push:
+      return lhs.cancel_push.push_id == rhs.cancel_push.push_id;
+
+    case frame::type::settings:
+      return lhs.settings.array() == rhs.settings.array();
+
+    case frame::type::push_promise:
+      return lhs.push_promise.push_id == rhs.push_promise.push_id &&
+             lhs.push_promise.size == rhs.push_promise.size;
+
+    case frame::type::goaway:
+      return lhs.goaway.stream_id == rhs.goaway.stream_id;
+
+    case frame::type::max_push_id:
+      return lhs.max_push_id.push_id == rhs.max_push_id.push_id;
+
+    case frame::type::duplicate_push:
+      return lhs.duplicate_push.push_id == rhs.duplicate_push.push_id;
+  }
+
+  return false;
+}
+
+bool operator!=(const frame &lhs, const frame &rhs)
+{
+  return !(lhs == rhs);
+}
+
 } // namespace http3
 } // namespace bnl

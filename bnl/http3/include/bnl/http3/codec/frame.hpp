@@ -108,6 +108,8 @@ public:
 private:
   const type type_;
 
+  BNL_HTTP3_EXPORT friend bool operator==(const frame &lhs, const frame &rhs);
+
 public:
   union {
     const payload::data data;
@@ -121,6 +123,9 @@ public:
     const payload::duplicate_push duplicate_push;
   };
 };
+
+BNL_HTTP3_EXPORT bool operator==(const frame &lhs, const frame &rhs);
+BNL_HTTP3_EXPORT bool operator!=(const frame &lhs, const frame &rhs);
 
 class BNL_HTTP3_EXPORT frame::encoder {
 public:
@@ -157,8 +162,7 @@ public:
 
 private:
   template <typename Lookahead>
-  base::result<frame> decode(Lookahead &lookahead,
-                             bool *is_unknown_frame_type) const noexcept;
+  base::result<frame> decode_single(Lookahead &lookahead) const noexcept;
 
   template <typename Lookahead>
   base::result<uint8_t> uint8_decode(Lookahead &lookahead) const noexcept;
