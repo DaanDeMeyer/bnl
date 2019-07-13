@@ -18,8 +18,10 @@ public:
   using lookahead_type = lookahead;
 
   buffer() noexcept;
-  explicit buffer(size_t size);
   buffer(const uint8_t *data, size_t size);
+
+  explicit buffer(size_t size);
+  explicit buffer(buffer_view data) noexcept;
 
   template <size_t Size>
   buffer(const char (&data)[Size]) noexcept // NOLINT

@@ -8,6 +8,12 @@ namespace base {
 
 buffer::buffer() noexcept : type_(type::sso), sso_() {} // NOLINT
 
+buffer::buffer(const uint8_t *data, size_t size) // NOLINT
+    : buffer(size)
+{
+  std::copy_n(data, size, this->data());
+}
+
 buffer::buffer(size_t size) // NOLINT
     : type_(size <= SSO_THRESHOLD ? type::sso : type::unique), size_(size)
 {
@@ -24,11 +30,7 @@ buffer::buffer(size_t size) // NOLINT
   }
 }
 
-buffer::buffer(const uint8_t *data, size_t size) // NOLINT
-    : buffer(size)
-{
-  std::copy_n(data, size, this->data());
-}
+buffer::buffer(buffer_view data) noexcept : buffer(data.data(), data.size()) {}
 
 buffer::buffer(const buffer &other) : buffer()
 {
