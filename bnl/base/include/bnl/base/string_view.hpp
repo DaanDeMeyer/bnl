@@ -12,8 +12,9 @@ namespace base {
 class BNL_BASE_EXPORT string_view {
 public:
   string_view() = default;
-  string_view(const char *data, size_t size) noexcept;
 
+  string_view(const char *data) noexcept; // NOLINT
+  string_view(const char *data, size_t size) noexcept;
   string_view(const string &string) noexcept; // NOLINT
 
   const char *data() const noexcept;

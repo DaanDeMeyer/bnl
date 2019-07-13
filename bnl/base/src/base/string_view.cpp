@@ -2,10 +2,15 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <ostream>
 
 namespace bnl {
 namespace base {
+
+string_view::string_view(const char *data) noexcept
+    : data_(data), size_(strlen(data))
+{}
 
 string_view::string_view(const char *data, size_t size) noexcept
     : data_(data), size_(size)
