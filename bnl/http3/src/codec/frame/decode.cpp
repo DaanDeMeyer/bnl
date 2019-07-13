@@ -47,21 +47,23 @@ base::result<frame> frame::decoder::decode(Sequence &encoded) const noexcept
   // frame has no copy constructor so we check the while condition inside the
   // while loop instead.
   while (true) {
-    bool is_unknown_frame_type = false;
     typename Sequence::lookahead_type lookahead(encoded);
 
-    frame frame = TRY(decode(lookahead, &is_unknown_frame_type));
+    base::result<frame> result = decode_single(lookahead);
+    if (!result && result.error() != base::error::unknown) {
+      return result.error();
+    }
+
     encoded.consume(lookahead.consumed());
 
-    if (!is_unknown_frame_type) {
-      return frame;
+    if (result) {
+      return result;
     }
   }
 }
 
 template <typename Lookahead>
-base::result<frame> frame::decoder::decode(Lookahead &lookahead,
-                                           bool *is_unknown_frame_type) const
+base::result<frame> frame::decoder::decode_single(Lookahead &lookahead) const
     noexcept
 {
   uint64_t type = TRY(varint_.decode(lookahead));
@@ -197,14 +199,10 @@ base::result<frame> frame::decoder::decode(Lookahead &lookahead,
       default:
         // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#extensions
         // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-grease
-        LOG_E("Ignoring unknown frame type ({})", type);
-        *is_unknown_frame_type = true;
 
         // TODO: Error on unreasonable unknown frame payload size.
         lookahead.consume(static_cast<size_t>(payload_encoded_size));
-
-        payload_encoded_size = 0;
-        return frame();
+        THROW(base::error::unknown);
     }
   };
 
