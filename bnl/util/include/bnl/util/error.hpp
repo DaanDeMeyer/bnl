@@ -24,21 +24,21 @@
 
 #define THROW(err)                                                             \
   {                                                                            \
-    std::error_code ec = err;                                                  \
+    std::error_code err_ = err;                                                \
                                                                                \
     if (logger_) {                                                             \
       logger_->operator()(__FILE__, static_cast<const char *>(__func__),       \
-                          __LINE__, ec);                                       \
+                          __LINE__, err_);                                     \
     }                                                                          \
                                                                                \
-    return ec;                                                                 \
+    return err_;                                                               \
   }                                                                            \
   (void) 0
 
 #define CHECK(expression, error)                                               \
   {                                                                            \
-    auto result = expression;                                                  \
-    if (!result) {                                                             \
+    auto result_ = expression;                                                 \
+    if (!result_) {                                                            \
       THROW(error);                                                            \
     }                                                                          \
   }                                                                            \
