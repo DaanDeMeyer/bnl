@@ -6,7 +6,7 @@
 #include <array>
 
 static constexpr std::array<const char*, 6> level_names = { "TRACE", "DEBUG",
-                                                            "INFO",  "WARN",
+                                                            "INFO ", "WARN ",
                                                             "ERROR", "FATAL" };
 
 static constexpr std::array<fmt::color, 6> level_colors = {
