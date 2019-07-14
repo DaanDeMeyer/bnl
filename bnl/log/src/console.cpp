@@ -50,8 +50,10 @@ void console::log(log::level level,
   const char *level_name = level_names[static_cast<size_t>(level)];
   fmt::print(output, color, "{} ", level_name);
 
-  color = fmt::fg(fmt::color::dark_gray);
-  fmt::print(output, color, "{}:{}: ", file, line);
+  if (level == log::level::error) {
+    color = fmt::fg(fmt::color::dark_gray);
+    fmt::print(output, color, "{}:{}: ", file, line);
+  }
 
   color = fmt::fg(fmt::color::white);
   fmt::vprint(output, color, format, args);
