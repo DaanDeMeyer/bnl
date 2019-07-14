@@ -19,6 +19,8 @@ const char *error_category_impl::name() const noexcept
 std::string error_category_impl::message(int condition) const noexcept
 {
   switch (static_cast<error>(condition)) {
+    case error::success:
+      return "success";
     case error::internal:
       return "internal";
     case error::not_implemented:

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bnl/base/error.hpp>
 #include <bnl/base/macro.hpp>
 
 #include <system_error>
@@ -71,7 +72,7 @@ public:
 
   std::error_code error() const noexcept
   {
-    return type_ == type::value ? std::error_code() : ec_;
+    return type_ == type::value ? base::error::success : ec_;
   }
 
   explicit operator bool() const noexcept

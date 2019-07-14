@@ -8,6 +8,7 @@ namespace bnl {
 namespace base {
 
 enum class error {
+  success,
   internal,
   not_implemented,
   invalid_argument,
