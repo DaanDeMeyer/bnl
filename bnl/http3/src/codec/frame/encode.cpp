@@ -9,12 +9,13 @@
 namespace bnl {
 namespace http3 {
 
-frame::encoder::encoder(const log::api *logger) noexcept
-    : varint_(logger), logger_(logger)
+frame::encoder::encoder(const log::api* logger) noexcept
+  : varint_(logger)
+  , logger_(logger)
 {}
 
-base::result<uint64_t> frame::encoder::payload_size(const frame &frame) const
-    noexcept
+base::result<uint64_t>
+frame::encoder::payload_size(const frame& frame) const noexcept
 {
   uint64_t payload_size = 0;
 
@@ -81,8 +82,8 @@ base::result<uint64_t> frame::encoder::payload_size(const frame &frame) const
   return payload_size;
 }
 
-base::result<size_t> frame::encoder::encoded_size(const frame &frame) const
-    noexcept
+base::result<size_t>
+frame::encoder::encoded_size(const frame& frame) const noexcept
 {
   uint64_t payload_size = TRY(this->payload_size(frame));
   size_t payload_encoded_size = 0;
@@ -121,13 +122,13 @@ base::result<size_t> frame::encoder::encoded_size(const frame &frame) const
   return encoded_size;
 }
 
-base::result<size_t> frame::encoder::encode(uint8_t *dest,
-                                            const frame &frame) const noexcept
+base::result<size_t>
+frame::encoder::encode(uint8_t* dest, const frame& frame) const noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(frame));
-  uint8_t *begin = dest;
+  uint8_t* begin = dest;
 
   uint64_t payload_size = TRY(this->payload_size(frame));
 
@@ -140,16 +141,16 @@ base::result<size_t> frame::encoder::encode(uint8_t *dest,
     case frame::type::headers:
       break;
     case frame::type::priority: {
-      uint8_t prioritized_element_type = util::to_underlying(
-          frame.priority.prioritized_element_type);
-      uint8_t element_dependency_type = util::to_underlying(
-          frame.priority.element_dependency_type);
+      uint8_t prioritized_element_type =
+        util::to_underlying(frame.priority.prioritized_element_type);
+      uint8_t element_dependency_type =
+        util::to_underlying(frame.priority.element_dependency_type);
 
       uint8_t byte = 0;
       byte = static_cast<uint8_t>(
-          byte | static_cast<uint8_t>((prioritized_element_type << 6U)));
+        byte | static_cast<uint8_t>((prioritized_element_type << 6U)));
       byte = static_cast<uint8_t>(
-          byte | static_cast<uint8_t>(element_dependency_type << 4U));
+        byte | static_cast<uint8_t>(element_dependency_type << 4U));
       byte &= 0xf0U;
 
       *dest++ = byte;
@@ -191,7 +192,8 @@ base::result<size_t> frame::encoder::encode(uint8_t *dest,
   return encoded_size;
 }
 
-base::result<base::buffer> frame::encoder::encode(const frame &frame) const
+base::result<base::buffer>
+frame::encoder::encode(const frame& frame) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame));
   base::buffer encoded(encoded_size);

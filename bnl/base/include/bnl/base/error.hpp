@@ -7,7 +7,8 @@
 namespace bnl {
 namespace base {
 
-enum class error {
+enum class error
+{
   success,
   internal,
   not_implemented,
@@ -17,16 +18,19 @@ enum class error {
   unknown
 };
 
-BNL_BASE_EXPORT const std::error_category &error_category() noexcept;
+BNL_BASE_EXPORT const std::error_category&
+error_category() noexcept;
 
-BNL_BASE_EXPORT std::error_code make_error_code(error error) noexcept;
+BNL_BASE_EXPORT std::error_code
+make_error_code(error error) noexcept;
 
 } // namespace base
 } // namespace bnl
 
 namespace std {
 
-template <>
-struct is_error_code_enum<bnl::base::error> : true_type {};
+template<>
+struct is_error_code_enum<bnl::base::error> : true_type
+{};
 
 } // namespace std

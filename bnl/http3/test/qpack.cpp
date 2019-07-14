@@ -10,10 +10,11 @@
 
 using namespace bnl;
 
-template <size_t N>
-static void encode_and_decode(const http3::header &header,
-                              http3::qpack::encoder &encoder,
-                              http3::qpack::decoder &decoder)
+template<size_t N>
+static void
+encode_and_decode(const http3::header& header,
+                  http3::qpack::encoder& encoder,
+                  http3::qpack::decoder& decoder)
 {
   size_t encoded_size = EXTRACT(encoder.encoded_size(header));
   REQUIRE(encoded_size == N);

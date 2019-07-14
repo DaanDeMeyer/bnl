@@ -7,9 +7,12 @@ namespace http3 {
 namespace qpack {
 namespace prefix_int {
 
-encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
+encoder::encoder(const log::api* logger) noexcept
+  : logger_(logger)
+{}
 
-size_t encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
+size_t
+encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
 {
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
@@ -32,10 +35,10 @@ size_t encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
   return encoded_size;
 }
 
-size_t encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const
-    noexcept
+size_t
+encoder::encode(uint8_t* dest, uint64_t value, uint8_t prefix) const noexcept
 {
-  uint8_t *begin = dest;
+  uint8_t* begin = dest;
 
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
@@ -58,7 +61,8 @@ size_t encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const
   return static_cast<size_t>(dest - begin);
 }
 
-base::buffer encoder::encode(uint64_t value, uint8_t prefix) const
+base::buffer
+encoder::encode(uint64_t value, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(value, prefix);
   base::buffer encoded(encoded_size);

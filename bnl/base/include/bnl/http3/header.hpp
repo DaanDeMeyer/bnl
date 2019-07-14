@@ -7,7 +7,8 @@
 namespace bnl {
 namespace http3 {
 
-class BNL_BASE_EXPORT header_view {
+class BNL_BASE_EXPORT header_view
+{
 public:
   header_view() = default;
   header_view(base::string_view name, base::string_view value) noexcept;
@@ -20,10 +21,13 @@ private:
   base::string_view value_;
 };
 
-BNL_BASE_EXPORT bool operator==(header_view first, header_view second) noexcept;
-BNL_BASE_EXPORT bool operator!=(header_view first, header_view second) noexcept;
+BNL_BASE_EXPORT bool
+operator==(header_view first, header_view second) noexcept;
+BNL_BASE_EXPORT bool
+operator!=(header_view first, header_view second) noexcept;
 
-class BNL_BASE_EXPORT header {
+class BNL_BASE_EXPORT header
+{
 public:
   header() = default;
   header(base::string name, base::string value) noexcept;

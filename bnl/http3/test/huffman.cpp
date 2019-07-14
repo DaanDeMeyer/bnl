@@ -9,7 +9,8 @@
 
 using namespace bnl;
 
-static base::string random_string(size_t length)
+static base::string
+random_string(size_t length)
 {
   static const char characters[] = "0123456789"
                                    "abcdefghijklmnopqrstuvwxyz"
@@ -21,16 +22,17 @@ static base::string random_string(size_t length)
   base::string string;
   string.resize(length);
 
-  for (char &character : string) {
+  for (char& character : string) {
     character = characters[pick(rg)];
   }
 
   return string;
 }
 
-static void encode_and_decode(base::string_view string,
-                              const http3::qpack::huffman::encoder &encoder,
-                              const http3::qpack::huffman::decoder &decoder)
+static void
+encode_and_decode(base::string_view string,
+                  const http3::qpack::huffman::encoder& encoder,
+                  const http3::qpack::huffman::decoder& decoder)
 {
   base::buffer encoded = encoder.encode(string);
 
@@ -62,8 +64,8 @@ TEST_CASE("huffman")
 
     base::buffer incomplete = encoded.copy(2);
 
-    base::result<base::string> result = decoder.decode(incomplete,
-                                                       encoded.size());
+    base::result<base::string> result =
+      decoder.decode(incomplete, encoded.size());
 
     REQUIRE(result == base::error::incomplete);
     REQUIRE(incomplete.size() == 2);

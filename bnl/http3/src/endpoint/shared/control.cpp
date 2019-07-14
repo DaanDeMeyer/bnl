@@ -10,11 +10,14 @@ namespace endpoint {
 namespace shared {
 namespace control {
 
-sender::sender(uint64_t id, const log::api *logger) noexcept
-    : frame_(logger), id_(id), logger_(logger)
+sender::sender(uint64_t id, const log::api* logger) noexcept
+  : frame_(logger)
+  , id_(id)
+  , logger_(logger)
 {}
 
-base::result<quic::event> sender::send() noexcept
+base::result<quic::event>
+sender::send() noexcept
 {
   switch (state_) {
     case state::settings: {
@@ -30,18 +33,22 @@ base::result<quic::event> sender::send() noexcept
   NOTREACHED();
 }
 
-receiver::receiver(uint64_t id, const log::api *logger) noexcept
-    : frame_(logger), id_(id), logger_(logger)
+receiver::receiver(uint64_t id, const log::api* logger) noexcept
+  : frame_(logger)
+  , id_(id)
+  , logger_(logger)
 {}
 
 receiver::~receiver() noexcept = default;
 
-uint64_t receiver::id() const noexcept
+uint64_t
+receiver::id() const noexcept
 {
   return id_;
 }
 
-std::error_code receiver::recv(quic::event event, event::handler handler)
+std::error_code
+receiver::recv(quic::event event, event::handler handler)
 {
   CHECK(event == quic::event::type::data, base::error::not_implemented);
   CHECK(!event.fin, error::closed_critical_stream);
@@ -64,7 +71,8 @@ std::error_code receiver::recv(quic::event event, event::handler handler)
   return {};
 }
 
-base::result<event> receiver::process() noexcept
+base::result<event>
+receiver::process() noexcept
 {
   switch (state_) {
 

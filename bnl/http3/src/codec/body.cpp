@@ -8,11 +8,13 @@ namespace bnl {
 namespace http3 {
 namespace body {
 
-encoder::encoder(const log::api *logger) noexcept
-    : frame_(logger), logger_(logger)
+encoder::encoder(const log::api* logger) noexcept
+  : frame_(logger)
+  , logger_(logger)
 {}
 
-std::error_code encoder::add(base::buffer body)
+std::error_code
+encoder::add(base::buffer body)
 {
   CHECK(!fin_, error::internal_error);
 
@@ -21,7 +23,8 @@ std::error_code encoder::add(base::buffer body)
   return {};
 }
 
-std::error_code encoder::fin() noexcept
+std::error_code
+encoder::fin() noexcept
 {
   CHECK(state_ != state::fin, error::internal_error);
 
@@ -34,12 +37,14 @@ std::error_code encoder::fin() noexcept
   return {};
 }
 
-bool encoder::finished() const noexcept
+bool
+encoder::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-base::result<base::buffer> encoder::encode() noexcept
+base::result<base::buffer>
+encoder::encode() noexcept
 {
   // TODO: Implement PRIORITY
 
@@ -72,17 +77,20 @@ base::result<base::buffer> encoder::encode() noexcept
   NOTREACHED();
 }
 
-decoder::decoder(const log::api *logger) noexcept
-    : frame_(logger), logger_(logger)
+decoder::decoder(const log::api* logger) noexcept
+  : frame_(logger)
+  , logger_(logger)
 {}
 
-bool decoder::in_progress() const noexcept
+bool
+decoder::in_progress() const noexcept
 {
   return state_ == decoder::state::data;
 }
 
-template <typename Sequence>
-base::result<base::buffer> decoder::decode(Sequence &encoded)
+template<typename Sequence>
+base::result<base::buffer>
+decoder::decode(Sequence& encoded)
 {
   switch (state_) {
 
@@ -101,8 +109,8 @@ base::result<base::buffer> decoder::decode(Sequence &encoded)
       CHECK(!encoded.empty(), base::error::incomplete);
 
       size_t body_part_size = encoded.size() < remaining_
-                                  ? encoded.size()
-                                  : static_cast<size_t>(remaining_);
+                                ? encoded.size()
+                                : static_cast<size_t>(remaining_);
       base::buffer body_part = encoded.slice(body_part_size);
 
       remaining_ -= body_part_size;

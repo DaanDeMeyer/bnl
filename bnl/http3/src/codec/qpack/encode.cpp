@@ -15,16 +15,20 @@ namespace bnl {
 namespace http3 {
 namespace qpack {
 
-encoder::encoder(const log::api *logger) noexcept
-    : prefix_int_(logger), literal_(logger), logger_(logger)
+encoder::encoder(const log::api* logger) noexcept
+  : prefix_int_(logger)
+  , literal_(logger)
+  , logger_(logger)
 {}
 
-uint64_t encoder::count() const noexcept
+uint64_t
+encoder::count() const noexcept
 {
   return count_;
 }
 
-base::result<size_t> encoder::encoded_size(header_view header) const noexcept
+base::result<size_t>
+encoder::encoded_size(header_view header) const noexcept
 {
   if (!util::is_lowercase(header.name())) {
     fmt::string_view view(header.name().data(), header.name().size());
@@ -78,12 +82,13 @@ static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x50;
 static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
-base::result<size_t> encoder::encode(uint8_t *dest, header_view header) noexcept
+base::result<size_t>
+encoder::encode(uint8_t* dest, header_view header) noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(header));
-  uint8_t *begin = dest;
+  uint8_t* begin = dest;
 
   if (state_ == state::prefix) {
     std::fill(dest, dest + QPACK_PREFIX_ENCODED_SIZE, static_cast<uint8_t>(0U));
@@ -129,7 +134,8 @@ base::result<size_t> encoder::encode(uint8_t *dest, header_view header) noexcept
   return encoded_size;
 }
 
-base::result<base::buffer> encoder::encode(header_view header)
+base::result<base::buffer>
+encoder::encode(header_view header)
 {
   size_t encoded_size = TRY(this->encoded_size(header));
   base::buffer encoded(encoded_size);

@@ -9,7 +9,8 @@
 namespace bnl {
 namespace util {
 
-BNL_UTIL_EXPORT bool is_lowercase(base::string_view string);
+BNL_UTIL_EXPORT bool
+is_lowercase(base::string_view string);
 
 } // namespace util
 } // namespace bnl

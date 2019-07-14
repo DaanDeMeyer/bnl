@@ -10,7 +10,8 @@
 namespace bnl {
 namespace log {
 
-enum class level {
+enum class level
+{
   trace,
   debug,
   info,
@@ -18,7 +19,8 @@ enum class level {
   error,
 };
 
-class BNL_BASE_EXPORT api {
+class BNL_BASE_EXPORT api
+{
 public:
   api() = default;
 
@@ -27,29 +29,29 @@ public:
 
   virtual ~api() noexcept;
 
-  template <typename... Args>
+  template<typename... Args>
   void operator()(log::level level,
-                  const char *file,
-                  const char *function,
+                  const char* file,
+                  const char* function,
                   int line,
-                  const char *format,
-                  const Args &... args) const
+                  const char* format,
+                  const Args&... args) const
   {
     log(level, file, function, line, format, fmt::make_format_args(args...));
   }
 
-  void operator()(const char *file,
-                  const char *function,
+  void operator()(const char* file,
+                  const char* function,
                   int line,
                   std::error_code ec) const;
 
 protected:
   virtual void log(log::level level,
-                   const char *file,
-                   const char *function,
+                   const char* file,
+                   const char* function,
                    int line,
-                   const char *format,
-                   const fmt::format_args &args) const;
+                   const char* format,
+                   const fmt::format_args& args) const;
 };
 
 } // namespace log
@@ -60,11 +62,14 @@ protected:
 
 #define BNL_LOG(logger, level, format, ...)                                    \
   if (logger != nullptr) {                                                     \
-    (logger)->operator()((level), __FILE__,                                    \
-                         static_cast<const char *>(__func__), __LINE__,        \
-                         (format), ##__VA_ARGS__);                             \
+    (logger)->operator()((level),                                              \
+                         __FILE__,                                             \
+                         static_cast<const char*>(__func__),                   \
+                         __LINE__,                                             \
+                         (format),                                             \
+                         ##__VA_ARGS__);                                       \
   }                                                                            \
-  (void) 0
+  (void)0
 
 #define BNL_LOG_TRACE(logger, format, ...)                                     \
   BNL_LOG(logger, bnl::log::level::trace, (format), ##__VA_ARGS__)

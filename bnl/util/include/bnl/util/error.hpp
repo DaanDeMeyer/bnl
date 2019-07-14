@@ -13,12 +13,12 @@
       std::abort();                                                            \
     }                                                                          \
   }                                                                            \
-  (void) 0
+  (void)0
 
 #define NOTREACHED()                                                           \
   LOG_E("Assertion failed: NOTREACHED()");                                     \
   std::abort();                                                                \
-  (void) 0
+  (void)0
 
 #define TRY BNL_TRY
 
@@ -27,13 +27,13 @@
     std::error_code err_ = err;                                                \
                                                                                \
     if (logger_) {                                                             \
-      logger_->operator()(__FILE__, static_cast<const char *>(__func__),       \
-                          __LINE__, err_);                                     \
+      logger_->operator()(                                                     \
+        __FILE__, static_cast<const char*>(__func__), __LINE__, err_);         \
     }                                                                          \
                                                                                \
     return err_;                                                               \
   }                                                                            \
-  (void) 0
+  (void)0
 
 #define CHECK(expression, error)                                               \
   {                                                                            \
@@ -42,4 +42,4 @@
       THROW(error);                                                            \
     }                                                                          \
   }                                                                            \
-  (void) 0
+  (void)0

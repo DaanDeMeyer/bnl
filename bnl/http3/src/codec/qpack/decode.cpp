@@ -12,19 +12,23 @@ namespace http3 {
 namespace qpack {
 
 // TODO: Find out what is best for max header and max value size.
-decoder::decoder(const log::api *logger)
-    : prefix_int_(logger), literal_(logger), logger_(logger)
+decoder::decoder(const log::api* logger)
+  : prefix_int_(logger)
+  , literal_(logger)
+  , logger_(logger)
 {}
 
-uint64_t decoder::count() const noexcept
+uint64_t
+decoder::count() const noexcept
 {
   return count_;
 }
 
 static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
-template <typename Sequence>
-base::result<header> decoder::decode(Sequence &encoded)
+template<typename Sequence>
+base::result<header>
+decoder::decode(Sequence& encoded)
 {
   if (state_ == state::prefix) {
     CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, base::error::incomplete);
@@ -47,8 +51,8 @@ base::result<header> decoder::decode(Sequence &encoded)
         THROW(error::qpack_decompression_failed);
       }
 
-      uint8_t index = static_cast<uint8_t>(
-          TRY(prefix_int_.decode(lookahead, 6)));
+      uint8_t index =
+        static_cast<uint8_t>(TRY(prefix_int_.decode(lookahead, 6)));
 
       bool found = false;
       std::tie(found, header) = table::fixed::find_header_value(index);
@@ -67,8 +71,8 @@ base::result<header> decoder::decode(Sequence &encoded)
         THROW(error::qpack_decompression_failed);
       }
 
-      uint8_t index = static_cast<uint8_t>(
-          TRY(prefix_int_.decode(lookahead, 4)));
+      uint8_t index =
+        static_cast<uint8_t>(TRY(prefix_int_.decode(lookahead, 4)));
 
       bool found = false;
       base::string name;

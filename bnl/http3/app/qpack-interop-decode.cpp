@@ -16,7 +16,8 @@ using namespace bnl;
 // pointer.
 static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
 
-static base::result<uint64_t> id_decode(base::buffer &encoded)
+static base::result<uint64_t>
+id_decode(base::buffer& encoded)
 {
   CHECK(encoded.size() >= sizeof(uint64_t), base::error::incomplete);
 
@@ -34,7 +35,8 @@ static base::result<uint64_t> id_decode(base::buffer &encoded)
   return id;
 }
 
-static base::result<size_t> size_decode(base::buffer &encoded)
+static base::result<size_t>
+size_decode(base::buffer& encoded)
 {
   CHECK(encoded.size() >= sizeof(uint32_t), base::error::incomplete);
 
@@ -48,16 +50,18 @@ static base::result<size_t> size_decode(base::buffer &encoded)
   return encoded_size;
 }
 
-static void write(std::ostream &dest, const std::vector<http3::header> &headers)
+static void
+write(std::ostream& dest, const std::vector<http3::header>& headers)
 {
-  for (const http3::header &header : headers) {
+  for (const http3::header& header : headers) {
     dest << header.name() << '\t' << header.value() << '\n';
   }
 
   dest << '\n';
 }
 
-static std::error_code decode(base::buffer &encoded, std::ofstream &output)
+static std::error_code
+decode(base::buffer& encoded, std::ofstream& output)
 {
   TRY(id_decode(encoded));
   size_t encoded_size = TRY(size_decode(encoded));
@@ -74,7 +78,7 @@ static std::error_code decode(base::buffer &encoded, std::ofstream &output)
 
   try {
     write(output, headers);
-  } catch (std::ios_base::failure &e) {
+  } catch (std::ios_base::failure& e) {
     LOG_E("Error writing output: {}", e.what());
     return e.code();
   }
@@ -82,7 +86,8 @@ static std::error_code decode(base::buffer &encoded, std::ofstream &output)
   return {};
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
   if (argc < 3) {
     return 1;
@@ -95,7 +100,7 @@ int main(int argc, char *argv[])
 
   try {
     input.open(argv[1], std::ios::binary);
-  } catch (const std::ios_base::failure &e) {
+  } catch (const std::ios_base::failure& e) {
     LOG_E("Error opening input file: {}", e.what());
     return 1;
   }
@@ -110,8 +115,8 @@ int main(int argc, char *argv[])
     input.seekg(0, std::ios::beg);
 
     encoded = base::buffer(static_cast<size_t>(size));
-    input.read(reinterpret_cast<char *>(encoded.data()), size);
-  } catch (const std::ios_base::failure &e) {
+    input.read(reinterpret_cast<char*>(encoded.data()), size);
+  } catch (const std::ios_base::failure& e) {
     LOG_E("Error reading input: {}", e.what());
     return 1;
   }
@@ -123,7 +128,7 @@ int main(int argc, char *argv[])
 
   try {
     output.open(argv[2], std::ios::trunc | std::ios::binary);
-  } catch (const std::ios_base::failure &e) {
+  } catch (const std::ios_base::failure& e) {
     LOG_E("Error opening output file: {}", e.what());
     return 1;
   }

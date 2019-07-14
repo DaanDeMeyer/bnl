@@ -10,13 +10,20 @@ namespace qpack {
 namespace table {
 namespace fixed {
 
-enum class type { header_value, header_only, missing, unknown };
+enum class type
+{
+  header_value,
+  header_only,
+  missing,
+  unknown
+};
 
 static constexpr uint8_t INDEXED_HEADER_FIELD_PREFIX = 0x80;
 static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x40;
 static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 
-static type find_type(uint8_t byte)
+static type
+find_type(uint8_t byte)
 {
   if ((byte & INDEXED_HEADER_FIELD_PREFIX) == INDEXED_HEADER_FIELD_PREFIX) {
     return type::header_value;
@@ -35,7 +42,8 @@ static type find_type(uint8_t byte)
   return type::unknown;
 }
 
-std::pair<bool, header> find_header_value(uint8_t index)
+std::pair<bool, header>
+find_header_value(uint8_t index)
 {
   switch (index) {
     case 15:
@@ -205,7 +213,8 @@ std::pair<bool, header> find_header_value(uint8_t index)
   return { false, {} };
 }
 
-std::pair<bool, base::string> find_header_only(uint8_t index)
+std::pair<bool, base::string>
+find_header_only(uint8_t index)
 {
   switch (index) {
     case 0:

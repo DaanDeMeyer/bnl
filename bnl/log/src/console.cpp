@@ -5,9 +5,9 @@
 
 #include <array>
 
-static constexpr std::array<const char *, 6> level_names = { "TRACE", "DEBUG",
-                                                             "INFO",  "WARN",
-                                                             "ERROR", "FATAL" };
+static constexpr std::array<const char*, 6> level_names = { "TRACE", "DEBUG",
+                                                            "INFO",  "WARN",
+                                                            "ERROR", "FATAL" };
 
 static constexpr std::array<fmt::color, 6> level_colors = {
   fmt::color::light_blue, fmt::color::cyan, fmt::color::green,
@@ -17,20 +17,21 @@ static constexpr std::array<fmt::color, 6> level_colors = {
 namespace bnl {
 namespace log {
 
-void console::log(log::level level,
-                  const char *file,
-                  const char *function,
-                  int line,
-                  const char *format,
-                  const fmt::format_args &args) const
+void
+console::log(log::level level,
+             const char* file,
+             const char* function,
+             int line,
+             const char* format,
+             const fmt::format_args& args) const
 {
-  (void) function;
+  (void)function;
 
   if (level < level_) {
     return;
   }
 
-  FILE *output = nullptr;
+  FILE* output = nullptr;
 
   switch (level) {
     case log::level::warning:
@@ -47,7 +48,7 @@ void console::log(log::level level,
   fmt::print(output, color, "{:%H:%M:%S} ", fmt::localtime(time));
 
   color = fmt::fg(level_colors[static_cast<size_t>(level)]);
-  const char *level_name = level_names[static_cast<size_t>(level)];
+  const char* level_name = level_names[static_cast<size_t>(level)];
   fmt::print(output, color, "{} ", level_name);
 
   if (level == log::level::error) {

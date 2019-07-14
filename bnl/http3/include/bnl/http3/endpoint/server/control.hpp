@@ -15,16 +15,18 @@ namespace endpoint {
 namespace server {
 namespace control {
 
-class BNL_HTTP3_EXPORT sender : public shared::control::sender {
+class BNL_HTTP3_EXPORT sender : public shared::control::sender
+{
 public:
-  explicit sender(const log::api *logger) noexcept;
+  explicit sender(const log::api* logger) noexcept;
 
   BNL_BASE_MOVE_ONLY(sender);
 };
 
-class BNL_HTTP3_EXPORT receiver : public shared::control::receiver {
+class BNL_HTTP3_EXPORT receiver : public shared::control::receiver
+{
 public:
-  explicit receiver(const log::api *logger) noexcept;
+  explicit receiver(const log::api* logger) noexcept;
 
   BNL_BASE_MOVE_ONLY(receiver);
 
@@ -32,7 +34,7 @@ private:
   base::result<event> process(frame frame) noexcept final;
 
 private:
-  const log::api *logger_;
+  const log::api* logger_;
 };
 
 } // namespace control

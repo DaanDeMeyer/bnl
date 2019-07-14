@@ -9,32 +9,34 @@ namespace http3 {
 namespace qpack {
 namespace literal {
 
-encoder::encoder(const log::api *logger) noexcept
-    : prefix_int_(logger), huffman_(logger), logger_(logger)
+encoder::encoder(const log::api* logger) noexcept
+  : prefix_int_(logger)
+  , huffman_(logger)
+  , logger_(logger)
 {}
 
-size_t encoder::encoded_size(base::string_view literal, uint8_t prefix) const
-    noexcept
+size_t
+encoder::encoded_size(base::string_view literal, uint8_t prefix) const noexcept
 {
   size_t huffman_encoded_size = huffman_.encoded_size(literal);
   size_t literal_encoded_size = huffman_encoded_size < literal.size()
-                                    ? huffman_encoded_size
-                                    : literal.size();
+                                  ? huffman_encoded_size
+                                  : literal.size();
 
   return prefix_int_.encoded_size(literal_encoded_size, prefix) +
          literal_encoded_size;
 }
 
-size_t encoder::encode(uint8_t *dest,
-                       base::string_view literal,
-                       uint8_t prefix) const noexcept
+size_t
+encoder::encode(uint8_t* dest, base::string_view literal, uint8_t prefix) const
+  noexcept
 {
-  uint8_t *begin = dest;
+  uint8_t* begin = dest;
 
   size_t huffman_encoded_size = huffman_.encoded_size(literal);
   size_t literal_encoded_size = huffman_encoded_size < literal.size()
-                                    ? huffman_encoded_size
-                                    : literal.size();
+                                  ? huffman_encoded_size
+                                  : literal.size();
 
   if (literal_encoded_size < literal.size()) {
     *dest = static_cast<uint8_t>(*dest | static_cast<uint8_t>(1U << prefix));
@@ -49,7 +51,8 @@ size_t encoder::encode(uint8_t *dest,
   return static_cast<size_t>(dest - begin);
 }
 
-base::buffer encoder::encode(base::string_view literal, uint8_t prefix) const
+base::buffer
+encoder::encode(base::string_view literal, uint8_t prefix) const
 {
   size_t encoded_size = this->encoded_size(literal, prefix);
   base::buffer encoded(encoded_size);

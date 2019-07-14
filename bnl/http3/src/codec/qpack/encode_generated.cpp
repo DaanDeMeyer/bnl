@@ -11,9 +11,15 @@ namespace qpack {
 namespace table {
 namespace fixed {
 
-enum class type { header_value, header_only, missing };
+enum class type
+{
+  header_value,
+  header_only,
+  missing
+};
 
-static std::pair<type, uint8_t> find_index(header_view header)
+static std::pair<type, uint8_t>
+find_index(header_view header)
 {
   uint64_t name_hash = XXH64(header.name().data(), header.name().size(), 0);
   uint64_t value_hash;

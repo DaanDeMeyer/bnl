@@ -10,11 +10,13 @@ namespace endpoint {
 namespace server {
 namespace request {
 
-receiver::receiver(uint64_t id, const log::api *logger) noexcept
-    : shared::request::receiver(id, logger), logger_(logger)
+receiver::receiver(uint64_t id, const log::api* logger) noexcept
+  : shared::request::receiver(id, logger)
+  , logger_(logger)
 {}
 
-base::result<event> receiver::process(frame frame) noexcept
+base::result<event>
+receiver::process(frame frame) noexcept
 {
   switch (frame) {
     case frame::type::priority:

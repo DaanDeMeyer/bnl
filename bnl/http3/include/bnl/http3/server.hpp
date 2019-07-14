@@ -18,9 +18,10 @@ class api;
 
 namespace http3 {
 
-class BNL_HTTP3_EXPORT server {
+class BNL_HTTP3_EXPORT server
+{
 public:
-  explicit server(const log::api *logger);
+  explicit server(const log::api* logger);
 
   BNL_BASE_MOVE_ONLY(server);
 
@@ -40,7 +41,8 @@ private:
   using request = std::pair<endpoint::server::request::sender,
                             endpoint::server::request::receiver>;
 
-  struct {
+  struct
+  {
     settings local;
     settings remote;
   } settings_;
@@ -48,7 +50,7 @@ private:
   control control_;
   std::map<uint64_t, request> requests_;
 
-  const log::api *logger_;
+  const log::api* logger_;
 };
 
 } // namespace http3

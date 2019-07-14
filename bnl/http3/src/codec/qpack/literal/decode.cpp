@@ -11,13 +11,15 @@ namespace http3 {
 namespace qpack {
 namespace literal {
 
-decoder::decoder(const log::api *logger) noexcept
-    : prefix_int_(logger), huffman_(logger), logger_(logger)
+decoder::decoder(const log::api* logger) noexcept
+  : prefix_int_(logger)
+  , huffman_(logger)
+  , logger_(logger)
 {}
 
-template <typename Sequence>
-base::result<base::string> decoder::decode(Sequence &encoded,
-                                           uint8_t prefix) const
+template<typename Sequence>
+base::result<base::string>
+decoder::decode(Sequence& encoded, uint8_t prefix) const
 {
   typename Sequence::lookahead_type lookahead(encoded);
 

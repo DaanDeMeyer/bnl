@@ -9,7 +9,8 @@
 namespace bnl {
 namespace base {
 
-class BNL_BASE_EXPORT buffers {
+class BNL_BASE_EXPORT buffers
+{
 public:
   class lookahead;
 
@@ -27,11 +28,11 @@ public:
 
   void push(buffer buffer);
 
-  const buffer &front() const noexcept;
-  const buffer &back() const noexcept;
+  const buffer& front() const noexcept;
+  const buffer& back() const noexcept;
 
-  buffer &front() noexcept;
-  buffer &back() noexcept;
+  buffer& front() noexcept;
+  buffer& back() noexcept;
 
   void consume(size_t size) noexcept;
   size_t consumed() const noexcept;
@@ -44,14 +45,15 @@ private:
   buffer concat(size_t start, size_t end, size_t left) const;
 };
 
-class BNL_BASE_EXPORT buffers::lookahead {
+class BNL_BASE_EXPORT buffers::lookahead
+{
 public:
   using lookahead_type = lookahead;
 
-  lookahead(const buffers &buffers) noexcept; // NOLINT
+  lookahead(const buffers& buffers) noexcept; // NOLINT
 
-  lookahead(const lookahead &other) noexcept;
-  lookahead& operator=(const lookahead &) = delete;
+  lookahead(const lookahead& other) noexcept;
+  lookahead& operator=(const lookahead&) = delete;
 
   BNL_BASE_NO_MOVE(lookahead);
 
@@ -69,7 +71,7 @@ public:
   buffer copy(size_t size) const;
 
 private:
-  const buffers &buffers_;
+  const buffers& buffers_;
   size_t previous_ = 0;
   size_t position_ = 0;
 };

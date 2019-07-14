@@ -12,13 +12,21 @@
 namespace bnl {
 namespace http3 {
 
-class BNL_BASE_EXPORT event {
+class BNL_BASE_EXPORT event
+{
 public:
   using handler = base::function_view<std::error_code(event)>;
 
-  enum class type { settings, header, body, error };
+  enum class type
+  {
+    settings,
+    header,
+    body,
+    error
+  };
 
-  struct payload {
+  struct payload
+  {
     using settings = http3::settings;
     using header = http3::header;
     using body = base::buffer;
@@ -32,11 +40,11 @@ public:
   event(uint64_t id, bool fin, payload::body body) noexcept;
   event(uint64_t id, bool fin, payload::error error) noexcept;
 
-  event(const event &other) noexcept;
-  event(event &&other) noexcept;
+  event(const event& other) noexcept;
+  event(event&& other) noexcept;
 
-  event &operator=(const event &) = delete;
-  event &operator=(event &&) = delete;
+  event& operator=(const event&) = delete;
+  event& operator=(event&&) = delete;
 
   ~event() noexcept;
 
@@ -49,7 +57,8 @@ public:
   const uint64_t id;
   const bool fin;
 
-  union {
+  union
+  {
     payload::settings settings;
     payload::header header;
     payload::body body;

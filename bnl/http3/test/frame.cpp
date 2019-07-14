@@ -8,10 +8,11 @@
 
 using namespace bnl;
 
-template <size_t N>
-static http3::frame encode_and_decode(const http3::frame &frame,
-                                      const http3::frame::encoder &encoder,
-                                      const http3::frame::decoder &decoder)
+template<size_t N>
+static http3::frame
+encode_and_decode(const http3::frame& frame,
+                  const http3::frame::encoder& encoder,
+                  const http3::frame::decoder& decoder)
 {
   size_t encoded_size = EXTRACT(encoder.encoded_size(frame));
   REQUIRE(encoded_size == N);
@@ -52,9 +53,9 @@ TEST_CASE("frame")
   {
     http3::frame::payload::priority priority{};
     priority.prioritized_element_type =
-        http3::frame::payload::priority::type::current;
+      http3::frame::payload::priority::type::current;
     priority.element_dependency_type =
-        http3::frame::payload::priority::type::placeholder;
+      http3::frame::payload::priority::type::placeholder;
     priority.prioritized_element_id = 16482;     // varint size = 4
     priority.element_dependency_id = 1073781823; // varint size = 8
     priority.weight = 43;
@@ -90,8 +91,8 @@ TEST_CASE("frame")
 
   SUBCASE("push promise")
   {
-    http3::frame frame = http3::frame::payload::push_promise{ 16384,
-                                                              1073741824 };
+    http3::frame frame =
+      http3::frame::payload::push_promise{ 16384, 1073741824 };
     http3::frame decoded = encode_and_decode<13>(frame, encoder, decoder);
     REQUIRE(decoded.push_promise.push_id == frame.push_promise.push_id);
     REQUIRE(decoded.push_promise.size == frame.push_promise.size);
@@ -113,9 +114,8 @@ TEST_CASE("frame")
 
   SUBCASE("duplicate push")
   {
-    http3::frame frame = http3::frame::payload::duplicate_push{
-      4611686018427387903
-    };
+    http3::frame frame =
+      http3::frame::payload::duplicate_push{ 4611686018427387903 };
 
     http3::frame decoded = encode_and_decode<10>(frame, encoder, decoder);
     REQUIRE(decoded.duplicate_push.push_id == frame.duplicate_push.push_id);
@@ -155,7 +155,7 @@ TEST_CASE("frame")
     REQUIRE(encoded.size() == 6);
 
     // Mangle the frame length.
-    const_cast<uint8_t *>(encoded.data())[1] = 16; // NOLINT
+    const_cast<uint8_t*>(encoded.data())[1] = 16; // NOLINT
 
     base::result<http3::frame> result = decoder.decode(encoded);
 

@@ -8,9 +8,12 @@ namespace bnl {
 namespace http3 {
 namespace varint {
 
-encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
+encoder::encoder(const log::api* logger) noexcept
+  : logger_(logger)
+{}
 
-base::result<size_t> encoder::encoded_size(uint64_t varint) const noexcept
+base::result<size_t>
+encoder::encoded_size(uint64_t varint) const noexcept
 {
   if (varint < 0x40U) {
     return sizeof(uint8_t);
@@ -39,14 +42,16 @@ static constexpr uint8_t UINT16_HEADER = 0x40;
 static constexpr uint8_t UINT32_HEADER = 0x80;
 static constexpr uint8_t UINT64_HEADER = 0xc0;
 
-static void uint8_encode(uint8_t *dest, uint8_t number)
+static void
+uint8_encode(uint8_t* dest, uint8_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 0U);
 
   dest[0] |= UINT8_HEADER;
 }
 
-static void uint16_encode(uint8_t *dest, uint16_t number)
+static void
+uint16_encode(uint8_t* dest, uint16_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 8U);
   dest[1] = static_cast<uint8_t>(number >> 0U);
@@ -54,7 +59,8 @@ static void uint16_encode(uint8_t *dest, uint16_t number)
   dest[0] |= UINT16_HEADER;
 }
 
-static void uint32_encode(uint8_t *dest, uint32_t number)
+static void
+uint32_encode(uint8_t* dest, uint32_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 24U);
   dest[1] = static_cast<uint8_t>(number >> 16U);
@@ -64,7 +70,8 @@ static void uint32_encode(uint8_t *dest, uint32_t number)
   dest[0] |= UINT32_HEADER;
 }
 
-static void uint64_encode(uint8_t *dest, uint64_t number)
+static void
+uint64_encode(uint8_t* dest, uint64_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 56U);
   dest[1] = static_cast<uint8_t>(number >> 48U);
@@ -78,8 +85,8 @@ static void uint64_encode(uint8_t *dest, uint64_t number)
   dest[0] |= UINT64_HEADER;
 }
 
-base::result<size_t> encoder::encode(uint8_t *dest, uint64_t varint) const
-    noexcept
+base::result<size_t>
+encoder::encode(uint8_t* dest, uint64_t varint) const noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
@@ -105,7 +112,8 @@ base::result<size_t> encoder::encode(uint8_t *dest, uint64_t varint) const
   return varint_size;
 }
 
-base::result<base::buffer> encoder::encode(uint64_t varint) const
+base::result<base::buffer>
+encoder::encode(uint64_t varint) const
 {
   size_t encoded_size = TRY(this->encoded_size(varint));
   base::buffer encoded(encoded_size);

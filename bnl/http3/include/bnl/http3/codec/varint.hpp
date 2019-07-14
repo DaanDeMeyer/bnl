@@ -23,38 +23,40 @@ namespace varint {
 
 static constexpr uint64_t max = (0x40ULL << 56U) - 1;
 
-class BNL_HTTP3_EXPORT encoder {
+class BNL_HTTP3_EXPORT encoder
+{
 public:
-  explicit encoder(const log::api *logger) noexcept;
+  explicit encoder(const log::api* logger) noexcept;
 
   BNL_BASE_MOVE_ONLY(encoder);
 
   base::result<size_t> encoded_size(uint64_t varint) const noexcept;
 
-  base::result<size_t> encode(uint8_t *dest, uint64_t varint) const noexcept;
+  base::result<size_t> encode(uint8_t* dest, uint64_t varint) const noexcept;
 
   base::result<base::buffer> encode(uint64_t varint) const;
 
 private:
-  const log::api *logger_;
+  const log::api* logger_;
 };
 
-class BNL_HTTP3_EXPORT decoder {
+class BNL_HTTP3_EXPORT decoder
+{
 public:
-  explicit decoder(const log::api *logger) noexcept;
+  explicit decoder(const log::api* logger) noexcept;
 
   BNL_BASE_MOVE_ONLY(decoder);
 
-  template <typename Sequence>
-  base::result<uint64_t> decode(Sequence &encoded) const noexcept;
+  template<typename Sequence>
+  base::result<uint64_t> decode(Sequence& encoded) const noexcept;
 
 private:
-  const log::api *logger_;
+  const log::api* logger_;
 };
 
 #define BNL_HTTP3_VARINT_DECODE_IMPL(T)                                        \
   template BNL_HTTP3_EXPORT base::result<uint64_t> decoder::decode<T>(         \
-      T &) /* NOLINT */ const noexcept
+    T&) /* NOLINT */ const noexcept
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);

@@ -8,13 +8,16 @@ namespace bnl {
 namespace http3 {
 namespace varint {
 
-decoder::decoder(const log::api *logger) noexcept : logger_(logger) {}
+decoder::decoder(const log::api* logger) noexcept
+  : logger_(logger)
+{}
 
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
 
-template <typename Lookahead>
-static uint8_t uint8_decode(Lookahead &lookahead)
+template<typename Lookahead>
+static uint8_t
+uint8_decode(Lookahead& lookahead)
 {
   uint8_t result = lookahead[0] & 0x3fU;
 
@@ -23,20 +26,22 @@ static uint8_t uint8_decode(Lookahead &lookahead)
   return result;
 }
 
-template <typename Lookahead>
-static uint16_t uint16_decode(Lookahead &lookahead)
+template<typename Lookahead>
+static uint16_t
+uint16_decode(Lookahead& lookahead)
 {
   uint16_t result = static_cast<uint16_t>(
-      static_cast<uint16_t>(static_cast<uint16_t>(lookahead[0]) << 8U) |
-      static_cast<uint16_t>(static_cast<uint16_t>(lookahead[1]) << 0U));
+    static_cast<uint16_t>(static_cast<uint16_t>(lookahead[0]) << 8U) |
+    static_cast<uint16_t>(static_cast<uint16_t>(lookahead[1]) << 0U));
 
   lookahead.consume(sizeof(uint16_t));
 
   return result & 0x3fffU;
 }
 
-template <typename Lookahead>
-static uint32_t uint32_decode(Lookahead &lookahead)
+template<typename Lookahead>
+static uint32_t
+uint32_decode(Lookahead& lookahead)
 {
 
   uint32_t result = static_cast<uint32_t>(lookahead[0]) << 24U |
@@ -49,8 +54,9 @@ static uint32_t uint32_decode(Lookahead &lookahead)
   return result & 0x3fffffffU;
 }
 
-template <typename Lookahead>
-static uint64_t uint64_decode(Lookahead &lookahead)
+template<typename Lookahead>
+static uint64_t
+uint64_decode(Lookahead& lookahead)
 {
   uint64_t result = static_cast<uint64_t>(lookahead[0]) << 56U |
                     static_cast<uint64_t>(lookahead[1]) << 48U |
@@ -66,8 +72,9 @@ static uint64_t uint64_decode(Lookahead &lookahead)
   return result & 0x3fffffffffffffffU;
 }
 
-template <typename Sequence>
-base::result<uint64_t> decoder::decode(Sequence &encoded) const noexcept
+template<typename Sequence>
+base::result<uint64_t>
+decoder::decode(Sequence& encoded) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 

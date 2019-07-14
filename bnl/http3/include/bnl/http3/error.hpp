@@ -8,7 +8,8 @@
 namespace bnl {
 namespace http3 {
 
-enum class error : uint32_t {
+enum class error : uint32_t
+{
   // HTTP/3 connection errors
 
   internal_error = 0x03,
@@ -31,16 +32,19 @@ enum class error : uint32_t {
   stream_closed
 };
 
-BNL_HTTP3_EXPORT const std::error_category &error_category() noexcept;
+BNL_HTTP3_EXPORT const std::error_category&
+error_category() noexcept;
 
-BNL_HTTP3_EXPORT std::error_code make_error_code(error error) noexcept;
+BNL_HTTP3_EXPORT std::error_code
+make_error_code(error error) noexcept;
 
 } // namespace http3
 } // namespace bnl
 
 namespace std {
 
-template <>
-struct is_error_code_enum<bnl::http3::error> : true_type {};
+template<>
+struct is_error_code_enum<bnl::http3::error> : true_type
+{};
 
 } // namespace std

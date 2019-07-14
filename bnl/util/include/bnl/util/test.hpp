@@ -1,7 +1,8 @@
 #pragma once
 
-template <typename E>
-auto extract(E expression) -> typename decltype(expression())::value_type
+template<typename E>
+auto
+extract(E expression) -> typename decltype(expression())::value_type
 {
   auto result = expression();
   REQUIRE(result);

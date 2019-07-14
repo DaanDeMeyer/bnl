@@ -5,7 +5,7 @@
 namespace bnl {
 namespace util {
 
-template <typename E>
+template<typename E>
 constexpr auto // NOLINT
 to_underlying(E e) -> typename std::underlying_type<E>::type
 {

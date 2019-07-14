@@ -12,12 +12,14 @@
 
 using namespace bnl;
 
-struct message {
+struct message
+{
   std::vector<http3::header> headers;
   base::buffer body;
 };
 
-bool operator==(const message &first, const message &second)
+bool
+operator==(const message& first, const message& second)
 {
   if (first.headers.size() != second.headers.size()) {
     return false;
@@ -32,16 +34,18 @@ bool operator==(const message &first, const message &second)
   return first.body == second.body;
 }
 
-bool operator!=(const message &first, const message &second)
+bool
+operator!=(const message& first, const message& second)
 {
   return !(first == second);
 }
 
-template <typename Endpoint>
-static void start(Endpoint &endpoint, uint64_t id, const message &message)
+template<typename Endpoint>
+static void
+start(Endpoint& endpoint, uint64_t id, const message& message)
 {
   std::error_code ec;
-  for (const http3::header &header : message.headers) {
+  for (const http3::header& header : message.headers) {
     ec = endpoint.header(id, header);
     REQUIRE(!ec);
   }
@@ -56,8 +60,9 @@ static void start(Endpoint &endpoint, uint64_t id, const message &message)
   REQUIRE(!ec);
 }
 
-template <typename Sender, typename Receiver>
-static message transfer(Sender &sender, Receiver &receiver)
+template<typename Sender, typename Receiver>
+static message
+transfer(Sender& sender, Receiver& receiver)
 {
   message decoded;
 

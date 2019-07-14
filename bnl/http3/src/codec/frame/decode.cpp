@@ -9,13 +9,14 @@
 namespace bnl {
 namespace http3 {
 
-frame::decoder::decoder(const log::api *logger) noexcept
-    : varint_(logger), logger_(logger)
+frame::decoder::decoder(const log::api* logger) noexcept
+  : varint_(logger)
+  , logger_(logger)
 {}
 
-template <typename Sequence>
-base::result<frame::type> frame::decoder::peek(const Sequence &encoded) const
-    noexcept
+template<typename Sequence>
+base::result<frame::type>
+frame::decoder::peek(const Sequence& encoded) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
@@ -41,8 +42,9 @@ base::result<frame::type> frame::decoder::peek(const Sequence &encoded) const
   NOTREACHED();
 }
 
-template <typename Sequence>
-base::result<frame> frame::decoder::decode(Sequence &encoded) const noexcept
+template<typename Sequence>
+base::result<frame>
+frame::decoder::decode(Sequence& encoded) const noexcept
 {
   // frame has no copy constructor so we check the while condition inside the
   // while loop instead.
@@ -62,9 +64,9 @@ base::result<frame> frame::decoder::decode(Sequence &encoded) const noexcept
   }
 }
 
-template <typename Lookahead>
-base::result<frame> frame::decoder::decode_single(Lookahead &lookahead) const
-    noexcept
+template<typename Lookahead>
+base::result<frame>
+frame::decoder::decode_single(Lookahead& lookahead) const noexcept
 {
   uint64_t type = TRY(varint_.decode(lookahead));
   uint64_t payload_encoded_size = TRY(varint_.decode(lookahead));
@@ -95,10 +97,10 @@ base::result<frame> frame::decoder::decode_single(Lookahead &lookahead) const
 
         uint8_t byte = TRY(uint8_decode(lookahead));
         priority.prioritized_element_type =
-            static_cast<frame::payload::priority::type>(byte >> 6U);
+          static_cast<frame::payload::priority::type>(byte >> 6U);
         priority.element_dependency_type =
-            static_cast<frame::payload::priority::type>(
-                static_cast<uint8_t>(byte >> 4U) & 0x03U);
+          static_cast<frame::payload::priority::type>(
+            static_cast<uint8_t>(byte >> 4U) & 0x03U);
 
         priority.prioritized_element_id = TRY(varint_.decode(lookahead));
         priority.element_dependency_id = TRY(varint_.decode(lookahead));
@@ -219,9 +221,9 @@ base::result<frame> frame::decoder::decode_single(Lookahead &lookahead) const
   return frame;
 }
 
-template <typename Lookahead>
-base::result<uint8_t> frame::decoder::uint8_decode(Lookahead &lookahead) const
-    noexcept
+template<typename Lookahead>
+base::result<uint8_t>
+frame::decoder::uint8_decode(Lookahead& lookahead) const noexcept
 {
   CHECK(!lookahead.empty(), base::error::incomplete);
 

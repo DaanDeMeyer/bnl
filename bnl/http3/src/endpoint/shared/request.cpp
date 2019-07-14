@@ -10,16 +10,21 @@ namespace endpoint {
 namespace shared {
 namespace request {
 
-sender::sender(uint64_t id, const log::api *logger) noexcept
-    : headers_(logger), body_(logger), id_(id), logger_(logger)
+sender::sender(uint64_t id, const log::api* logger) noexcept
+  : headers_(logger)
+  , body_(logger)
+  , id_(id)
+  , logger_(logger)
 {}
 
-bool sender::finished() const noexcept
+bool
+sender::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-base::result<quic::event> sender::send() noexcept
+base::result<quic::event>
+sender::send() noexcept
 {
   switch (state_) {
 
@@ -50,43 +55,54 @@ base::result<quic::event> sender::send() noexcept
   NOTREACHED();
 }
 
-std::error_code sender::header(header_view header)
+std::error_code
+sender::header(header_view header)
 {
   return headers_.add(header);
 }
 
-std::error_code sender::body(base::buffer body)
+std::error_code
+sender::body(base::buffer body)
 {
   return body_.add(std::move(body));
 }
 
-std::error_code sender::start() noexcept
+std::error_code
+sender::start() noexcept
 {
   return headers_.fin();
 }
 
-std::error_code sender::fin() noexcept
+std::error_code
+sender::fin() noexcept
 {
   return body_.fin();
 }
 
-receiver::receiver(uint64_t id, const log::api *logger) noexcept
-    : frame_(logger), headers_(logger), body_(logger), id_(id), logger_(logger)
+receiver::receiver(uint64_t id, const log::api* logger) noexcept
+  : frame_(logger)
+  , headers_(logger)
+  , body_(logger)
+  , id_(id)
+  , logger_(logger)
 {}
 
 receiver::~receiver() noexcept = default;
 
-bool receiver::closed() const noexcept
+bool
+receiver::closed() const noexcept
 {
   return state_ == state::closed;
 }
 
-bool receiver::finished() const noexcept
+bool
+receiver::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-std::error_code receiver::start() noexcept
+std::error_code
+receiver::start() noexcept
 {
   CHECK(state_ == state::closed, error::internal_error);
 
@@ -95,12 +111,14 @@ std::error_code receiver::start() noexcept
   return {};
 }
 
-const headers::decoder &receiver::headers() const noexcept
+const headers::decoder&
+receiver::headers() const noexcept
 {
   return headers_;
 }
 
-std::error_code receiver::recv(quic::event event, event::handler handler)
+std::error_code
+receiver::recv(quic::event event, event::handler handler)
 {
   // TODO: Handle `quic::event::type::error`.
 
@@ -132,7 +150,8 @@ std::error_code receiver::recv(quic::event event, event::handler handler)
   return {};
 }
 
-base::result<event> receiver::process() noexcept
+base::result<event>
+receiver::process() noexcept
 {
   std::error_code ec;
 

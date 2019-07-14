@@ -8,11 +8,14 @@ namespace bnl {
 namespace http3 {
 namespace headers {
 
-encoder::encoder(const log::api *logger) noexcept
-    : frame_(logger), qpack_(logger), logger_(logger)
+encoder::encoder(const log::api* logger) noexcept
+  : frame_(logger)
+  , qpack_(logger)
+  , logger_(logger)
 {}
 
-std::error_code encoder::add(header_view header)
+std::error_code
+encoder::add(header_view header)
 {
   CHECK(state_ == state::idle, error::internal_error);
 
@@ -22,7 +25,8 @@ std::error_code encoder::add(header_view header)
   return {};
 }
 
-std::error_code encoder::fin() noexcept
+std::error_code
+encoder::fin() noexcept
 {
   CHECK(state_ == state::idle, error::internal_error);
 
@@ -31,12 +35,14 @@ std::error_code encoder::fin() noexcept
   return {};
 }
 
-bool encoder::finished() const noexcept
+bool
+encoder::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-base::result<base::buffer> encoder::encode() noexcept
+base::result<base::buffer>
+encoder::encode() noexcept
 {
   switch (state_) {
 
@@ -69,22 +75,27 @@ base::result<base::buffer> encoder::encode() noexcept
   NOTREACHED();
 }
 
-decoder::decoder(const log::api *logger) noexcept
-    : frame_(logger), qpack_(logger), logger_(logger)
+decoder::decoder(const log::api* logger) noexcept
+  : frame_(logger)
+  , qpack_(logger)
+  , logger_(logger)
 {}
 
-bool decoder::started() const noexcept
+bool
+decoder::started() const noexcept
 {
   return state_ != state::frame;
 }
 
-bool decoder::finished() const noexcept
+bool
+decoder::finished() const noexcept
 {
   return state_ == state::fin;
 }
 
-template <typename Sequence>
-base::result<header> decoder::decode(Sequence &encoded)
+template<typename Sequence>
+base::result<header>
+decoder::decode(Sequence& encoded)
 {
   switch (state_) {
 

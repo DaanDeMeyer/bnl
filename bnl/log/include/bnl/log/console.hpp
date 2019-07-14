@@ -6,14 +6,15 @@
 namespace bnl {
 namespace log {
 
-class BNL_LOG_EXPORT console : public log::api {
+class BNL_LOG_EXPORT console : public log::api
+{
 public:
   void log(log::level level,
-           const char *file,
-           const char *function,
+           const char* file,
+           const char* function,
            int line,
-           const char *format,
-           const fmt::format_args &args) const final;
+           const char* format,
+           const fmt::format_args& args) const final;
 
 private:
   log::level level_ = log::level::trace;

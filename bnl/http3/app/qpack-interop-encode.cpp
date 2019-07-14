@@ -18,7 +18,8 @@ using namespace bnl;
 // pointer.
 static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
 
-static base::buffer id_encode(uint64_t id)
+static base::buffer
+id_encode(uint64_t id)
 {
   base::buffer encoded(sizeof(uint64_t));
 
@@ -34,7 +35,8 @@ static base::buffer id_encode(uint64_t id)
   return encoded;
 }
 
-static base::buffer size_encode(uint32_t encoded_size)
+static base::buffer
+size_encode(uint32_t encoded_size)
 {
   base::buffer encoded(sizeof(uint32_t));
 
@@ -46,21 +48,23 @@ static base::buffer size_encode(uint32_t encoded_size)
   return encoded;
 }
 
-void write(std::ostream &dest, const base::buffer &encoded)
+void
+write(std::ostream& dest, const base::buffer& encoded)
 {
-  dest.write(reinterpret_cast<const char *>(encoded.data()),
+  dest.write(reinterpret_cast<const char*>(encoded.data()),
              static_cast<int32_t>(encoded.size()));
 }
 
-static std::error_code encode(uint64_t id,
-                              const std::vector<http3::header> &headers,
-                              std::ofstream &output)
+static std::error_code
+encode(uint64_t id,
+       const std::vector<http3::header>& headers,
+       std::ofstream& output)
 {
   http3::qpack::encoder qpack(logger_.get());
 
   std::queue<base::buffer> buffers;
 
-  for (const http3::header &header : headers) {
+  for (const http3::header& header : headers) {
     base::result<base::buffer> result = TRY(qpack.encode(header));
     buffers.emplace(std::move(result.value()));
   }
@@ -78,7 +82,7 @@ static std::error_code encode(uint64_t id,
       buffers.pop();
       write(output, encoded);
     }
-  } catch (const std::ios_base::failure &e) {
+  } catch (const std::ios_base::failure& e) {
     LOG_E("Error writing to output file: {}", e.what());
     return e.code();
   }
@@ -86,7 +90,8 @@ static std::error_code encode(uint64_t id,
   return {};
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
   if (argc < 3) {
     return 1;
@@ -99,7 +104,7 @@ int main(int argc, char *argv[])
 
   try {
     input.open(argv[1], std::ios::binary);
-  } catch (const std::ios_base::failure &e) {
+  } catch (const std::ios_base::failure& e) {
     LOG_E("Error opening input file: {}", e.what());
     return 1;
   }
@@ -114,7 +119,7 @@ int main(int argc, char *argv[])
 
   try {
     output.open(argv[2], std::ios::trunc | std::ios::binary);
-  } catch (const std::ios_base::failure &e) {
+  } catch (const std::ios_base::failure& e) {
     LOG_E("Error opening output file: {}", e.what());
     return 1;
   }

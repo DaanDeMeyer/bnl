@@ -13,16 +13,17 @@ namespace endpoint {
 namespace server {
 namespace control {
 
-sender::sender(const log::api *logger) noexcept
-    : shared::control::sender(SERVER_STREAM_CONTROL_ID, logger)
+sender::sender(const log::api* logger) noexcept
+  : shared::control::sender(SERVER_STREAM_CONTROL_ID, logger)
 {}
 
-receiver::receiver(const log::api *logger) noexcept
-    : shared::control::receiver(CLIENT_STREAM_CONTROL_ID, logger),
-      logger_(logger)
+receiver::receiver(const log::api* logger) noexcept
+  : shared::control::receiver(CLIENT_STREAM_CONTROL_ID, logger)
+  , logger_(logger)
 {}
 
-base::result<event> receiver::process(frame frame) noexcept
+base::result<event>
+receiver::process(frame frame) noexcept
 {
   switch (frame) {
     case frame::type::cancel_push:

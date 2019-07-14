@@ -22,9 +22,10 @@ namespace endpoint {
 namespace shared {
 namespace request {
 
-class BNL_HTTP3_EXPORT sender {
+class BNL_HTTP3_EXPORT sender
+{
 public:
-  sender(uint64_t id, const log::api *logger) noexcept;
+  sender(uint64_t id, const log::api* logger) noexcept;
 
   BNL_BASE_MOVE_ONLY(sender);
 
@@ -39,7 +40,12 @@ public:
   std::error_code fin() noexcept;
 
 private:
-  enum class state : uint8_t { headers, body, fin };
+  enum class state : uint8_t
+  {
+    headers,
+    body,
+    fin
+  };
 
   state state_ = state::headers;
 
@@ -47,12 +53,13 @@ private:
   body::encoder body_;
 
   uint64_t id_;
-  const log::api *logger_;
+  const log::api* logger_;
 };
 
-class BNL_HTTP3_EXPORT receiver {
+class BNL_HTTP3_EXPORT receiver
+{
 public:
-  receiver(uint64_t id, const log::api *logger) noexcept;
+  receiver(uint64_t id, const log::api* logger) noexcept;
 
   BNL_BASE_NO_COPY(receiver);
   BNL_BASE_DEFAULT_MOVE(receiver);
@@ -70,13 +77,19 @@ public:
 protected:
   virtual base::result<event> process(frame frame) noexcept = 0;
 
-  const headers::decoder &headers() const noexcept;
+  const headers::decoder& headers() const noexcept;
 
 private:
   base::result<event> process() noexcept;
 
 private:
-  enum class state : uint8_t { closed, headers, body, fin };
+  enum class state : uint8_t
+  {
+    closed,
+    headers,
+    body,
+    fin
+  };
 
   state state_ = state::closed;
   base::buffers buffers_;
@@ -87,7 +100,7 @@ private:
   body::decoder body_;
 
   uint64_t id_;
-  const log::api *logger_;
+  const log::api* logger_;
 };
 
 } // namespace request

@@ -6,7 +6,8 @@
 namespace bnl {
 namespace base {
 
-static size_t find_first_not_empty(const std::deque<buffer> &buffers)
+static size_t
+find_first_not_empty(const std::deque<buffer>& buffers)
 {
   for (size_t i = 0; i < buffers.size(); i++) {
     if (!buffers[i].empty()) {
@@ -17,18 +18,20 @@ static size_t find_first_not_empty(const std::deque<buffer> &buffers)
   return buffers.size() - 1;
 }
 
-size_t buffers::size() const noexcept
+size_t
+buffers::size() const noexcept
 {
   size_t size = 0;
 
-  for (const buffer &buffer : buffers_) {
+  for (const buffer& buffer : buffers_) {
     size += buffer.size();
   }
 
   return size;
 }
 
-bool buffers::empty() const noexcept
+bool
+buffers::empty() const noexcept
 {
   return size() == 0;
 }
@@ -51,7 +54,8 @@ uint8_t buffers::operator*() const noexcept
   return operator[](0);
 }
 
-buffer buffers::slice(size_t size)
+buffer
+buffers::slice(size_t size)
 {
   assert(size <= this->size());
 
@@ -77,32 +81,38 @@ buffer buffers::slice(size_t size)
   return result;
 }
 
-void buffers::push(buffer buffer)
+void
+buffers::push(buffer buffer)
 {
   buffers_.emplace_back(std::move(buffer));
 }
 
-const buffer &buffers::front() const noexcept
+const buffer&
+buffers::front() const noexcept
 {
   return buffers_.front();
 }
 
-const buffer &buffers::back() const noexcept
+const buffer&
+buffers::back() const noexcept
 {
   return buffers_.back();
 }
 
-buffer &buffers::front() noexcept
+buffer&
+buffers::front() noexcept
 {
   return buffers_.front();
 }
 
-buffer &buffers::back() noexcept
+buffer&
+buffers::back() noexcept
 {
   return buffers_.back();
 }
 
-void buffers::consume(size_t size) noexcept
+void
+buffers::consume(size_t size) noexcept
 {
   assert(size <= this->size());
 
@@ -115,25 +125,28 @@ void buffers::consume(size_t size) noexcept
   discard();
 }
 
-size_t buffers::consumed() const noexcept
+size_t
+buffers::consumed() const noexcept
 {
   size_t consumed = 0;
 
-  for (const buffer &buffer : buffers_) {
+  for (const buffer& buffer : buffers_) {
     consumed += buffer.consumed();
   }
 
   return consumed;
 }
 
-void buffers::discard() noexcept
+void
+buffers::discard() noexcept
 {
   while (!buffers_.empty() && buffers_.front().empty()) {
     buffers_.pop_front();
   }
 }
 
-buffer buffers::concat(size_t start, size_t end, size_t left) const
+buffer
+buffers::concat(size_t start, size_t end, size_t left) const
 {
   size_t size = 0;
   for (size_t i = start; i < end; i++) {
@@ -155,20 +168,23 @@ buffer buffers::concat(size_t start, size_t end, size_t left) const
   return result;
 }
 
-buffers::lookahead::lookahead(const buffers &buffers) noexcept
-    : buffers_(buffers)
+buffers::lookahead::lookahead(const buffers& buffers) noexcept
+  : buffers_(buffers)
 {}
 
-buffers::lookahead::lookahead(const lookahead &other) noexcept
-    : buffers_(other.buffers_), previous_(other.previous_ + other.position_)
+buffers::lookahead::lookahead(const lookahead& other) noexcept
+  : buffers_(other.buffers_)
+  , previous_(other.previous_ + other.position_)
 {}
 
-size_t buffers::lookahead::size() const noexcept
+size_t
+buffers::lookahead::size() const noexcept
 {
   return buffers_.size() - position_ - previous_;
 }
 
-bool buffers::lookahead::empty() const noexcept
+bool
+buffers::lookahead::empty() const noexcept
 {
   return size() == 0;
 }
@@ -184,18 +200,21 @@ uint8_t buffers::lookahead::operator*() const noexcept
   return buffers_[previous_ + position_];
 }
 
-void buffers::lookahead::consume(size_t size) noexcept
+void
+buffers::lookahead::consume(size_t size) noexcept
 {
   assert(size <= this->size());
   position_ += size;
 }
 
-size_t buffers::lookahead::consumed() const noexcept
+size_t
+buffers::lookahead::consumed() const noexcept
 {
   return position_;
 }
 
-buffer buffers::lookahead::copy(size_t size) const
+buffer
+buffers::lookahead::copy(size_t size) const
 {
   assert(size <= this->size());
 

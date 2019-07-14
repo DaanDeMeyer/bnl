@@ -10,13 +10,19 @@
 namespace bnl {
 namespace quic {
 
-class BNL_BASE_EXPORT event {
+class BNL_BASE_EXPORT event
+{
 public:
   using handler = base::function_view<std::error_code(event)>;
 
-  enum class type { data, error };
+  enum class type
+  {
+    data,
+    error
+  };
 
-  struct payload {
+  struct payload
+  {
     using data = base::buffer;
     using error = std::error_code;
   };
@@ -26,13 +32,13 @@ public:
   event(uint64_t id, bool fin, payload::data data) noexcept;   // NOLINT
   event(uint64_t id, bool fin, payload::error error) noexcept; // NOLINT
 
-  event(const event &other) noexcept;
-  event(event &&other) noexcept;
+  event(const event& other) noexcept;
+  event(event&& other) noexcept;
 
   ~event() noexcept;
 
-  event &operator=(const event &) = delete;
-  event &operator=(event &&) = delete;
+  event& operator=(const event&) = delete;
+  event& operator=(event&&) = delete;
 
   operator type() const noexcept; // NOLINT
 
@@ -43,7 +49,8 @@ public:
   const uint64_t id;
   const bool fin;
 
-  union {
+  union
+  {
     payload::data data;
     payload::error error;
   };

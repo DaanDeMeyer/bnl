@@ -35,9 +35,12 @@ namespace http3 {
 namespace qpack {
 namespace huffman {
 
-encoder::encoder(const log::api *logger) noexcept : logger_(logger) {}
+encoder::encoder(const log::api* logger) noexcept
+  : logger_(logger)
+{}
 
-size_t encoder::encoded_size(base::string_view string) const noexcept
+size_t
+encoder::encoded_size(base::string_view string) const noexcept
 {
   size_t num_bits = 0;
 
@@ -50,11 +53,10 @@ size_t encoder::encoded_size(base::string_view string) const noexcept
   return (num_bits + 7) / 8;
 }
 
-static size_t symbol_encode(uint8_t *dest,
-                            size_t *rem_bits,
-                            const encode::symbol &symbol)
+static size_t
+symbol_encode(uint8_t* dest, size_t* rem_bits, const encode::symbol& symbol)
 {
-  uint8_t *begin = dest;
+  uint8_t* begin = dest;
 
   uint32_t code = symbol.code;
   size_t num_bits = symbol.num_bits;
@@ -65,12 +67,12 @@ static size_t symbol_encode(uint8_t *dest,
 
   if (num_bits <= *rem_bits) {
     *dest = static_cast<uint8_t>(
-        *dest | static_cast<uint8_t>(code << (*rem_bits - num_bits)));
+      *dest | static_cast<uint8_t>(code << (*rem_bits - num_bits)));
     *rem_bits -= num_bits;
 
   } else /* num_bits > *rem_bits */ {
     *dest = static_cast<uint8_t>(
-        *dest | static_cast<uint8_t>(code >> (num_bits - *rem_bits)));
+      *dest | static_cast<uint8_t>(code >> (num_bits - *rem_bits)));
     dest++;
     num_bits -= *rem_bits;
 
@@ -98,31 +100,33 @@ static size_t symbol_encode(uint8_t *dest,
   return static_cast<size_t>(dest - begin);
 }
 
-size_t encoder::encode(uint8_t *dest, base::string_view string) const noexcept
+size_t
+encoder::encode(uint8_t* dest, base::string_view string) const noexcept
 {
-  uint8_t *begin = dest;
+  uint8_t* begin = dest;
   size_t rem_bits = 8;
 
   for (char character : string) {
     uint8_t byte = static_cast<uint8_t>(character);
-    const encode::symbol &symbol = encode::table[byte];
+    const encode::symbol& symbol = encode::table[byte];
     dest += symbol_encode(dest, &rem_bits, symbol);
   }
 
   // 256 is special terminal symbol, pad with its prefix.
   if (rem_bits < 8) {
     // If rem_bits < 8, we should have at least 1 buffer space available.
-    const encode::symbol &symbol = encode::table[256];
+    const encode::symbol& symbol = encode::table[256];
     *dest = static_cast<uint8_t>(
-        *dest |
-        static_cast<uint8_t>(symbol.code >> (symbol.num_bits - rem_bits)));
+      *dest |
+      static_cast<uint8_t>(symbol.code >> (symbol.num_bits - rem_bits)));
     dest++;
   }
 
   return static_cast<size_t>(dest - begin);
 }
 
-base::buffer encoder::encode(base::string_view string) const
+base::buffer
+encoder::encode(base::string_view string) const
 {
   size_t encoded_size = this->encoded_size(string);
   base::buffer encoded(encoded_size);

@@ -3,20 +3,23 @@
 namespace bnl {
 namespace base {
 
-class error_category_impl : public std::error_category {
+class error_category_impl : public std::error_category
+{
 
 public:
-  const char *name() const noexcept override;
+  const char* name() const noexcept override;
 
   std::string message(int condition) const noexcept override;
 };
 
-const char *error_category_impl::name() const noexcept
+const char*
+error_category_impl::name() const noexcept
 {
   return "bnl-base";
 }
 
-std::string error_category_impl::message(int condition) const noexcept
+std::string
+error_category_impl::message(int condition) const noexcept
 {
   switch (static_cast<error>(condition)) {
     case error::success:
@@ -38,13 +41,15 @@ std::string error_category_impl::message(int condition) const noexcept
   return "error not recognized";
 }
 
-const std::error_category &error_category() noexcept
+const std::error_category&
+error_category() noexcept
 {
   static error_category_impl instance;
   return instance;
 }
 
-std::error_code make_error_code(error error) noexcept
+std::error_code
+make_error_code(error error) noexcept
 {
   return { static_cast<int>(error), error_category() };
 }

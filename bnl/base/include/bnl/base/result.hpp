@@ -9,25 +9,32 @@
 namespace bnl {
 namespace base {
 
-template <typename T>
-class result {
+template<typename T>
+class result
+{
 public:
   using value_type = T;
 
-  result(T &&value) noexcept // NOLINT
-      : type_(type::value), value_(std::forward<T>(value))
+  result(T&& value) noexcept // NOLINT
+    : type_(type::value)
+    , value_(std::forward<T>(value))
   {}
 
-  result(std::error_code ec) noexcept : type_(type::error), ec_(ec) {} // NOLINT
+  result(std::error_code ec) noexcept // NOLINT
+    : type_(type::error)
+    , ec_(ec)
+  {}
 
   BNL_BASE_NO_COPY(result);
 
-  result(result<T> &&other) noexcept : type_(type::error), ec_()
+  result(result<T>&& other) noexcept
+    : type_(type::error)
+    , ec_()
   {
     operator=(std::move(other));
   }
 
-  result<T> &operator=(result<T> &&other) noexcept
+  result<T>& operator=(result<T>&& other) noexcept
   {
     if (&other != this) {
       destroy();
@@ -47,12 +54,9 @@ public:
     return *this;
   };
 
-  ~result()
-  {
-    destroy();
-  }
+  ~result() { destroy(); }
 
-  value_type &value() &
+  value_type& value() &
   {
     if (type_ == type::error) {
       throw std::system_error(ec_);
@@ -61,7 +65,7 @@ public:
     return value_;
   }
 
-  value_type &&value() &&
+  value_type&& value() &&
   {
     if (type_ == type::error) {
       throw std::system_error(ec_);
@@ -75,10 +79,7 @@ public:
     return type_ == type::value ? base::error::success : ec_;
   }
 
-  explicit operator bool() const noexcept
-  {
-    return type_ == type::value;
-  }
+  explicit operator bool() const noexcept { return type_ == type::value; }
 
 private:
   void destroy()
@@ -94,60 +95,73 @@ private:
   }
 
 private:
-  enum class type : uint8_t { value, error };
+  enum class type : uint8_t
+  {
+    value,
+    error
+  };
 
   type type_;
 
-  union {
+  union
+  {
     T value_;
     std::error_code ec_;
   };
 };
 
-template <typename T>
-bool operator==(const result<T> &lhs, std::error_code rhs)
+template<typename T>
+bool
+operator==(const result<T>& lhs, std::error_code rhs)
 {
   return lhs.error() == rhs;
 }
 
-template <typename T>
-bool operator!=(const result<T> &lhs, std::error_code rhs)
+template<typename T>
+bool
+operator!=(const result<T>& lhs, std::error_code rhs)
 {
   return !(lhs == rhs);
 }
 
-template <typename T>
-bool operator==(const result<T> &lhs, const std::error_condition &rhs)
+template<typename T>
+bool
+operator==(const result<T>& lhs, const std::error_condition& rhs)
 {
   return lhs.error() == rhs;
 }
 
-template <typename T>
-bool operator!=(const result<T> &lhs, const std::error_condition &rhs)
+template<typename T>
+bool
+operator!=(const result<T>& lhs, const std::error_condition& rhs)
 {
   return !(lhs == rhs);
 }
 
-template <typename T>
-bool BNL_TRY_IS_ERROR(const T &result)
+template<typename T>
+bool
+BNL_TRY_IS_ERROR(const T& result)
 {
   return !result;
 }
 
-template <>
-inline bool BNL_TRY_IS_ERROR(const std::error_code &result)
+template<>
+inline bool
+BNL_TRY_IS_ERROR(const std::error_code& result)
 {
   return result.value() > 0;
 }
 
-template <typename T>
-std::error_code BNL_TRY_GET_ERROR(const T &result)
+template<typename T>
+std::error_code
+BNL_TRY_GET_ERROR(const T& result)
 {
   return result.error();
 }
 
-template <>
-inline std::error_code BNL_TRY_GET_ERROR(const std::error_code &result)
+template<>
+inline std::error_code
+BNL_TRY_GET_ERROR(const std::error_code& result)
 {
   return result;
 }
@@ -157,7 +171,7 @@ inline std::error_code BNL_TRY_GET_ERROR(const std::error_code &result)
 
 #define BNL_TRY(...)                                                           \
   ({                                                                           \
-    auto &&res = (__VA_ARGS__);                                                \
+    auto&& res = (__VA_ARGS__);                                                \
     if (bnl::base::BNL_TRY_IS_ERROR(res)) {                                    \
       return bnl::base::BNL_TRY_GET_ERROR(res);                                \
     }                                                                          \
