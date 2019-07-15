@@ -10,6 +10,11 @@ target_sources(bnl-base PRIVATE
   src/base/string_view.cpp
   src/http3/event.cpp
   src/http3/header.cpp
+  src/ip/address/ipv4.cpp
+  src/ip/address/ipv6.cpp
+  src/ip/address.cpp
+  src/ip/endpoint.cpp
+  src/ip/host.cpp
   src/quic/event.cpp
   src/log.cpp
 )
