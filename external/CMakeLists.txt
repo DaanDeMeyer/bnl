@@ -21,7 +21,7 @@ FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   # https://github.com/fmtlib/fmt/pull/1134
-  GIT_TAG cbbee1b38569c6394cc1169b5c49fd2640035012
+  GIT_TAG da2d33f1f1e9576ff12d564e456f2006a5995937
 )
 
 option(FMT_INSTALL "" ON)
@@ -40,3 +40,25 @@ reproc_MakeAvailable(xxhash)
 add_library(xxhash INTERFACE IMPORTED GLOBAL)
 target_compile_definitions(xxhash INTERFACE XXH_INLINE_ALL)
 target_include_directories(xxhash INTERFACE ${xxhash_SOURCE_DIR})
+
+## ngtcp2 ##
+
+FetchContent_Declare(
+  ngtcp2
+  GIT_REPOSITORY https://github.com/ngtcp2/ngtcp2.git
+  GIT_TAG draft-22
+)
+
+reproc_MakeAvailable(ngtcp2)
+
+## boringssl ##
+
+FetchContent_Declare(
+  boringssl
+  GIT_REPOSITORY https://boringssl.googlesource.com/boringssl
+  GIT_TAG 4a8c05ffe826c61d50fdf13483b35097168faa5c
+)
+
+reproc_MakeAvailable(boringssl)
+
+target_include_directories(ssl SYSTEM PUBLIC ${boringssl_SOURCE_DIR}/include)

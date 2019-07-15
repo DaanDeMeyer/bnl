@@ -14,7 +14,7 @@ jobs:
   - powershell: |
       # LLVM's (clang-cl) MSBuild integration is outdated so we use Ninja instead.
       iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-      scoop install ninja cmake llvm --global
+      scoop install ninja cmake llvm go nasm --global
     displayName: Install
 
     # Azure Pipelines resets environment variables between steps so we have to
@@ -31,7 +31,8 @@ jobs:
         -DBUILD_SHARED_LIBS=ON ^
         -DBNL_TEST=ON ^
         -DBNL_WARNINGS_AS_ERRORS=ON ^
-        -DBNL_TIDY=ON
+        -DBNL_TIDY=ON ^
+        -DBNL_INSTALL=OFF
     displayName: Configure
 
   - script: |

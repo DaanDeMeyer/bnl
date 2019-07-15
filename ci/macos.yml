@@ -24,7 +24,8 @@ jobs:
         -DBUILD_SHARED_LIBS=ON \
         -DBNL_TEST=ON \
         -DBNL_WARNINGS_AS_ERRORS=ON \
-        -DBNL_SANITIZERS=ON
+        -DBNL_SANITIZERS=ON \
+        -DBNL_INSTALL=OFF
     displayName: Configure
 
   - script: |
