@@ -35,6 +35,17 @@
   }                                                                            \
   (void)0
 
+// Throw `std::system_error` if given expression returns an error.
+#define RAISE(...)                                                             \
+  ({                                                                           \
+    auto&& res = (__VA_ARGS__);                                                \
+    if (bnl::base::BNL_TRY_IS_ERROR(res)) {                                    \
+      throw std::system_error(bnl::base::BNL_TRY_GET_ERROR(res));              \
+    }                                                                          \
+                                                                               \
+    std::move(res).value();                                                    \
+  })
+
 #define CHECK(expression, error)                                               \
   {                                                                            \
     auto result_ = expression;                                                 \
