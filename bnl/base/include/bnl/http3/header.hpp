@@ -4,6 +4,8 @@
 #include <bnl/base/string.hpp>
 #include <bnl/base/string_view.hpp>
 
+#include <iosfwd>
+
 namespace bnl {
 namespace http3 {
 
@@ -25,6 +27,9 @@ BNL_BASE_EXPORT bool
 operator==(header_view first, header_view second) noexcept;
 BNL_BASE_EXPORT bool
 operator!=(header_view first, header_view second) noexcept;
+
+BNL_BASE_EXPORT std::ostream&
+operator<<(std::ostream& os, header_view header);
 
 class BNL_BASE_EXPORT header
 {

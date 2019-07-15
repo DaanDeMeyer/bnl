@@ -1,5 +1,7 @@
 #include <bnl/http3/header.hpp>
 
+#include <ostream>
+
 namespace bnl {
 namespace http3 {
 
@@ -31,6 +33,12 @@ bool
 operator!=(header_view first, header_view second) noexcept
 {
   return !(first == second);
+}
+
+std::ostream&
+operator<<(std::ostream& os, header_view header)
+{
+  return os << header.name() << ": " << header.value();
 }
 
 header::header(base::string name, base::string value) noexcept
