@@ -89,7 +89,7 @@ client::recv(quic::event event, event::handler handler)
 }
 
 uint64_t
-client::request(std::error_code& /* ec */)
+client::request()
 {
   uint64_t id = next_stream_id_;
 

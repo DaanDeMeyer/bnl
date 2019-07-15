@@ -29,7 +29,7 @@ public:
 
   std::error_code recv(quic::event event, event::handler handler);
 
-  uint64_t request(std::error_code& ec);
+  uint64_t request();
 
   std::error_code header(uint64_t id, header_view header);
   std::error_code body(uint64_t id, base::buffer body);

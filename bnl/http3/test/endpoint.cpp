@@ -104,8 +104,6 @@ transfer(Sender& sender, Receiver& receiver)
 
 TEST_CASE("endpoint")
 {
-  std::error_code ec;
-
   log::api logger;
 
   http3::client client(&logger);
@@ -117,8 +115,7 @@ TEST_CASE("endpoint")
                         { ":path", "index.html" } },
                       { "abcde" } };
 
-  uint64_t id = client.request(ec);
-  REQUIRE(!ec);
+  uint64_t id = client.request();
 
   start(client, id, request);
 
