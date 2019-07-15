@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bnl/log.hpp>
+#include <fmt/ostream.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
