@@ -8,9 +8,10 @@ namespace bnl {
 namespace http3 {
 namespace varint {
 
-encoder::encoder(const log::api* logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
-{}
+{
+}
 
 base::result<size_t>
 encoder::encoded_size(uint64_t varint) const noexcept
@@ -43,7 +44,7 @@ static constexpr uint8_t UINT32_HEADER = 0x80;
 static constexpr uint8_t UINT64_HEADER = 0xc0;
 
 static void
-uint8_encode(uint8_t* dest, uint8_t number)
+uint8_encode(uint8_t *dest, uint8_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 0U);
 
@@ -51,7 +52,7 @@ uint8_encode(uint8_t* dest, uint8_t number)
 }
 
 static void
-uint16_encode(uint8_t* dest, uint16_t number)
+uint16_encode(uint8_t *dest, uint16_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 8U);
   dest[1] = static_cast<uint8_t>(number >> 0U);
@@ -60,7 +61,7 @@ uint16_encode(uint8_t* dest, uint16_t number)
 }
 
 static void
-uint32_encode(uint8_t* dest, uint32_t number)
+uint32_encode(uint8_t *dest, uint32_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 24U);
   dest[1] = static_cast<uint8_t>(number >> 16U);
@@ -71,7 +72,7 @@ uint32_encode(uint8_t* dest, uint32_t number)
 }
 
 static void
-uint64_encode(uint8_t* dest, uint64_t number)
+uint64_encode(uint8_t *dest, uint64_t number)
 {
   dest[0] = static_cast<uint8_t>(number >> 56U);
   dest[1] = static_cast<uint8_t>(number >> 48U);
@@ -86,7 +87,7 @@ uint64_encode(uint8_t* dest, uint64_t number)
 }
 
 base::result<size_t>
-encoder::encode(uint8_t* dest, uint64_t varint) const noexcept
+encoder::encode(uint8_t *dest, uint64_t varint) const noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 

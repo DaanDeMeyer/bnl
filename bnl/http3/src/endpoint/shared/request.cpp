@@ -10,12 +10,13 @@ namespace endpoint {
 namespace shared {
 namespace request {
 
-sender::sender(uint64_t id, const log::api* logger) noexcept
+sender::sender(uint64_t id, const log::api *logger) noexcept
   : headers_(logger)
   , body_(logger)
   , id_(id)
   , logger_(logger)
-{}
+{
+}
 
 bool
 sender::finished() const noexcept
@@ -79,13 +80,14 @@ sender::fin() noexcept
   return body_.fin();
 }
 
-receiver::receiver(uint64_t id, const log::api* logger) noexcept
+receiver::receiver(uint64_t id, const log::api *logger) noexcept
   : frame_(logger)
   , headers_(logger)
   , body_(logger)
   , id_(id)
   , logger_(logger)
-{}
+{
+}
 
 receiver::~receiver() noexcept = default;
 
@@ -111,7 +113,7 @@ receiver::start() noexcept
   return {};
 }
 
-const headers::decoder&
+const headers::decoder &
 receiver::headers() const noexcept
 {
   return headers_;

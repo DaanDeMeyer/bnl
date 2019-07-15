@@ -10,9 +10,9 @@ using namespace bnl;
 
 template<size_t N>
 static http3::frame
-encode_and_decode(const http3::frame& frame,
-                  const http3::frame::encoder& encoder,
-                  const http3::frame::decoder& decoder)
+encode_and_decode(const http3::frame &frame,
+                  const http3::frame::encoder &encoder,
+                  const http3::frame::decoder &decoder)
 {
   size_t encoded_size = EXTRACT(encoder.encoded_size(frame));
   REQUIRE(encoded_size == N);
@@ -155,7 +155,7 @@ TEST_CASE("frame")
     REQUIRE(encoded.size() == 6);
 
     // Mangle the frame length.
-    const_cast<uint8_t*>(encoded.data())[1] = 16; // NOLINT
+    const_cast<uint8_t *>(encoded.data())[1] = 16; // NOLINT
 
     base::result<http3::frame> result = decoder.decode(encoded);
 

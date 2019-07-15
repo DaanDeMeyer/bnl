@@ -38,29 +38,30 @@ namespace http3 {
 namespace qpack {
 namespace huffman {
 
-decoder::decoder(const log::api* logger) noexcept
+decoder::decoder(const log::api *logger) noexcept
   : logger_(logger)
-{}
+{
+}
 
 template<typename Sequence>
 base::result<base::string>
-decoder::decode(Sequence& encoded, size_t encoded_size) const
+decoder::decode(Sequence &encoded, size_t encoded_size) const
 {
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size));
   base::string decoded;
   decoded.resize(decoded_size);
 
-  char* dest = &decoded[0];
+  char *dest = &decoded[0];
   uint8_t state = 0;
 
   for (size_t i = 0; i < encoded_size; ++i) {
-    const decode::node& first = decode::table[state][encoded[i] >> 4U];
+    const decode::node &first = decode::table[state][encoded[i] >> 4U];
 
     if ((first.flags & util::to_underlying(decode::flag::symbol)) != 0) {
       *dest++ = static_cast<char>(first.symbol);
     }
 
-    const decode::node& second = decode::table[first.state][encoded[i] & 0xfU];
+    const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
 
     if ((second.flags & util::to_underlying(decode::flag::symbol)) != 0) {
       *dest++ = static_cast<char>(second.symbol);
@@ -76,7 +77,7 @@ decoder::decode(Sequence& encoded, size_t encoded_size) const
 
 template<typename Lookahead>
 base::result<size_t>
-decoder::decoded_size(const Lookahead& encoded, size_t encoded_size) const
+decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
   noexcept
 {
   CHECK(encoded.size() >= encoded_size, base::error::incomplete);
@@ -86,7 +87,7 @@ decoder::decoded_size(const Lookahead& encoded, size_t encoded_size) const
   bool accept = false;
 
   for (size_t i = 0; i < encoded_size; i++) {
-    const decode::node& first = decode::table[state][encoded[i] >> 4U];
+    const decode::node &first = decode::table[state][encoded[i] >> 4U];
 
     bool failed = (first.flags & decode::flag::failed) != 0;
     CHECK(!failed, error::qpack_decompression_failed);
@@ -95,7 +96,7 @@ decoder::decoded_size(const Lookahead& encoded, size_t encoded_size) const
       decoded_size++;
     }
 
-    const decode::node& second = decode::table[first.state][encoded[i] & 0xfU];
+    const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
 
     failed = (second.flags & decode::flag::failed) != 0;
     CHECK(!failed, error::qpack_decompression_failed);

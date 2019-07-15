@@ -9,14 +9,15 @@
 namespace bnl {
 namespace http3 {
 
-frame::decoder::decoder(const log::api* logger) noexcept
+frame::decoder::decoder(const log::api *logger) noexcept
   : varint_(logger)
   , logger_(logger)
-{}
+{
+}
 
 template<typename Sequence>
 base::result<frame::type>
-frame::decoder::peek(const Sequence& encoded) const noexcept
+frame::decoder::peek(const Sequence &encoded) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
@@ -44,7 +45,7 @@ frame::decoder::peek(const Sequence& encoded) const noexcept
 
 template<typename Sequence>
 base::result<frame>
-frame::decoder::decode(Sequence& encoded) const noexcept
+frame::decoder::decode(Sequence &encoded) const noexcept
 {
   // frame has no copy constructor so we check the while condition inside the
   // while loop instead.
@@ -66,7 +67,7 @@ frame::decoder::decode(Sequence& encoded) const noexcept
 
 template<typename Lookahead>
 base::result<frame>
-frame::decoder::decode_single(Lookahead& lookahead) const noexcept
+frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 {
   uint64_t type = TRY(varint_.decode(lookahead));
   uint64_t payload_encoded_size = TRY(varint_.decode(lookahead));
@@ -223,7 +224,7 @@ frame::decoder::decode_single(Lookahead& lookahead) const noexcept
 
 template<typename Lookahead>
 base::result<uint8_t>
-frame::decoder::uint8_decode(Lookahead& lookahead) const noexcept
+frame::decoder::uint8_decode(Lookahead &lookahead) const noexcept
 {
   CHECK(!lookahead.empty(), base::error::incomplete);
 

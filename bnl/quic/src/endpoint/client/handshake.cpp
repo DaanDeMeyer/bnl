@@ -13,10 +13,10 @@ namespace quic {
 namespace endpoint {
 namespace client {
 
-static SSL_CTX*
+static SSL_CTX *
 ssl_ctx_new()
 {
-  SSL_CTX* ssl_ctx = SSL_CTX_new(TLS_method());
+  SSL_CTX *ssl_ctx = SSL_CTX_new(TLS_method());
   assert(ssl_ctx != nullptr);
 
   SSL_CTX_set_default_verify_paths(ssl_ctx);
@@ -24,12 +24,12 @@ ssl_ctx_new()
   return ssl_ctx;
 }
 
-static SSL_CTX* SSL_CONTEXT = ssl_ctx_new(); // NOLINT
+static SSL_CTX *SSL_CONTEXT = ssl_ctx_new(); // NOLINT
 
-static SSL*
-ssl_new(handshake* handshake)
+static SSL *
+ssl_new(handshake *handshake)
 {
-  SSL* ssl = SSL_new(SSL_CONTEXT);
+  SSL *ssl = SSL_new(SSL_CONTEXT);
   assert(ssl != nullptr);
 
   int rv = SSL_set_ex_data(ssl, 0, handshake);
@@ -76,13 +76,13 @@ make_crypto_level(ssl_encryption_level_t level)
 }
 
 static int
-set_encryption_secrets_cb(SSL* ssl,
+set_encryption_secrets_cb(SSL *ssl,
                           ssl_encryption_level_t level,
-                          const uint8_t* read_secret,
-                          const uint8_t* write_secret,
+                          const uint8_t *read_secret,
+                          const uint8_t *write_secret,
                           size_t size)
 {
-  auto handshake = static_cast<class handshake*>(SSL_get_app_data(ssl));
+  auto handshake = static_cast<class handshake *>(SSL_get_app_data(ssl));
 
   std::error_code ec =
     handshake->set_encryption_secrets(make_crypto_level(level),
@@ -93,12 +93,12 @@ set_encryption_secrets_cb(SSL* ssl,
 }
 
 static int
-add_handshake_data_cb(SSL* ssl,
+add_handshake_data_cb(SSL *ssl,
                       ssl_encryption_level_t level,
-                      const uint8_t* data,
+                      const uint8_t *data,
                       size_t size)
 {
-  auto handshake = static_cast<class handshake*>(SSL_get_app_data(ssl));
+  auto handshake = static_cast<class handshake *>(SSL_get_app_data(ssl));
 
   std::error_code ec = handshake->add_handshake_data(
     make_crypto_level(level), base::buffer_view(data, size));
@@ -107,7 +107,7 @@ add_handshake_data_cb(SSL* ssl,
 }
 
 static int
-flush_flight_cb(SSL* ssl)
+flush_flight_cb(SSL *ssl)
 {
   // TODO: Implement
   (void)ssl;
@@ -115,7 +115,7 @@ flush_flight_cb(SSL* ssl)
 }
 
 static int
-send_alert_cb(SSL* ssl, ssl_encryption_level_t level, uint8_t alert)
+send_alert_cb(SSL *ssl, ssl_encryption_level_t level, uint8_t alert)
 {
   // TODO: Implement
   (void)ssl;
@@ -125,8 +125,8 @@ send_alert_cb(SSL* ssl, ssl_encryption_level_t level, uint8_t alert)
 }
 
 handshake::handshake(base::buffer_view dcid,
-                     ngtcp2::connection* ngtcp2,
-                     const log::api* logger)
+                     ngtcp2::connection *ngtcp2,
+                     const log::api *logger)
   : ssl_(ssl_new(this), SSL_free)
   , ssl_quic_method_(new SSL_QUIC_METHOD{ set_encryption_secrets_cb,
                                           add_handshake_data_cb,
@@ -139,10 +139,10 @@ handshake::handshake(base::buffer_view dcid,
   // TODO: re-enable exceptions
 }
 
-handshake::handshake(handshake&& other) noexcept = default;
+handshake::handshake(handshake &&other) noexcept = default;
 
-handshake&
-handshake::operator=(handshake&& other) noexcept = default;
+handshake &
+handshake::operator=(handshake &&other) noexcept = default;
 
 handshake::~handshake() noexcept = default;
 
@@ -167,7 +167,7 @@ handshake::init(base::buffer_view dcid)
 
   // ALPN
 
-  const uint8_t* alpn = ngtcp2::connection::ALPN_H3.data();
+  const uint8_t *alpn = ngtcp2::connection::ALPN_H3.data();
   uint32_t alpn_size =
     static_cast<uint32_t>(ngtcp2::connection::ALPN_H3.size());
 
@@ -258,7 +258,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
 
   ngtcp2_->handshake_completed();
 
-  const uint8_t* remote_tp = nullptr;
+  const uint8_t *remote_tp = nullptr;
   size_t remote_tp_len = 0;
   SSL_get_peer_quic_transport_params(ssl_.get(), &remote_tp, &remote_tp_len);
 
@@ -271,7 +271,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
 std::error_code
 handshake::ack(crypto::level level, size_t size)
 {
-  base::buffers& keepalive = keepalive_[util::to_underlying(level)];
+  base::buffers &keepalive = keepalive_[util::to_underlying(level)];
 
   if (size > keepalive.size()) {
     LOG_E("ngtcp2's acked crypto data ({}) exceeds remaining data ({})",
@@ -294,7 +294,7 @@ handshake::completed() const noexcept
 base::result<crypto>
 handshake::negotiated_crypto() const noexcept
 {
-  const SSL_CIPHER* cipher = SSL_get_current_cipher(ssl_.get());
+  const SSL_CIPHER *cipher = SSL_get_current_cipher(ssl_.get());
 
   if (cipher == nullptr) {
     LOG_E("Cipher suite not negotiated yet");
@@ -308,7 +308,7 @@ handshake::negotiated_crypto() const noexcept
 }
 
 base::result<crypto::aead>
-handshake::make_aead(const SSL_CIPHER* cipher) const noexcept
+handshake::make_aead(const SSL_CIPHER *cipher) const noexcept
 {
   switch (SSL_CIPHER_get_id(cipher)) {
     case 0x03001301U: // TLS_AES_128_GCM_SHA256
@@ -324,7 +324,7 @@ handshake::make_aead(const SSL_CIPHER* cipher) const noexcept
 }
 
 base::result<crypto::hash>
-handshake::make_hash(const SSL_CIPHER* cipher) const noexcept
+handshake::make_hash(const SSL_CIPHER *cipher) const noexcept
 {
   switch (SSL_CIPHER_get_id(cipher)) {
     case 0x03001301U: // TLS_AES_128_GCM_SHA256
@@ -402,10 +402,10 @@ handshake::set_encryption_secrets(crypto::level level,
 std::error_code
 handshake::add_handshake_data(crypto::level level, base::buffer_view data)
 {
-  base::buffers& keepalive = keepalive_[util::to_underlying(level)];
+  base::buffers &keepalive = keepalive_[util::to_underlying(level)];
 
   keepalive.push(base::buffer(data));
-  base::buffer& buffer = keepalive.back();
+  base::buffer &buffer = keepalive.back();
 
   TRY(ngtcp2_->submit_crypto_data(level, buffer));
 

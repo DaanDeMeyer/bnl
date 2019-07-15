@@ -15,11 +15,12 @@ namespace bnl {
 namespace http3 {
 namespace qpack {
 
-encoder::encoder(const log::api* logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
   : prefix_int_(logger)
   , literal_(logger)
   , logger_(logger)
-{}
+{
+}
 
 uint64_t
 encoder::count() const noexcept
@@ -83,12 +84,12 @@ static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
 base::result<size_t>
-encoder::encode(uint8_t* dest, header_view header) noexcept
+encoder::encode(uint8_t *dest, header_view header) noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(header));
-  uint8_t* begin = dest;
+  uint8_t *begin = dest;
 
   if (state_ == state::prefix) {
     std::fill(dest, dest + QPACK_PREFIX_ENCODED_SIZE, static_cast<uint8_t>(0U));

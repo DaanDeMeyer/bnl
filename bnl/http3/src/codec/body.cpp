@@ -8,10 +8,11 @@ namespace bnl {
 namespace http3 {
 namespace body {
 
-encoder::encoder(const log::api* logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
   : frame_(logger)
   , logger_(logger)
-{}
+{
+}
 
 std::error_code
 encoder::add(base::buffer body)
@@ -77,10 +78,11 @@ encoder::encode() noexcept
   NOTREACHED();
 }
 
-decoder::decoder(const log::api* logger) noexcept
+decoder::decoder(const log::api *logger) noexcept
   : frame_(logger)
   , logger_(logger)
-{}
+{
+}
 
 bool
 decoder::in_progress() const noexcept
@@ -90,7 +92,7 @@ decoder::in_progress() const noexcept
 
 template<typename Sequence>
 base::result<base::buffer>
-decoder::decode(Sequence& encoded)
+decoder::decode(Sequence &encoded)
 {
   switch (state_) {
 

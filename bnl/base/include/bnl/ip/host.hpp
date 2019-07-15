@@ -6,8 +6,7 @@
 namespace bnl {
 namespace ip {
 
-class BNL_BASE_EXPORT host
-{
+class BNL_BASE_EXPORT host {
 public:
   host() = default;
   host(std::string name) noexcept; // NOLINT

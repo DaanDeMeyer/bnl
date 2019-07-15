@@ -8,14 +8,13 @@
 namespace bnl {
 namespace quic {
 
-class BNL_QUIC_EXPORT path
-{
+class BNL_QUIC_EXPORT path {
 public:
   path() = default;
   path(ip::endpoint local, ip::endpoint remote) noexcept;
 
-  path(const path& other) = default;
-  path& operator=(const path& other) = default;
+  path(const path &other) = default;
+  path &operator=(const path &other) = default;
 
   ip::endpoint local() const noexcept;
   ip::endpoint remote() const noexcept;

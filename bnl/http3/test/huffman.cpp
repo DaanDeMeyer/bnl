@@ -22,7 +22,7 @@ random_string(size_t length)
   base::string string;
   string.resize(length);
 
-  for (char& character : string) {
+  for (char &character : string) {
     character = characters[pick(rg)];
   }
 
@@ -31,8 +31,8 @@ random_string(size_t length)
 
 static void
 encode_and_decode(base::string_view string,
-                  const http3::qpack::huffman::encoder& encoder,
-                  const http3::qpack::huffman::decoder& decoder)
+                  const http3::qpack::huffman::encoder &encoder,
+                  const http3::qpack::huffman::decoder &decoder)
 {
   base::buffer encoded = encoder.encode(string);
 

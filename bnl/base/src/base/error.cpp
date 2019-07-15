@@ -3,16 +3,15 @@
 namespace bnl {
 namespace base {
 
-class error_category_impl : public std::error_category
-{
+class error_category_impl : public std::error_category {
 
 public:
-  const char* name() const noexcept override;
+  const char *name() const noexcept override;
 
   std::string message(int condition) const noexcept override;
 };
 
-const char*
+const char *
 error_category_impl::name() const noexcept
 {
   return "bnl-base";
@@ -41,7 +40,7 @@ error_category_impl::message(int condition) const noexcept
   return "error not recognized";
 }
 
-const std::error_category&
+const std::error_category &
 error_category() noexcept
 {
   static error_category_impl instance;

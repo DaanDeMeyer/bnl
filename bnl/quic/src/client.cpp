@@ -6,17 +6,18 @@ namespace bnl {
 namespace quic {
 
 client::client(path path,
-               const params& params,
+               const params &params,
                clock clock,
-               const log::api* logger) noexcept
+               const log::api *logger) noexcept
   : impl_(std::unique_ptr<endpoint::client::impl>(
       new endpoint::client::impl(path, params, std::move(clock), logger)))
-{}
+{
+}
 
-client::client(client&& other) noexcept = default;
+client::client(client &&other) noexcept = default;
 
-client&
-client::operator=(client&&) noexcept = default;
+client &
+client::operator=(client &&) noexcept = default;
 
 client::~client() noexcept = default;
 

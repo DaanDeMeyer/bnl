@@ -13,15 +13,16 @@ namespace endpoint {
 namespace client {
 
 impl::impl(path path,
-           const params& params,
+           const params &params,
            clock clock,
-           const log::api* logger) noexcept
+           const log::api *logger) noexcept
   : prng_(std::random_device()())
   , ngtcp2_(path, params, this, std::move(clock), prng_, logger)
   , handshake_(ngtcp2_.dcid(), &ngtcp2_, logger)
   , path_(path)
   , logger_(logger)
-{}
+{
+}
 
 std::error_code
 impl::client_initial()
@@ -74,7 +75,7 @@ impl::acked_stream_data_offset(uint64_t id, size_t size)
     THROW(base::error::internal);
   }
 
-  base::buffers& buffers = match->second;
+  base::buffers &buffers = match->second;
 
   if (size > buffers.size()) {
     LOG_E("ngtcp2's acked stream ({}) data ({}) exceeds remaining data ({})",
@@ -273,7 +274,7 @@ impl::recv(base::buffer_view data, event::handler handler)
 void
 impl::add(quic::event event)
 {
-  (void) event;
+  (void)event;
   // TODO
 }
 
@@ -301,7 +302,7 @@ impl::crypto() const noexcept
   return handshake_.negotiated_crypto();
 }
 
-const log::api*
+const log::api *
 impl::logger() const noexcept
 {
   return logger_;

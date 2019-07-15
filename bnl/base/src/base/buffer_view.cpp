@@ -6,12 +6,13 @@
 namespace bnl {
 namespace base {
 
-buffer_view::buffer_view(const uint8_t* data, size_t size) noexcept
+buffer_view::buffer_view(const uint8_t *data, size_t size) noexcept
   : data_(data)
   , size_(size)
-{}
+{
+}
 
-const uint8_t*
+const uint8_t *
 buffer_view::data() const noexcept
 {
   return data_;
@@ -29,13 +30,13 @@ buffer_view::empty() const noexcept
   return size() == 0;
 }
 
-const uint8_t*
+const uint8_t *
 buffer_view::begin() const noexcept
 {
   return data();
 }
 
-const uint8_t*
+const uint8_t *
 buffer_view::end() const noexcept
 {
   return data() + size();
@@ -54,12 +55,13 @@ operator!=(buffer_view lhs, buffer_view rhs) noexcept
   return !(lhs == rhs);
 }
 
-buffer_view_mut::buffer_view_mut(uint8_t* data, size_t size) noexcept
+buffer_view_mut::buffer_view_mut(uint8_t *data, size_t size) noexcept
   : data_(data)
   , size_(size)
-{}
+{
+}
 
-uint8_t*
+uint8_t *
 buffer_view_mut::data() noexcept
 {
   return data_;
@@ -77,13 +79,13 @@ buffer_view_mut::empty() const noexcept
   return size() == 0;
 }
 
-uint8_t*
+uint8_t *
 buffer_view_mut::begin() noexcept
 {
   return data();
 }
 
-uint8_t*
+uint8_t *
 buffer_view_mut::end() noexcept
 {
   return data() + size();

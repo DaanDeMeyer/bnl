@@ -19,18 +19,17 @@ class impl;
 
 namespace ngtcp2 {
 
-class connection
-{
+class connection {
 public:
   connection(path path,
-             const params& params,
-             endpoint::client::impl* context,
+             const params &params,
+             endpoint::client::impl *context,
              clock clock,
-             std::mt19937& prng,
-             const log::api* logger);
+             std::mt19937 &prng,
+             const log::api *logger);
 
-  connection(connection&& other) = default;
-  connection& operator=(connection&& other) = default;
+  connection(connection &&other) = default;
+  connection &operator=(connection &&other) = default;
 
   static const base::buffer_view INITIAL_SALT;
   static const base::buffer_view ALPN_H3;
@@ -73,11 +72,11 @@ public:
   std::error_code expire();
 
 private:
-  std::unique_ptr<ngtcp2_conn, void (*)(ngtcp2_conn*)> connection_;
+  std::unique_ptr<ngtcp2_conn, void (*)(ngtcp2_conn *)> connection_;
 
   path path_;
   clock clock_;
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 } // namespace ngtcp2

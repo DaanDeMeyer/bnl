@@ -17,10 +17,9 @@ namespace endpoint {
 namespace shared {
 namespace control {
 
-class BNL_HTTP3_EXPORT sender
-{
+class BNL_HTTP3_EXPORT sender {
 public:
-  sender(uint64_t id, const log::api* logger) noexcept;
+  sender(uint64_t id, const log::api *logger) noexcept;
 
   sender(sender &&other) = default;
   sender &operator=(sender &&other) = default;
@@ -28,11 +27,7 @@ public:
   base::result<quic::event> send() noexcept;
 
 private:
-  enum class state : uint8_t
-  {
-    settings,
-    idle
-  };
+  enum class state : uint8_t { settings, idle };
 
   state state_ = state::settings;
   settings settings_;
@@ -40,13 +35,12 @@ private:
   frame::encoder frame_;
 
   uint64_t id_;
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
-class BNL_HTTP3_EXPORT receiver
-{
+class BNL_HTTP3_EXPORT receiver {
 public:
-  receiver(uint64_t id, const log::api* logger) noexcept;
+  receiver(uint64_t id, const log::api *logger) noexcept;
 
   receiver(receiver &&other) = default;
   receiver &operator=(receiver &&other) = default;
@@ -64,11 +58,7 @@ private:
   base::result<event> process() noexcept;
 
 private:
-  enum class state : uint8_t
-  {
-    settings,
-    active
-  };
+  enum class state : uint8_t { settings, active };
 
   state state_ = state::settings;
   base::buffers buffers_;
@@ -76,7 +66,7 @@ private:
   frame::decoder frame_;
 
   uint64_t id_;
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 } // namespace control

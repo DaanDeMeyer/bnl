@@ -17,13 +17,12 @@ class api;
 
 namespace http3 {
 
-class BNL_HTTP3_EXPORT client
-{
+class BNL_HTTP3_EXPORT client {
 public:
-  explicit client(const log::api* logger);
+  explicit client(const log::api *logger);
 
-  client(client&& other) = default;
-  client& operator=(client&& other) = default;
+  client(client &&other) = default;
+  client &operator=(client &&other) = default;
 
   base::result<quic::event> send() noexcept;
 
@@ -44,8 +43,7 @@ private:
   using request_t = std::pair<endpoint::client::request::sender,
                               endpoint::client::request::receiver>;
 
-  struct
-  {
+  struct {
     settings local;
     settings remote;
   } settings_;
@@ -54,7 +52,7 @@ private:
   std::map<uint64_t, request_t> requests_;
   uint64_t next_stream_id_ = 0;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 } // namespace http3

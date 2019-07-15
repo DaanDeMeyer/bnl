@@ -7,11 +7,12 @@
 namespace bnl {
 namespace quic {
 
-stream::stream(uint64_t id, ngtcp2_conn* connection, const log::api* logger)
+stream::stream(uint64_t id, ngtcp2_conn *connection, const log::api *logger)
   : id_(id)
   , connection_(connection)
   , logger_(logger)
-{}
+{
+}
 
 std::error_code
 stream::add(base::buffer buffer)

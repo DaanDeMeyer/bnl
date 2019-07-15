@@ -7,15 +7,13 @@ namespace qpack {
 namespace huffman {
 namespace decode {
 
-enum flag : uint8_t
-{
+enum flag : uint8_t {
   accepted = 1,
   symbol = 2,
   failed = 4,
 };
 
-struct node
-{
+struct node {
   uint8_t state;
   uint8_t flags;
   uint8_t symbol;

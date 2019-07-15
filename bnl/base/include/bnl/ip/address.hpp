@@ -7,21 +7,16 @@
 namespace bnl {
 namespace ip {
 
-class BNL_BASE_EXPORT address
-{
+class BNL_BASE_EXPORT address {
 public:
   address();
   address(ipv4::address address) noexcept; // NOLINT
   address(ipv6::address address) noexcept; // NOLINT
 
-  address(const address& other) = default;
-  address& operator=(const address& other) = default;
+  address(const address &other) = default;
+  address &operator=(const address &other) = default;
 
-  enum class type
-  {
-    ipv4,
-    ipv6
-  };
+  enum class type { ipv4, ipv6 };
 
   operator type() const noexcept; // NOLINT
 
@@ -30,8 +25,7 @@ public:
 private:
   type type_;
 
-  union
-  {
+  union {
     ipv4::address ipv4;
     ipv6::address ipv6;
   };

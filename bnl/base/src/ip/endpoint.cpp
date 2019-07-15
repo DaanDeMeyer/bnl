@@ -6,9 +6,10 @@ namespace ip {
 endpoint::endpoint(ip::address address, uint16_t port) noexcept
   : address_(address)
   , port_(port)
-{}
+{
+}
 
-const ip::address&
+const ip::address &
 endpoint::address() const noexcept
 {
   return address_;

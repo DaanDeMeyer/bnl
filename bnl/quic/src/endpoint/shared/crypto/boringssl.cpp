@@ -12,7 +12,7 @@
 namespace bnl {
 namespace quic {
 
-static const EVP_AEAD*
+static const EVP_AEAD *
 evp_aead(crypto::aead aead)
 {
   switch (aead) {
@@ -28,7 +28,7 @@ evp_aead(crypto::aead aead)
   return nullptr;
 }
 
-static const EVP_MD*
+static const EVP_MD *
 evp_md(crypto::hash hash)
 {
   switch (hash) {
@@ -146,7 +146,7 @@ crypto::decrypt(base::buffer_view_mut dest,
 }
 
 static uint32_t
-uint32_LE(const uint8_t* data)
+uint32_LE(const uint8_t *data)
 {
   return static_cast<uint32_t>(data[0] << 0U) |
          static_cast<uint32_t>(data[1] << 8U) |
@@ -188,7 +188,7 @@ crypto::hp_mask(base::buffer_view_mut dest,
                        sample.data(),
                        sample.size(),
                        key.data(),
-                       reinterpret_cast<uint8_t*>(nonce),
+                       reinterpret_cast<uint8_t *>(nonce),
                        counter);
 
       break;

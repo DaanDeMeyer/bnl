@@ -9,13 +9,14 @@
 namespace bnl {
 namespace http3 {
 
-frame::encoder::encoder(const log::api* logger) noexcept
+frame::encoder::encoder(const log::api *logger) noexcept
   : varint_(logger)
   , logger_(logger)
-{}
+{
+}
 
 base::result<uint64_t>
-frame::encoder::payload_size(const frame& frame) const noexcept
+frame::encoder::payload_size(const frame &frame) const noexcept
 {
   uint64_t payload_size = 0;
 
@@ -83,7 +84,7 @@ frame::encoder::payload_size(const frame& frame) const noexcept
 }
 
 base::result<size_t>
-frame::encoder::encoded_size(const frame& frame) const noexcept
+frame::encoder::encoded_size(const frame &frame) const noexcept
 {
   uint64_t payload_size = TRY(this->payload_size(frame));
   size_t payload_encoded_size = 0;
@@ -123,12 +124,12 @@ frame::encoder::encoded_size(const frame& frame) const noexcept
 }
 
 base::result<size_t>
-frame::encoder::encode(uint8_t* dest, const frame& frame) const noexcept
+frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
 {
   CHECK(dest != nullptr, base::error::invalid_argument);
 
   size_t encoded_size = TRY(this->encoded_size(frame));
-  uint8_t* begin = dest;
+  uint8_t *begin = dest;
 
   uint64_t payload_size = TRY(this->payload_size(frame));
 
@@ -193,7 +194,7 @@ frame::encoder::encode(uint8_t* dest, const frame& frame) const noexcept
 }
 
 base::result<base::buffer>
-frame::encoder::encode(const frame& frame) const
+frame::encoder::encode(const frame &frame) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame));
   base::buffer encoded(encoded_size);

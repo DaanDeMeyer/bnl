@@ -8,8 +8,7 @@
 namespace bnl {
 namespace base {
 
-class BNL_BASE_EXPORT buffers
-{
+class BNL_BASE_EXPORT buffers {
 public:
   class lookahead;
 
@@ -17,8 +16,8 @@ public:
 
   buffers() = default;
 
-  buffers(buffers&& other) = default;
-  buffers& operator=(buffers&& other) = default;
+  buffers(buffers &&other) = default;
+  buffers &operator=(buffers &&other) = default;
 
   size_t size() const noexcept;
   bool empty() const noexcept;
@@ -30,11 +29,11 @@ public:
 
   void push(buffer buffer);
 
-  const buffer& front() const noexcept;
-  const buffer& back() const noexcept;
+  const buffer &front() const noexcept;
+  const buffer &back() const noexcept;
 
-  buffer& front() noexcept;
-  buffer& back() noexcept;
+  buffer &front() noexcept;
+  buffer &back() noexcept;
 
   void consume(size_t size) noexcept;
   size_t consumed() const noexcept;
@@ -48,18 +47,17 @@ private:
   std::list<buffer> buffers_;
 };
 
-class BNL_BASE_EXPORT buffers::lookahead
-{
+class BNL_BASE_EXPORT buffers::lookahead {
 public:
   using lookahead_type = lookahead;
 
-  lookahead(const buffers& buffers) noexcept; // NOLINT
+  lookahead(const buffers &buffers) noexcept; // NOLINT
 
-  lookahead(const lookahead& other) noexcept;
-  lookahead& operator=(const lookahead&) = delete;
+  lookahead(const lookahead &other) noexcept;
+  lookahead &operator=(const lookahead &) = delete;
 
-  lookahead(lookahead&& other) = delete;
-  lookahead& operator=(lookahead&& other) = delete;
+  lookahead(lookahead &&other) = delete;
+  lookahead &operator=(lookahead &&other) = delete;
 
   ~lookahead() = default;
 
@@ -75,7 +73,7 @@ public:
   buffer copy(size_t size) const;
 
 private:
-  const buffers& buffers_;
+  const buffers &buffers_;
   size_t previous_ = 0;
   size_t position_ = 0;
 };

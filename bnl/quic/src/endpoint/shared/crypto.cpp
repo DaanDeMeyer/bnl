@@ -15,7 +15,8 @@ crypto::key_view::key_view(base::buffer_view data,
   : data_(data)
   , iv_(iv)
   , hp_(hp)
-{}
+{
+}
 
 base::buffer_view
 crypto::key_view::data() const noexcept
@@ -39,7 +40,8 @@ crypto::key::key(base::buffer data, base::buffer iv, base::buffer hp) noexcept
   : data_(std::move(data))
   , iv_(std::move(iv))
   , hp_(std::move(hp))
-{}
+{
+}
 
 base::buffer_view
 crypto::key::data() const noexcept
@@ -64,11 +66,12 @@ crypto::key::operator key_view() const noexcept
   return { data_, iv_, hp_ };
 }
 
-crypto::crypto(aead aead, hash hash, const log::api* logger)
+crypto::crypto(aead aead, hash hash, const log::api *logger)
   : aead_(aead)
   , hash_(hash)
   , logger_(logger)
-{}
+{
+}
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.2
 
@@ -151,7 +154,7 @@ crypto::hkdf_expand_label(base::buffer_view secret,
                           size_t size)
 {
   std::array<uint8_t, 256> info = {};
-  uint8_t* it = std::begin(info);
+  uint8_t *it = std::begin(info);
 
   // HkdfLabel
 
@@ -218,16 +221,16 @@ crypto::hash_size(hash hash) const noexcept
   NOTREACHED();
 }
 
-std::ostream&
-operator<<(std::ostream& os, const crypto& crypto)
+std::ostream &
+operator<<(std::ostream &os, const crypto &crypto)
 {
   os << "AEAD: " << crypto.aead_ << ", ";
   os << "HASH: " << crypto.hash_;
   return os;
 }
 
-std::ostream&
-operator<<(std::ostream& os, crypto::level level)
+std::ostream &
+operator<<(std::ostream &os, crypto::level level)
 {
   switch (level) {
     case crypto::level::initial:
@@ -241,8 +244,8 @@ operator<<(std::ostream& os, crypto::level level)
   }
 }
 
-std::ostream&
-operator<<(std::ostream& os, crypto::aead aead)
+std::ostream &
+operator<<(std::ostream &os, crypto::aead aead)
 {
   switch (aead) {
     case crypto::aead::aes_128_gcm:
@@ -254,8 +257,8 @@ operator<<(std::ostream& os, crypto::aead aead)
   }
 }
 
-std::ostream&
-operator<<(std::ostream& os, crypto::hash hash)
+std::ostream &
+operator<<(std::ostream &os, crypto::hash hash)
 {
   switch (hash) {
     case crypto::hash::sha256:

@@ -15,10 +15,9 @@ class api;
 
 namespace quic {
 
-class stream
-{
+class stream {
 public:
-  stream(uint64_t id, ngtcp2_conn* connection, const log::api* logger);
+  stream(uint64_t id, ngtcp2_conn *connection, const log::api *logger);
 
   std::error_code add(base::buffer buffer);
   std::error_code fin();
@@ -30,8 +29,8 @@ private:
   bool fin_;
 
   const uint64_t id_;
-  ngtcp2_conn* connection_;
-  const log::api* logger_;
+  ngtcp2_conn *connection_;
+  const log::api *logger_;
 };
 
 } // namespace quic

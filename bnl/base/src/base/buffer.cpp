@@ -9,9 +9,10 @@ namespace base {
 buffer::buffer() noexcept
   : type_(type::sso)
   , sso_()
-{}
+{
+}
 
-buffer::buffer(const uint8_t* data, size_t size)
+buffer::buffer(const uint8_t *data, size_t size)
   : buffer(size)
 {
   std::copy_n(data, size, this->data());
@@ -36,16 +37,17 @@ buffer::buffer(size_t size) // NOLINT
 
 buffer::buffer(buffer_view data) noexcept
   : buffer(data.data(), data.size())
-{}
+{
+}
 
-buffer::buffer(const buffer& other)
+buffer::buffer(const buffer &other)
   : buffer()
 {
   operator=(other);
 }
 
-buffer&
-buffer::operator=(const buffer& other)
+buffer &
+buffer::operator=(const buffer &other)
 {
   if (&other != this) {
     destroy();
@@ -73,14 +75,14 @@ buffer::operator=(const buffer& other)
   return *this;
 }
 
-buffer::buffer(buffer&& other) noexcept
+buffer::buffer(buffer &&other) noexcept
   : buffer()
 {
   operator=(std::move(other));
 }
 
-buffer&
-buffer::operator=(buffer&& other) noexcept
+buffer &
+buffer::operator=(buffer &&other) noexcept
 {
   if (&other != this) {
     destroy();
@@ -113,7 +115,7 @@ buffer::~buffer() noexcept
   destroy();
 }
 
-uint8_t*
+uint8_t *
 buffer::data() noexcept
 {
   switch (type_) {
@@ -122,14 +124,14 @@ buffer::data() noexcept
     case type::unique:
       return unique_.get() + position_;
     case type::shared:
-      return static_cast<uint8_t*>(shared_.get()) + position_;
+      return static_cast<uint8_t *>(shared_.get()) + position_;
   }
 
   assert(false);
   return nullptr;
 }
 
-const uint8_t*
+const uint8_t *
 buffer::data() const noexcept
 {
   switch (type_) {
@@ -138,7 +140,7 @@ buffer::data() const noexcept
     case type::unique:
       return unique_.get() + position_;
     case type::shared:
-      return static_cast<uint8_t*>(shared_.get()) + position_;
+      return static_cast<uint8_t *>(shared_.get()) + position_;
   }
 
   assert(false);
@@ -156,13 +158,13 @@ uint8_t buffer::operator*() const noexcept
   return *data();
 }
 
-uint8_t& buffer::operator[](size_t index) noexcept
+uint8_t &buffer::operator[](size_t index) noexcept
 {
   assert(index < size());
   return *(data() + index);
 }
 
-uint8_t& buffer::operator*() noexcept
+uint8_t &buffer::operator*() noexcept
 {
   return *data();
 }
@@ -179,25 +181,25 @@ buffer::empty() const noexcept
   return size() == 0;
 }
 
-const uint8_t*
+const uint8_t *
 buffer::begin() const noexcept
 {
   return data();
 }
 
-const uint8_t*
+const uint8_t *
 buffer::end() const noexcept
 {
   return data() + size();
 }
 
-uint8_t*
+uint8_t *
 buffer::begin() noexcept
 {
   return data();
 }
 
-uint8_t*
+uint8_t *
 buffer::end() noexcept
 {
   return data() + size();
@@ -255,7 +257,7 @@ buffer::operator buffer_view() const noexcept
 }
 
 buffer
-buffer::concat(const buffer& first, const buffer& second)
+buffer::concat(const buffer &first, const buffer &second)
 {
   buffer result(first.size() + second.size());
 
@@ -269,7 +271,8 @@ buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
   : type_(type::shared)
   , size_(size)
   , shared_(std::move(data))
-{}
+{
+}
 
 void
 buffer::upgrade() noexcept
@@ -301,14 +304,16 @@ buffer::destroy() noexcept
   size_ = 0;
 }
 
-buffer::lookahead::lookahead(const buffer& buffer) noexcept
+buffer::lookahead::lookahead(const buffer &buffer) noexcept
   : buffer_(buffer)
-{}
+{
+}
 
-buffer::lookahead::lookahead(const lookahead& other) noexcept
+buffer::lookahead::lookahead(const lookahead &other) noexcept
   : buffer_(other.buffer_)
   , previous_(other.previous_ + other.position_)
-{}
+{
+}
 
 size_t
 buffer::lookahead::size() const noexcept

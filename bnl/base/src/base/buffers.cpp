@@ -7,7 +7,7 @@ namespace bnl {
 namespace base {
 
 static std::list<buffer>::iterator
-find_first_not_empty(std::list<buffer>& buffers)
+find_first_not_empty(std::list<buffer> &buffers)
 {
   for (auto it = buffers.begin(); it != buffers.end(); it++) {
     if (!it->empty()) {
@@ -23,7 +23,7 @@ buffers::size() const noexcept
 {
   size_t size = 0;
 
-  for (const buffer& buffer : buffers_) {
+  for (const buffer &buffer : buffers_) {
     size += buffer.size();
   }
 
@@ -88,25 +88,25 @@ buffers::push(buffer buffer)
   buffers_.emplace_back(std::move(buffer));
 }
 
-const buffer&
+const buffer &
 buffers::front() const noexcept
 {
   return buffers_.front();
 }
 
-const buffer&
+const buffer &
 buffers::back() const noexcept
 {
   return buffers_.back();
 }
 
-buffer&
+buffer &
 buffers::front() noexcept
 {
   return buffers_.front();
 }
 
-buffer&
+buffer &
 buffers::back() noexcept
 {
   return buffers_.back();
@@ -134,7 +134,7 @@ buffers::consumed() const noexcept
 {
   size_t consumed = 0;
 
-  for (const buffer& buffer : buffers_) {
+  for (const buffer &buffer : buffers_) {
     consumed += buffer.consumed();
   }
 
@@ -166,14 +166,16 @@ buffers::concat(std::list<buffer>::iterator start,
   return result;
 }
 
-buffers::lookahead::lookahead(const buffers& buffers) noexcept
+buffers::lookahead::lookahead(const buffers &buffers) noexcept
   : buffers_(buffers)
-{}
+{
+}
 
-buffers::lookahead::lookahead(const lookahead& other) noexcept
+buffers::lookahead::lookahead(const lookahead &other) noexcept
   : buffers_(other.buffers_)
   , previous_(other.previous_ + other.position_)
-{}
+{
+}
 
 size_t
 buffers::lookahead::size() const noexcept

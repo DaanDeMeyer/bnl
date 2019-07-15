@@ -25,28 +25,23 @@ class api;
 namespace http3 {
 namespace qpack {
 
-class BNL_HTTP3_EXPORT encoder
-{
+class BNL_HTTP3_EXPORT encoder {
 public:
-  explicit encoder(const log::api* logger) noexcept;
+  explicit encoder(const log::api *logger) noexcept;
 
-  encoder(encoder&& other) = default;
-  encoder& operator=(encoder&& other) = default;
+  encoder(encoder &&other) = default;
+  encoder &operator=(encoder &&other) = default;
 
   uint64_t count() const noexcept;
 
   base::result<size_t> encoded_size(header_view header) const noexcept;
 
-  base::result<size_t> encode(uint8_t* dest, header_view header) noexcept;
+  base::result<size_t> encode(uint8_t *dest, header_view header) noexcept;
 
   base::result<base::buffer> encode(header_view header);
 
 private:
-  enum class state
-  {
-    prefix,
-    header
-  };
+  enum class state { prefix, header };
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
@@ -54,28 +49,23 @@ private:
   prefix_int::encoder prefix_int_;
   literal::encoder literal_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
-class BNL_HTTP3_EXPORT decoder
-{
+class BNL_HTTP3_EXPORT decoder {
 public:
-  explicit decoder(const log::api* logger);
+  explicit decoder(const log::api *logger);
 
-  decoder(decoder&& other) = default;
-  decoder& operator=(decoder&& other) = default;
+  decoder(decoder &&other) = default;
+  decoder &operator=(decoder &&other) = default;
 
   uint64_t count() const noexcept;
 
   template<typename Lookahead>
-  base::result<header> decode(Lookahead& encoded);
+  base::result<header> decode(Lookahead &encoded);
 
 private:
-  enum class state
-  {
-    prefix,
-    header
-  };
+  enum class state { prefix, header };
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
@@ -83,12 +73,12 @@ private:
   prefix_int::decoder prefix_int_;
   literal::decoder literal_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_DECODE_IMPL(T)                                         \
   template BNL_HTTP3_EXPORT base::result<header> decoder::decode<T>(           \
-    T&) // NOLINT
+    T &) // NOLINT
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_DECODE_IMPL);
 

@@ -8,17 +8,20 @@ namespace ip {
 address::address()
   : type_(type::ipv4)
   , ipv4()
-{}
+{
+}
 
 address::address(ipv4::address address) noexcept
   : type_(type::ipv4)
   , ipv4(address)
-{}
+{
+}
 
 address::address(ipv6::address address) noexcept
   : type_(type::ipv6)
   , ipv6(address)
-{}
+{
+}
 
 address::operator type() const noexcept
 {

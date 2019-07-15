@@ -28,15 +28,14 @@ namespace ngtcp2 {
 class connection;
 }
 
-class handshake
-{
+class handshake {
 public:
   handshake(base::buffer_view dcid,
-            ngtcp2::connection* ngtcp2,
-            const log::api* logger);
+            ngtcp2::connection *ngtcp2,
+            const log::api *logger);
 
-  handshake(handshake&& other) noexcept;
-  handshake& operator=(handshake&& other) noexcept;
+  handshake(handshake &&other) noexcept;
+  handshake &operator=(handshake &&other) noexcept;
 
   ~handshake() noexcept;
 
@@ -65,11 +64,11 @@ private:
 
   void log_errors();
 
-  base::result<crypto::aead> make_aead(const SSL_CIPHER* cipher) const noexcept;
-  base::result<crypto::hash> make_hash(const SSL_CIPHER* cipher) const noexcept;
+  base::result<crypto::aead> make_aead(const SSL_CIPHER *cipher) const noexcept;
+  base::result<crypto::hash> make_hash(const SSL_CIPHER *cipher) const noexcept;
 
 private:
-  std::unique_ptr<SSL, void (*)(SSL*)> ssl_;
+  std::unique_ptr<SSL, void (*)(SSL *)> ssl_;
   std::unique_ptr<SSL_QUIC_METHOD> ssl_quic_method_;
 
   base::buffers keepalive_[4];
@@ -77,8 +76,8 @@ private:
   base::buffer tx_secret_;
   base::buffer rx_secret_;
 
-  ngtcp2::connection* ngtcp2_;
-  const log::api* logger_;
+  ngtcp2::connection *ngtcp2_;
+  const log::api *logger_;
 };
 
 } // namespace client

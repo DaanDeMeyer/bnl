@@ -18,13 +18,12 @@ class api;
 namespace http3 {
 namespace body {
 
-class BNL_HTTP3_EXPORT encoder
-{
+class BNL_HTTP3_EXPORT encoder {
 public:
-  explicit encoder(const log::api* logger) noexcept;
+  explicit encoder(const log::api *logger) noexcept;
 
-  encoder(encoder&& other) = default;
-  encoder& operator=(encoder&& other) = default;
+  encoder(encoder &&other) = default;
+  encoder &operator=(encoder &&other) = default;
 
   std::error_code add(base::buffer body);
   std::error_code fin() noexcept;
@@ -34,12 +33,7 @@ public:
   base::result<base::buffer> encode() noexcept;
 
 private:
-  enum class state : uint8_t
-  {
-    frame,
-    data,
-    fin
-  };
+  enum class state : uint8_t { frame, data, fin };
 
   state state_ = state::frame;
   bool fin_ = false;
@@ -47,40 +41,35 @@ private:
 
   frame::encoder frame_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
-class BNL_HTTP3_EXPORT decoder
-{
+class BNL_HTTP3_EXPORT decoder {
 public:
-  explicit decoder(const log::api* logger) noexcept;
+  explicit decoder(const log::api *logger) noexcept;
 
-  decoder(decoder&& other) = default;
-  decoder& operator=(decoder&& other) = default;
+  decoder(decoder &&other) = default;
+  decoder &operator=(decoder &&other) = default;
 
   bool in_progress() const noexcept;
 
   template<typename Sequence>
-  base::result<base::buffer> decode(Sequence& encoded);
+  base::result<base::buffer> decode(Sequence &encoded);
 
 private:
-  enum class state : uint8_t
-  {
-    frame,
-    data
-  };
+  enum class state : uint8_t { frame, data };
 
   state state_ = state::frame;
   uint64_t remaining_ = 0;
 
   frame::decoder frame_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_BODY_DECODE_IMPL(T)                                          \
   template BNL_HTTP3_EXPORT base::result<base::buffer> decoder::decode<T>(     \
-    T&) // NOLINT
+    T &) // NOLINT
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_BODY_DECODE_IMPL);
 

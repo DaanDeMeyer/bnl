@@ -9,14 +9,13 @@
 namespace bnl {
 namespace http3 {
 
-class BNL_BASE_EXPORT header_view
-{
+class BNL_BASE_EXPORT header_view {
 public:
   header_view() = default;
   header_view(base::string_view name, base::string_view value) noexcept;
 
-  header_view(const header_view& other) = default;
-  header_view& operator=(const header_view& other) = default;
+  header_view(const header_view &other) = default;
+  header_view &operator=(const header_view &other) = default;
 
   base::string_view name() const noexcept;
   base::string_view value() const noexcept;
@@ -31,20 +30,19 @@ operator==(header_view first, header_view second) noexcept;
 BNL_BASE_EXPORT bool
 operator!=(header_view first, header_view second) noexcept;
 
-BNL_BASE_EXPORT std::ostream&
-operator<<(std::ostream& os, header_view header);
+BNL_BASE_EXPORT std::ostream &
+operator<<(std::ostream &os, header_view header);
 
-class BNL_BASE_EXPORT header
-{
+class BNL_BASE_EXPORT header {
 public:
   header() = default;
   header(base::string name, base::string value) noexcept;
 
-  header(const header& other) = default;
-  header& operator=(const header& other) = default;
+  header(const header &other) = default;
+  header &operator=(const header &other) = default;
 
-  header(header&& other) = default;
-  header& operator=(header&& other) = default;
+  header(header &&other) = default;
+  header &operator=(header &&other) = default;
 
   base::string_view name() const noexcept;
   base::string_view value() const noexcept;

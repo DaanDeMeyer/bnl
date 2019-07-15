@@ -66,7 +66,7 @@ make_crypto_level(crypto::level level)
 }
 
 static ngtcp2_path_storage
-make_path(const path& path)
+make_path(const path &path)
 {
   base::buffer_view local = path.local().address().bytes();
   base::buffer_view remote = path.local().address().bytes();
@@ -96,10 +96,10 @@ make_timestamp(ngtcp2_tstamp timestamp)
 }
 
 static int
-client_initial_cb(ngtcp2_conn* connection, void* context)
+client_initial_cb(ngtcp2_conn *connection, void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   std::error_code ec = client->client_initial();
 
@@ -107,16 +107,16 @@ client_initial_cb(ngtcp2_conn* connection, void* context)
 }
 
 static int
-recv_crypto_data_cb(ngtcp2_conn* connection,
+recv_crypto_data_cb(ngtcp2_conn *connection,
                     ngtcp2_crypto_level level,
                     uint64_t offset,
-                    const uint8_t* data,
+                    const uint8_t *data,
                     size_t size,
-                    void* context)
+                    void *context)
 {
   (void)connection;
   (void)offset;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   std::error_code ec = client->recv_crypto_data(make_crypto_level(level),
                                                 base::buffer_view(data, size));
@@ -133,10 +133,10 @@ recv_crypto_data_cb(ngtcp2_conn* connection,
 }
 
 static int
-handshake_completed_cb(ngtcp2_conn* connection, void* context)
+handshake_completed_cb(ngtcp2_conn *connection, void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->handshake_completed();
 
@@ -144,21 +144,21 @@ handshake_completed_cb(ngtcp2_conn* connection, void* context)
 }
 
 static ssize_t
-in_encrypt_cb(ngtcp2_conn* connection,
-              uint8_t* dest,
+in_encrypt_cb(ngtcp2_conn *connection,
+              uint8_t *dest,
               size_t dest_size,
-              const uint8_t* plaintext,
+              const uint8_t *plaintext,
               size_t plaintext_size,
-              const uint8_t* key,
+              const uint8_t *key,
               size_t key_size,
-              const uint8_t* nonce,
+              const uint8_t *nonce,
               size_t nonce_size,
-              const uint8_t* ad,
+              const uint8_t *ad,
               size_t ad_size,
-              void* context)
+              void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   crypto crypto(
     crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
@@ -176,21 +176,21 @@ in_encrypt_cb(ngtcp2_conn* connection,
 }
 
 static ssize_t
-in_decrypt_cb(ngtcp2_conn* connection,
-              uint8_t* dest,
+in_decrypt_cb(ngtcp2_conn *connection,
+              uint8_t *dest,
               size_t dest_size,
-              const uint8_t* ciphertext,
+              const uint8_t *ciphertext,
               size_t ciphertext_size,
-              const uint8_t* key,
+              const uint8_t *key,
               size_t key_size,
-              const uint8_t* nonce,
+              const uint8_t *nonce,
               size_t nonce_size,
-              const uint8_t* ad,
+              const uint8_t *ad,
               size_t ad_size,
-              void* context)
+              void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   crypto crypto(
     crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
@@ -208,21 +208,21 @@ in_decrypt_cb(ngtcp2_conn* connection,
 }
 
 static ssize_t
-encrypt_cb(ngtcp2_conn* connection,
-           uint8_t* dest,
+encrypt_cb(ngtcp2_conn *connection,
+           uint8_t *dest,
            size_t dest_size,
-           const uint8_t* plaintext,
+           const uint8_t *plaintext,
            size_t plaintext_size,
-           const uint8_t* key,
+           const uint8_t *key,
            size_t key_size,
-           const uint8_t* nonce,
+           const uint8_t *nonce,
            size_t nonce_size,
-           const uint8_t* ad,
+           const uint8_t *ad,
            size_t ad_size,
-           void* context)
+           void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   base::result<crypto> result = client->crypto();
   if (!result) {
@@ -244,21 +244,21 @@ encrypt_cb(ngtcp2_conn* connection,
 }
 
 static ssize_t
-decrypt_cb(ngtcp2_conn* connection,
-           uint8_t* dest,
+decrypt_cb(ngtcp2_conn *connection,
+           uint8_t *dest,
            size_t dest_size,
-           const uint8_t* ciphertext,
+           const uint8_t *ciphertext,
            size_t ciphertext_size,
-           const uint8_t* key,
+           const uint8_t *key,
            size_t key_size,
-           const uint8_t* nonce,
+           const uint8_t *nonce,
            size_t nonce_size,
-           const uint8_t* ad,
+           const uint8_t *ad,
            size_t ad_size,
-           void* context)
+           void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   base::result<crypto> result = client->crypto();
   if (!result) {
@@ -280,17 +280,17 @@ decrypt_cb(ngtcp2_conn* connection,
 }
 
 static ssize_t
-in_hp_mask_cb(ngtcp2_conn* connection,
-              uint8_t* dest,
+in_hp_mask_cb(ngtcp2_conn *connection,
+              uint8_t *dest,
               size_t dest_size,
-              const uint8_t* key,
+              const uint8_t *key,
               size_t key_size,
-              const uint8_t* sample,
+              const uint8_t *sample,
               size_t sample_size,
-              void* context)
+              void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   crypto crypto(
     crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
@@ -303,17 +303,17 @@ in_hp_mask_cb(ngtcp2_conn* connection,
 }
 
 static ssize_t
-hp_mask_cb(ngtcp2_conn* connection,
-           uint8_t* dest,
+hp_mask_cb(ngtcp2_conn *connection,
+           uint8_t *dest,
            size_t dest_size,
-           const uint8_t* key,
+           const uint8_t *key,
            size_t key_size,
-           const uint8_t* sample,
+           const uint8_t *sample,
            size_t sample_size,
-           void* context)
+           void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   base::result<crypto> result = client->crypto();
   if (!result) {
@@ -330,19 +330,19 @@ hp_mask_cb(ngtcp2_conn* connection,
 }
 
 static int
-recv_stream_data_cb(ngtcp2_conn* connection,
+recv_stream_data_cb(ngtcp2_conn *connection,
                     int64_t id,
                     int fin,
                     uint64_t offset,
-                    const uint8_t* data,
+                    const uint8_t *data,
                     size_t size,
-                    void* context,
-                    void* stream_context)
+                    void *context,
+                    void *stream_context)
 {
   (void)connection;
   (void)offset;
   (void)stream_context;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->recv_stream_data(
     static_cast<uint64_t>(id), fin != 0, base::buffer_view(data, size));
@@ -351,15 +351,15 @@ recv_stream_data_cb(ngtcp2_conn* connection,
 }
 
 static int
-acked_crypto_offset_cb(ngtcp2_conn* connection,
+acked_crypto_offset_cb(ngtcp2_conn *connection,
                        ngtcp2_crypto_level level,
                        uint64_t offset,
                        size_t size,
-                       void* context)
+                       void *context)
 {
   (void)connection;
   (void)offset;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   std::error_code ec =
     client->acked_crypto_offset(make_crypto_level(level), size);
@@ -368,17 +368,17 @@ acked_crypto_offset_cb(ngtcp2_conn* connection,
 }
 
 static int
-acked_stream_data_offset_cb(ngtcp2_conn* connection,
+acked_stream_data_offset_cb(ngtcp2_conn *connection,
                             int64_t id,
                             uint64_t offset,
                             size_t size,
-                            void* context,
-                            void* stream_context)
+                            void *context,
+                            void *stream_context)
 {
   (void)connection;
   (void)offset;
   (void)stream_context;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   std::error_code ec =
     client->acked_stream_data_offset(static_cast<uint64_t>(id), size);
@@ -387,10 +387,10 @@ acked_stream_data_offset_cb(ngtcp2_conn* connection,
 }
 
 int
-stream_open_cb(ngtcp2_conn* connection, int64_t id, void* context)
+stream_open_cb(ngtcp2_conn *connection, int64_t id, void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->stream_opened(static_cast<uint64_t>(id));
 
@@ -398,15 +398,15 @@ stream_open_cb(ngtcp2_conn* connection, int64_t id, void* context)
 }
 
 static int
-stream_close_cb(ngtcp2_conn* connection,
+stream_close_cb(ngtcp2_conn *connection,
                 int64_t id,
                 uint64_t error,
-                void* context,
-                void* stream_context)
+                void *context,
+                void *stream_context)
 {
   (void)connection;
   (void)stream_context;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->stream_closed(static_cast<uint64_t>(id), error);
 
@@ -414,12 +414,12 @@ stream_close_cb(ngtcp2_conn* connection,
 }
 
 static int
-recv_stateless_reset_cb(ngtcp2_conn* connection,
-                        const ngtcp2_pkt_stateless_reset* stateless_reset,
-                        void* context)
+recv_stateless_reset_cb(ngtcp2_conn *connection,
+                        const ngtcp2_pkt_stateless_reset *stateless_reset,
+                        void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   std::error_code ec = client->recv_stateless_reset(
     base::buffer_view(stateless_reset->rand, stateless_reset->randlen),
@@ -430,16 +430,16 @@ recv_stateless_reset_cb(ngtcp2_conn* connection,
 }
 
 static int
-recv_retry_cb(ngtcp2_conn* connection,
-              const ngtcp2_pkt_hd* packet_header,
-              const ngtcp2_pkt_retry* retry,
-              void* context)
+recv_retry_cb(ngtcp2_conn *connection,
+              const ngtcp2_pkt_hd *packet_header,
+              const ngtcp2_pkt_retry *retry,
+              void *context)
 {
   (void)packet_header;
   (void)retry;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
-  const ngtcp2_cid* dcid = ngtcp2_conn_get_dcid(connection);
+  const ngtcp2_cid *dcid = ngtcp2_conn_get_dcid(connection);
 
   std::error_code ec =
     client->recv_retry(base::buffer_view(dcid->data, dcid->datalen));
@@ -448,12 +448,12 @@ recv_retry_cb(ngtcp2_conn* connection,
 }
 
 static int
-extend_max_local_streams_bidi_cb(ngtcp2_conn* connection,
+extend_max_local_streams_bidi_cb(ngtcp2_conn *connection,
                                  uint64_t max_streams,
-                                 void* context)
+                                 void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->extend_max_local_streams_bidi(max_streams);
 
@@ -461,12 +461,12 @@ extend_max_local_streams_bidi_cb(ngtcp2_conn* connection,
 }
 
 static int
-extend_max_local_streams_uni_cb(ngtcp2_conn* connection,
+extend_max_local_streams_uni_cb(ngtcp2_conn *connection,
                                 uint64_t max_streams,
-                                void* context)
+                                void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->extend_max_local_streams_bidi(max_streams);
 
@@ -474,15 +474,15 @@ extend_max_local_streams_uni_cb(ngtcp2_conn* connection,
 }
 
 static int
-rand_cb(ngtcp2_conn* connection,
-        uint8_t* dest,
+rand_cb(ngtcp2_conn *connection,
+        uint8_t *dest,
         size_t size,
         ngtcp2_rand_ctx usage,
-        void* context)
+        void *context)
 {
   (void)connection;
   (void)usage;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->random(base::buffer_view_mut(dest, size));
 
@@ -490,14 +490,14 @@ rand_cb(ngtcp2_conn* connection,
 }
 
 static int
-get_new_connection_id_cb(ngtcp2_conn* connection,
-                         ngtcp2_cid* cid,
-                         uint8_t* token,
+get_new_connection_id_cb(ngtcp2_conn *connection,
+                         ngtcp2_cid *cid,
+                         uint8_t *token,
                          size_t cid_size,
-                         void* context)
+                         void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->new_connection_id(base::buffer_view_mut(cid->data, cid_size));
   cid->datalen = cid_size;
@@ -508,12 +508,12 @@ get_new_connection_id_cb(ngtcp2_conn* connection,
 }
 
 static int
-remove_connection_id_cb(ngtcp2_conn* connection,
-                        const ngtcp2_cid* cid,
-                        void* context)
+remove_connection_id_cb(ngtcp2_conn *connection,
+                        const ngtcp2_cid *cid,
+                        void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->remove_connection_id(base::buffer_view(cid->data, cid->datalen));
 
@@ -521,10 +521,10 @@ remove_connection_id_cb(ngtcp2_conn* connection,
 }
 
 static int
-update_key_cb(ngtcp2_conn* connection, void* context)
+update_key_cb(ngtcp2_conn *connection, void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   std::error_code ec = client->update_key();
 
@@ -532,13 +532,13 @@ update_key_cb(ngtcp2_conn* connection, void* context)
 }
 
 static int
-path_validation_cb(ngtcp2_conn* connection,
-                   const ngtcp2_path* path,
+path_validation_cb(ngtcp2_conn *connection,
+                   const ngtcp2_path *path,
                    ngtcp2_path_validation_result result,
-                   void* context)
+                   void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   base::buffer_view local(path->local.addr, path->local.addrlen);
   base::buffer_view remote(path->local.addr, path->local.addrlen);
@@ -550,13 +550,13 @@ path_validation_cb(ngtcp2_conn* connection,
 }
 
 static int
-select_preferred_addr_cb(ngtcp2_conn* connection,
-                         ngtcp2_addr* dest,
-                         const ngtcp2_preferred_addr* preferred,
-                         void* context)
+select_preferred_addr_cb(ngtcp2_conn *connection,
+                         ngtcp2_addr *dest,
+                         const ngtcp2_preferred_addr *preferred,
+                         void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   ip::endpoint ipv4(ipv4::address(preferred->ipv4_addr), preferred->ipv4_port);
   ip::endpoint ipv6(ipv6::address(preferred->ipv6_addr), preferred->ipv6_port);
@@ -572,16 +572,16 @@ select_preferred_addr_cb(ngtcp2_conn* connection,
 }
 
 static int
-stream_reset_cb(ngtcp2_conn* connection,
+stream_reset_cb(ngtcp2_conn *connection,
                 int64_t id,
                 size_t final_size,
                 uint64_t error,
-                void* context,
-                void* stream_context)
+                void *context,
+                void *stream_context)
 {
   (void)connection;
   (void)stream_context;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->stream_reset(static_cast<uint64_t>(id), final_size, error);
 
@@ -589,12 +589,12 @@ stream_reset_cb(ngtcp2_conn* connection,
 }
 
 static int
-extend_max_remote_streams_bidi_cb(ngtcp2_conn* connection,
+extend_max_remote_streams_bidi_cb(ngtcp2_conn *connection,
                                   uint64_t max_streams,
-                                  void* context)
+                                  void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->extend_max_remote_streams_bidi(max_streams);
 
@@ -602,12 +602,12 @@ extend_max_remote_streams_bidi_cb(ngtcp2_conn* connection,
 }
 
 static int
-extend_max_remote_streams_uni_cb(ngtcp2_conn* connection,
+extend_max_remote_streams_uni_cb(ngtcp2_conn *connection,
                                  uint64_t max_streams,
-                                 void* context)
+                                 void *context)
 {
   (void)connection;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->extend_max_remote_streams_uni(max_streams);
 
@@ -615,15 +615,15 @@ extend_max_remote_streams_uni_cb(ngtcp2_conn* connection,
 }
 
 static int
-extend_max_stream_data_cb(ngtcp2_conn* connection,
+extend_max_stream_data_cb(ngtcp2_conn *connection,
                           int64_t id,
                           uint64_t max_data,
-                          void* context,
-                          void* stream_context)
+                          void *context,
+                          void *stream_context)
 {
   (void)connection;
   (void)stream_context;
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   client->extend_max_stream_data(static_cast<uint64_t>(id), max_data);
 
@@ -631,9 +631,9 @@ extend_max_stream_data_cb(ngtcp2_conn* connection,
 }
 
 static void
-log_cb(void* context, const char* format, ...) // NOLINT
+log_cb(void *context, const char *format, ...) // NOLINT
 {
-  auto client = static_cast<client::impl*>(context);
+  auto client = static_cast<client::impl *>(context);
 
   // C varargs are a runtime concept, the logging macros expect variadic
   // templates at compile time. As a result, we can't pass C varargs to the
@@ -654,15 +654,15 @@ log_cb(void* context, const char* format, ...) // NOLINT
 }
 
 static ngtcp2_cid
-make_cid(std::mt19937& prng)
+make_cid(std::mt19937 &prng)
 {
   auto dist = std::uniform_int_distribution<uint8_t>();
 
   ngtcp2_cid connection_id;
   connection_id.datalen = NGTCP2_MAX_CIDLEN;
 
-  uint8_t* begin = connection_id.data;
-  uint8_t* end = connection_id.data + connection_id.datalen;
+  uint8_t *begin = connection_id.data;
+  uint8_t *end = connection_id.data + connection_id.datalen;
 
   std::generate(begin, end, [&dist, &prng]() { return dist(prng); });
 
@@ -670,7 +670,7 @@ make_cid(std::mt19937& prng)
 }
 
 static ngtcp2_settings
-make_settings(const params& params)
+make_settings(const params &params)
 {
   ngtcp2_settings settings;
   ngtcp2_settings_default(&settings);
@@ -691,11 +691,11 @@ make_settings(const params& params)
 }
 
 connection::connection(path path,
-                       const params& params,
-                       endpoint::client::impl* context,
+                       const params &params,
+                       endpoint::client::impl *context,
                        clock clock,
-                       std::mt19937& prng,
-                       const log::api* logger)
+                       std::mt19937 &prng,
+                       const log::api *logger)
   : connection_(nullptr, ngtcp2_conn_del)
   , path_(path)
   , clock_(std::move(clock))
@@ -1018,8 +1018,11 @@ connection::read_pkt(base::buffer_view packet)
   ngtcp2_path_storage path = make_path(path_);
 
   duration ts = TRY(clock_());
-  int rv = ngtcp2_conn_read_pkt(
-    connection_.get(), &path.path, packet.data(), packet.size(), make_timestamp(ts));
+  int rv = ngtcp2_conn_read_pkt(connection_.get(),
+                                &path.path,
+                                packet.data(),
+                                packet.size(),
+                                make_timestamp(ts));
   if (rv != 0) {
     THROW_NGTCP2(ngtcp2_conn_read_pkt, static_cast<error>(rv));
   }
@@ -1030,7 +1033,7 @@ connection::read_pkt(base::buffer_view packet)
 base::buffer_view
 connection::dcid() const noexcept
 {
-  const ngtcp2_cid* dcid = ngtcp2_conn_get_dcid(connection_.get());
+  const ngtcp2_cid *dcid = ngtcp2_conn_get_dcid(connection_.get());
   return { dcid->data, dcid->datalen };
 }
 

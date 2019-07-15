@@ -5,7 +5,8 @@ namespace ip {
 
 host::host(std::string name) noexcept
   : name_(std::move(name))
-{}
+{
+}
 
 base::string_view
 host::name() const noexcept

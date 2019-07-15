@@ -19,13 +19,12 @@ class api;
 namespace http3 {
 namespace headers {
 
-class BNL_HTTP3_EXPORT encoder
-{
+class BNL_HTTP3_EXPORT encoder {
 public:
-  explicit encoder(const log::api* logger) noexcept;
+  explicit encoder(const log::api *logger) noexcept;
 
-  encoder(encoder&& other) = default;
-  encoder& operator=(encoder&& other) = default;
+  encoder(encoder &&other) = default;
+  encoder &operator=(encoder &&other) = default;
 
   std::error_code add(header_view header);
   std::error_code fin() noexcept;
@@ -35,13 +34,7 @@ public:
   base::result<base::buffer> encode() noexcept;
 
 private:
-  enum class state : uint8_t
-  {
-    idle,
-    frame,
-    qpack,
-    fin
-  };
+  enum class state : uint8_t { idle, frame, qpack, fin };
 
   state state_ = state::idle;
   std::queue<base::buffer> buffers_;
@@ -49,31 +42,25 @@ private:
   frame::encoder frame_;
   qpack::encoder qpack_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
-class BNL_HTTP3_EXPORT decoder
-{
+class BNL_HTTP3_EXPORT decoder {
 public:
-  explicit decoder(const log::api* logger) noexcept;
+  explicit decoder(const log::api *logger) noexcept;
 
-  decoder(decoder&& other) = default;
-  decoder& operator=(decoder&& other) = default;
+  decoder(decoder &&other) = default;
+  decoder &operator=(decoder &&other) = default;
 
   bool started() const noexcept;
 
   bool finished() const noexcept;
 
   template<typename Sequence>
-  base::result<header> decode(Sequence& encoded);
+  base::result<header> decode(Sequence &encoded);
 
 private:
-  enum class state : uint8_t
-  {
-    frame,
-    qpack,
-    fin
-  };
+  enum class state : uint8_t { frame, qpack, fin };
 
   state state_ = state::frame;
   uint64_t headers_size_ = 0;
@@ -81,12 +68,12 @@ private:
   frame::decoder frame_;
   qpack::decoder qpack_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_HEADERS_DECODE_IMPL(T)                                       \
   template BNL_HTTP3_EXPORT base::result<header> decoder::decode<T>(           \
-    T&) // NOLINT
+    T &) // NOLINT
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_HEADERS_DECODE_IMPL);
 

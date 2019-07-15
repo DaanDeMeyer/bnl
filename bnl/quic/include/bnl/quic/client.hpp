@@ -26,16 +26,15 @@ class impl;
 } // namespace client
 } // namespace endpoint
 
-class BNL_QUIC_EXPORT client
-{
+class BNL_QUIC_EXPORT client {
 public:
   client(path path,
-         const params& params,
+         const params &params,
          clock clock,
-         const log::api* logger) noexcept;
+         const log::api *logger) noexcept;
 
-  client(client&& other) noexcept;
-  client& operator=(client&& other) noexcept;
+  client(client &&other) noexcept;
+  client &operator=(client &&other) noexcept;
 
   ~client() noexcept;
 

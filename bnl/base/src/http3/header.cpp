@@ -9,7 +9,8 @@ header_view::header_view(base::string_view name,
                          base::string_view value) noexcept
   : name_(name)
   , value_(value)
-{}
+{
+}
 
 base::string_view
 header_view::name() const noexcept
@@ -35,8 +36,8 @@ operator!=(header_view first, header_view second) noexcept
   return !(first == second);
 }
 
-std::ostream&
-operator<<(std::ostream& os, header_view header)
+std::ostream &
+operator<<(std::ostream &os, header_view header)
 {
   return os << header.name() << ": " << header.value();
 }
@@ -44,7 +45,8 @@ operator<<(std::ostream& os, header_view header)
 header::header(base::string name, base::string value) noexcept
   : name_(std::move(name))
   , value_(std::move(value))
-{}
+{
+}
 
 base::string_view
 header::name() const noexcept

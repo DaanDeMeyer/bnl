@@ -22,14 +22,12 @@ class api;
 
 namespace http3 {
 
-class BNL_HTTP3_EXPORT frame
-{
+class BNL_HTTP3_EXPORT frame {
 public:
   class encoder;
   class decoder;
 
-  enum class type : uint64_t
-  {
+  enum class type : uint64_t {
     data = 0x0,
     headers = 0x1,
     priority = 0x2,
@@ -41,22 +39,17 @@ public:
     duplicate_push = 0xe
   };
 
-  struct payload
-  {
-    struct data
-    {
+  struct payload {
+    struct data {
       uint64_t size;
     };
 
-    struct headers
-    {
+    struct headers {
       uint64_t size;
     };
 
-    struct priority
-    {
-      enum class type : uint8_t
-      {
+    struct priority {
+      enum class type : uint8_t {
         request = 0x0,
         push = 0x1,
         placeholder = 0x2,
@@ -75,29 +68,24 @@ public:
 
     using settings = http3::settings;
 
-    struct cancel_push
-    {
+    struct cancel_push {
       uint64_t push_id;
     };
 
-    struct push_promise
-    {
+    struct push_promise {
       uint64_t push_id;
       uint64_t size;
     };
 
-    struct goaway
-    {
+    struct goaway {
       uint64_t stream_id;
     };
 
-    struct max_push_id
-    {
+    struct max_push_id {
       uint64_t push_id;
     };
 
-    struct duplicate_push
-    {
+    struct duplicate_push {
       uint64_t push_id;
     };
   };
@@ -115,19 +103,18 @@ public:
   frame(frame::payload::max_push_id max_push_id) noexcept;       // NOLINT
   frame(frame::payload::duplicate_push duplicate_push) noexcept; // NOLINT
 
-  frame(const frame& other) = default;
-  frame& operator=(const frame& other) = delete;
+  frame(const frame &other) = default;
+  frame &operator=(const frame &other) = delete;
 
   operator type() const noexcept; // NOLINT
 
 private:
   const type type_;
 
-  BNL_HTTP3_EXPORT friend bool operator==(const frame& lhs, const frame& rhs);
+  BNL_HTTP3_EXPORT friend bool operator==(const frame &lhs, const frame &rhs);
 
 public:
-  union
-  {
+  union {
     const payload::data data;
     const payload::headers headers;
     const payload::priority priority;
@@ -141,67 +128,65 @@ public:
 };
 
 BNL_HTTP3_EXPORT bool
-operator==(const frame& lhs, const frame& rhs);
+operator==(const frame &lhs, const frame &rhs);
 BNL_HTTP3_EXPORT bool
-operator!=(const frame& lhs, const frame& rhs);
+operator!=(const frame &lhs, const frame &rhs);
 
-class BNL_HTTP3_EXPORT frame::encoder
-{
+class BNL_HTTP3_EXPORT frame::encoder {
 public:
-  explicit encoder(const log::api* logger) noexcept;
+  explicit encoder(const log::api *logger) noexcept;
 
-  encoder(encoder&& other) = default;
-  encoder& operator=(encoder&& other) = default;
+  encoder(encoder &&other) = default;
+  encoder &operator=(encoder &&other) = default;
 
-  base::result<size_t> encoded_size(const frame& frame) const noexcept;
+  base::result<size_t> encoded_size(const frame &frame) const noexcept;
 
-  base::result<size_t> encode(uint8_t* dest, const frame& frame) const noexcept;
+  base::result<size_t> encode(uint8_t *dest, const frame &frame) const noexcept;
 
-  base::result<base::buffer> encode(const frame& frame) const;
+  base::result<base::buffer> encode(const frame &frame) const;
 
 private:
-  base::result<uint64_t> payload_size(const frame& frame) const noexcept;
+  base::result<uint64_t> payload_size(const frame &frame) const noexcept;
 
 private:
   varint::encoder varint_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
-class BNL_HTTP3_EXPORT frame::decoder
-{
+class BNL_HTTP3_EXPORT frame::decoder {
 public:
-  explicit decoder(const log::api* logger) noexcept;
+  explicit decoder(const log::api *logger) noexcept;
 
-  decoder(decoder&& other) = default;
-  decoder& operator=(decoder&& other) = default;
-
-  template<typename Sequence>
-  base::result<frame::type> peek(const Sequence& encoded) const noexcept;
+  decoder(decoder &&other) = default;
+  decoder &operator=(decoder &&other) = default;
 
   template<typename Sequence>
-  base::result<frame> decode(Sequence& encoded) const noexcept;
+  base::result<frame::type> peek(const Sequence &encoded) const noexcept;
+
+  template<typename Sequence>
+  base::result<frame> decode(Sequence &encoded) const noexcept;
 
 private:
   template<typename Lookahead>
-  base::result<frame> decode_single(Lookahead& lookahead) const noexcept;
+  base::result<frame> decode_single(Lookahead &lookahead) const noexcept;
 
   template<typename Lookahead>
-  base::result<uint8_t> uint8_decode(Lookahead& lookahead) const noexcept;
+  base::result<uint8_t> uint8_decode(Lookahead &lookahead) const noexcept;
 
 private:
   varint::decoder varint_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 #define BNL_HTTP3_FRAME_PEEK_IMPL(T)                                           \
   template BNL_HTTP3_EXPORT base::result<frame::type> frame::decoder::peek<T>( \
-    const T&) const noexcept // NOLINT
+    const T &) const noexcept // NOLINT
 
 #define BNL_HTTP3_FRAME_DECODE_IMPL(T)                                         \
   template BNL_HTTP3_EXPORT base::result<frame> frame::decoder::decode<T>(     \
-    T&) /* NOLINT */ const noexcept
+    T &) /* NOLINT */ const noexcept
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);

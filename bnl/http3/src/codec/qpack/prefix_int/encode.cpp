@@ -7,9 +7,10 @@ namespace http3 {
 namespace qpack {
 namespace prefix_int {
 
-encoder::encoder(const log::api* logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
-{}
+{
+}
 
 size_t
 encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
@@ -36,9 +37,9 @@ encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
 }
 
 size_t
-encoder::encode(uint8_t* dest, uint64_t value, uint8_t prefix) const noexcept
+encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const noexcept
 {
-  uint8_t* begin = dest;
+  uint8_t *begin = dest;
 
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 

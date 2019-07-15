@@ -49,22 +49,22 @@ size_encode(uint32_t encoded_size)
 }
 
 void
-write(std::ostream& dest, const base::buffer& encoded)
+write(std::ostream &dest, const base::buffer &encoded)
 {
-  dest.write(reinterpret_cast<const char*>(encoded.data()),
+  dest.write(reinterpret_cast<const char *>(encoded.data()),
              static_cast<int32_t>(encoded.size()));
 }
 
 static std::error_code
 encode(uint64_t id,
-       const std::vector<http3::header>& headers,
-       std::ofstream& output)
+       const std::vector<http3::header> &headers,
+       std::ofstream &output)
 {
   http3::qpack::encoder qpack(logger_.get());
 
   std::queue<base::buffer> buffers;
 
-  for (const http3::header& header : headers) {
+  for (const http3::header &header : headers) {
     base::result<base::buffer> result = TRY(qpack.encode(header));
     buffers.emplace(std::move(result.value()));
   }
@@ -82,7 +82,7 @@ encode(uint64_t id,
       buffers.pop();
       write(output, encoded);
     }
-  } catch (const std::ios_base::failure& e) {
+  } catch (const std::ios_base::failure &e) {
     LOG_E("Error writing to output file: {}", e.what());
     return e.code();
   }
@@ -91,7 +91,7 @@ encode(uint64_t id,
 }
 
 int
-main(int argc, char* argv[])
+main(int argc, char *argv[])
 {
   if (argc < 3) {
     return 1;
@@ -104,7 +104,7 @@ main(int argc, char* argv[])
 
   try {
     input.open(argv[1], std::ios::binary);
-  } catch (const std::ios_base::failure& e) {
+  } catch (const std::ios_base::failure &e) {
     LOG_E("Error opening input file: {}", e.what());
     return 1;
   }
@@ -119,7 +119,7 @@ main(int argc, char* argv[])
 
   try {
     output.open(argv[2], std::ios::trunc | std::ios::binary);
-  } catch (const std::ios_base::failure& e) {
+  } catch (const std::ios_base::failure &e) {
     LOG_E("Error opening output file: {}", e.what());
     return 1;
   }

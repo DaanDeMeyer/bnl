@@ -12,11 +12,12 @@ namespace http3 {
 namespace qpack {
 
 // TODO: Find out what is best for max header and max value size.
-decoder::decoder(const log::api* logger)
+decoder::decoder(const log::api *logger)
   : prefix_int_(logger)
   , literal_(logger)
   , logger_(logger)
-{}
+{
+}
 
 uint64_t
 decoder::count() const noexcept
@@ -28,7 +29,7 @@ static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 template<typename Sequence>
 base::result<header>
-decoder::decode(Sequence& encoded)
+decoder::decode(Sequence &encoded)
 {
   if (state_ == state::prefix) {
     CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, base::error::incomplete);

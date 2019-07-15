@@ -35,9 +35,10 @@ namespace http3 {
 namespace qpack {
 namespace huffman {
 
-encoder::encoder(const log::api* logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
-{}
+{
+}
 
 size_t
 encoder::encoded_size(base::string_view string) const noexcept
@@ -54,9 +55,9 @@ encoder::encoded_size(base::string_view string) const noexcept
 }
 
 static size_t
-symbol_encode(uint8_t* dest, size_t* rem_bits, const encode::symbol& symbol)
+symbol_encode(uint8_t *dest, size_t *rem_bits, const encode::symbol &symbol)
 {
-  uint8_t* begin = dest;
+  uint8_t *begin = dest;
 
   uint32_t code = symbol.code;
   size_t num_bits = symbol.num_bits;
@@ -101,21 +102,21 @@ symbol_encode(uint8_t* dest, size_t* rem_bits, const encode::symbol& symbol)
 }
 
 size_t
-encoder::encode(uint8_t* dest, base::string_view string) const noexcept
+encoder::encode(uint8_t *dest, base::string_view string) const noexcept
 {
-  uint8_t* begin = dest;
+  uint8_t *begin = dest;
   size_t rem_bits = 8;
 
   for (char character : string) {
     uint8_t byte = static_cast<uint8_t>(character);
-    const encode::symbol& symbol = encode::table[byte];
+    const encode::symbol &symbol = encode::table[byte];
     dest += symbol_encode(dest, &rem_bits, symbol);
   }
 
   // 256 is special terminal symbol, pad with its prefix.
   if (rem_bits < 8) {
     // If rem_bits < 8, we should have at least 1 buffer space available.
-    const encode::symbol& symbol = encode::table[256];
+    const encode::symbol &symbol = encode::table[256];
     *dest = static_cast<uint8_t>(
       *dest |
       static_cast<uint8_t>(symbol.code >> (symbol.num_bits - rem_bits)));

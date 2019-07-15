@@ -9,14 +9,13 @@
 namespace bnl {
 namespace ipv6 {
 
-class BNL_BASE_EXPORT address
-{
+class BNL_BASE_EXPORT address {
 public:
   static constexpr size_t size = 16;
 
   address() = default;
   explicit address(base::buffer_view bytes) noexcept;
-  explicit address(const uint8_t* bytes) noexcept;
+  explicit address(const uint8_t *bytes) noexcept;
 
   address(const address &other) = default;
   address &operator=(const address &other) = default;

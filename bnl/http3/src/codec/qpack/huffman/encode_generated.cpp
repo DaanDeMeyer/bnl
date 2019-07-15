@@ -7,8 +7,7 @@ namespace qpack {
 namespace huffman {
 namespace encode {
 
-struct symbol
-{
+struct symbol {
   uint32_t code;
   size_t num_bits;
 };

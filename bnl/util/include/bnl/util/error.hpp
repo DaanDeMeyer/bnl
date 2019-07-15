@@ -28,7 +28,7 @@
                                                                                \
     if (logger_) {                                                             \
       logger_->operator()(                                                     \
-        __FILE__, static_cast<const char*>(__func__), __LINE__, err_);         \
+        __FILE__, static_cast<const char *>(__func__), __LINE__, err_);        \
     }                                                                          \
                                                                                \
     return err_;                                                               \
@@ -38,7 +38,7 @@
 // Throw `std::system_error` if given expression returns an error.
 #define RAISE(...)                                                             \
   ({                                                                           \
-    auto&& res = (__VA_ARGS__);                                                \
+    auto &&res = (__VA_ARGS__);                                                \
     if (bnl::base::BNL_TRY_IS_ERROR(res)) {                                    \
       throw std::system_error(bnl::base::BNL_TRY_GET_ERROR(res));              \
     }                                                                          \

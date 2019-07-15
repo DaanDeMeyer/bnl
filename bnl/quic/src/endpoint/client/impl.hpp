@@ -14,16 +14,15 @@ namespace quic {
 namespace endpoint {
 namespace client {
 
-class BNL_QUIC_EXPORT impl
-{
+class BNL_QUIC_EXPORT impl {
 public:
   impl(path path,
-       const params& params,
+       const params &params,
        clock clock,
-       const log::api* logger) noexcept;
+       const log::api *logger) noexcept;
 
-  impl(impl&& other) = default;
-  impl& operator=(impl&& other) = default;
+  impl(impl &&other) = default;
+  impl &operator=(impl &&other) = default;
 
   std::error_code client_initial();
 
@@ -82,7 +81,7 @@ public:
 
   std::error_code expire();
 
-  const log::api* logger() const noexcept;
+  const log::api *logger() const noexcept;
   base::result<quic::crypto> crypto() const noexcept;
 
 private:
@@ -104,7 +103,7 @@ private:
   handshake handshake_;
   quic::path path_;
 
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 } // namespace client

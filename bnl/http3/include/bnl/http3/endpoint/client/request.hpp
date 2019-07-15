@@ -14,22 +14,20 @@ namespace endpoint {
 namespace client {
 namespace request {
 
-class BNL_HTTP3_EXPORT sender : public shared::request::sender
-{
+class BNL_HTTP3_EXPORT sender : public shared::request::sender {
 public:
   using shared::request::sender::sender;
 };
 
-class BNL_HTTP3_EXPORT receiver : public shared::request::receiver
-{
+class BNL_HTTP3_EXPORT receiver : public shared::request::receiver {
 public:
-  receiver(uint64_t id, const log::api* logger) noexcept;
+  receiver(uint64_t id, const log::api *logger) noexcept;
 
 private:
   base::result<event> process(frame frame) noexcept final;
 
 private:
-  const log::api* logger_;
+  const log::api *logger_;
 };
 
 } // namespace request

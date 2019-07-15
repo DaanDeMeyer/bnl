@@ -10,46 +10,46 @@
 namespace bnl {
 namespace base {
 
-class BNL_BASE_EXPORT buffer
-{
+class BNL_BASE_EXPORT buffer {
 public:
   class lookahead;
 
   using lookahead_type = lookahead;
 
   buffer() noexcept;
-  buffer(const uint8_t* data, size_t size);
+  buffer(const uint8_t *data, size_t size);
 
   explicit buffer(size_t size);
   explicit buffer(buffer_view data) noexcept;
 
   template<size_t Size>
   buffer(const char (&data)[Size]) noexcept // NOLINT
-    : buffer(reinterpret_cast<const uint8_t*>(data), Size - 1)
-  {}
+    : buffer(reinterpret_cast<const uint8_t *>(data), Size - 1)
+  {
+  }
 
-  buffer(const buffer& other);
-  buffer& operator=(const buffer& other);
+  buffer(const buffer &other);
+  buffer &operator=(const buffer &other);
 
-  buffer(buffer&& other) noexcept;
-  buffer& operator=(buffer&& other) noexcept;
+  buffer(buffer &&other) noexcept;
+  buffer &operator=(buffer &&other) noexcept;
 
   ~buffer() noexcept;
 
-  uint8_t* data() noexcept;
-  const uint8_t* data() const noexcept;
+  uint8_t *data() noexcept;
+  const uint8_t *data() const noexcept;
 
-  const uint8_t* begin() const noexcept;
-  const uint8_t* end() const noexcept;
+  const uint8_t *begin() const noexcept;
+  const uint8_t *end() const noexcept;
 
-  uint8_t* begin() noexcept;
-  uint8_t* end() noexcept;
+  uint8_t *begin() noexcept;
+  uint8_t *end() noexcept;
 
   uint8_t operator[](size_t index) const noexcept;
   uint8_t operator*() const noexcept;
 
-  uint8_t& operator[](size_t index) noexcept;
-  uint8_t& operator*() noexcept;
+  uint8_t &operator[](size_t index) noexcept;
+  uint8_t &operator*() noexcept;
 
   size_t size() const noexcept;
   bool empty() const noexcept;
@@ -72,7 +72,7 @@ public:
 
   operator buffer_view() const noexcept; // NOLINT
 
-  static buffer concat(const buffer& first, const buffer& second);
+  static buffer concat(const buffer &first, const buffer &second);
 
 private:
   buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
@@ -82,12 +82,7 @@ private:
   void destroy() noexcept;
 
 private:
-  enum class type
-  {
-    sso,
-    unique,
-    shared
-  };
+  enum class type { sso, unique, shared };
 
   type type_;
   size_t size_ = 0;
@@ -95,8 +90,7 @@ private:
 
   static constexpr size_t SSO_THRESHOLD = 20;
 
-  union
-  {
+  union {
     std::array<uint8_t, SSO_THRESHOLD> sso_;
     // Type erase `std::unique_ptr` deleter so any kind of deleter can be stored
     // in `buffer`.
@@ -106,18 +100,17 @@ private:
   };
 };
 
-class BNL_BASE_EXPORT buffer::lookahead
-{
+class BNL_BASE_EXPORT buffer::lookahead {
 public:
   using lookahead_type = lookahead;
 
-  lookahead(const buffer& buffer) noexcept; // NOLINT
+  lookahead(const buffer &buffer) noexcept; // NOLINT
 
-  lookahead(const lookahead& other) noexcept;
-  const lookahead& operator=(const lookahead& other) = delete;
+  lookahead(const lookahead &other) noexcept;
+  const lookahead &operator=(const lookahead &other) = delete;
 
-  lookahead(lookahead&& other) = delete;
-  lookahead& operator=(lookahead&& other) = delete;
+  lookahead(lookahead &&other) = delete;
+  lookahead &operator=(lookahead &&other) = delete;
 
   ~lookahead() = default;
 
@@ -133,7 +126,7 @@ public:
   buffer copy(size_t size) const;
 
 private:
-  const buffer& buffer_;
+  const buffer &buffer_;
   size_t previous_ = 0;
   size_t position_ = 0;
 };

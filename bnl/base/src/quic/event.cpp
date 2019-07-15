@@ -8,23 +8,26 @@ event::event() noexcept // NOLINT
   , id(0)
   , fin(true)
   , error()
-{}
+{
+}
 
 event::event(uint64_t id, bool fin, payload::data data) noexcept // NOLINT
   : type_(type::data)
   , id(id)
   , fin(fin)
   , data(std::move(data))
-{}
+{
+}
 
 event::event(uint64_t id, bool fin, payload::error error) noexcept // NOLINT
   : type_(type::error)
   , id(id)
   , fin(fin)
   , error(error)
-{}
+{
+}
 
-event::event(const event& other) noexcept // NOLINT
+event::event(const event &other) noexcept // NOLINT
   : type_(other.type_)
   , id(other.id)
   , fin(other.fin)
@@ -39,7 +42,7 @@ event::event(const event& other) noexcept // NOLINT
   }
 }
 
-event::event(event&& other) noexcept // NOLINT
+event::event(event &&other) noexcept // NOLINT
   : type_(other.type_)
   , id(other.id)
   , fin(other.fin)

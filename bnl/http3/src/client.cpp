@@ -7,16 +7,17 @@
 namespace bnl {
 namespace http3 {
 
-client::client(const log::api* logger)
+client::client(const log::api *logger)
   : control_{ endpoint::client::control::sender(logger),
               endpoint::client::control::receiver(logger) }
   , logger_(logger)
-{}
+{
+}
 
 base::result<quic::event>
 client::send() noexcept
 {
-  endpoint::client::control::sender& control = control_.first;
+  endpoint::client::control::sender &control = control_.first;
 
   {
     base::result<quic::event> event = control.send();
@@ -25,8 +26,8 @@ client::send() noexcept
     }
   }
 
-  for (auto& entry : requests_) {
-    endpoint::client::request::sender& sender = entry.second.first;
+  for (auto &entry : requests_) {
+    endpoint::client::request::sender &sender = entry.second.first;
 
     if (sender.finished()) {
       continue;
@@ -35,7 +36,7 @@ client::send() noexcept
     base::result<quic::event> event = sender.send();
     if (event != base::error::idle) {
       if (event) {
-        endpoint::client::request::receiver& receiver = entry.second.second;
+        endpoint::client::request::receiver &receiver = entry.second.second;
 
         if (receiver.closed()) {
           TRY(receiver.start());
@@ -52,7 +53,7 @@ client::send() noexcept
 std::error_code
 client::recv(quic::event event, event::handler handler)
 {
-  endpoint::client::control::receiver& control = control_.second;
+  endpoint::client::control::receiver &control = control_.second;
 
   if (event.id == control.id()) {
     auto control_handler = [this, &handler](http3::event event) {
@@ -76,7 +77,7 @@ client::recv(quic::event event, event::handler handler)
   // TODO: Better error
   CHECK(match != requests_.end(), error::internal_error);
 
-  endpoint::client::request::receiver& request = match->second.second;
+  endpoint::client::request::receiver &request = match->second.second;
 
   uint64_t id = event.id;
   TRY(request.recv(std::move(event), handler));
@@ -110,7 +111,7 @@ client::header(uint64_t id, header_view header)
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
-  endpoint::client::request::sender& sender = match->second.first;
+  endpoint::client::request::sender &sender = match->second.first;
 
   return sender.header(header);
 }
@@ -121,7 +122,7 @@ client::body(uint64_t id, base::buffer body)
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
-  endpoint::client::request::sender& sender = match->second.first;
+  endpoint::client::request::sender &sender = match->second.first;
 
   return sender.body(std::move(body));
 }
@@ -132,7 +133,7 @@ client::start(uint64_t id) noexcept
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
-  endpoint::client::request::sender& sender = match->second.first;
+  endpoint::client::request::sender &sender = match->second.first;
 
   return sender.start();
 }
@@ -143,7 +144,7 @@ client::fin(uint64_t id) noexcept
   auto match = requests_.find(id);
   CHECK(match != requests_.end(), error::stream_closed);
 
-  endpoint::client::request::sender& sender = match->second.first;
+  endpoint::client::request::sender &sender = match->second.first;
 
   return sender.fin();
 }

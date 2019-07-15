@@ -8,11 +8,12 @@ namespace bnl {
 namespace http3 {
 namespace headers {
 
-encoder::encoder(const log::api* logger) noexcept
+encoder::encoder(const log::api *logger) noexcept
   : frame_(logger)
   , qpack_(logger)
   , logger_(logger)
-{}
+{
+}
 
 std::error_code
 encoder::add(header_view header)
@@ -75,11 +76,12 @@ encoder::encode() noexcept
   NOTREACHED();
 }
 
-decoder::decoder(const log::api* logger) noexcept
+decoder::decoder(const log::api *logger) noexcept
   : frame_(logger)
   , qpack_(logger)
   , logger_(logger)
-{}
+{
+}
 
 bool
 decoder::started() const noexcept
@@ -95,7 +97,7 @@ decoder::finished() const noexcept
 
 template<typename Sequence>
 base::result<header>
-decoder::decode(Sequence& encoded)
+decoder::decode(Sequence &encoded)
 {
   switch (state_) {
 

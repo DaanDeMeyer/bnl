@@ -10,8 +10,7 @@ namespace endpoint {
 namespace client {
 namespace ngtcp2 {
 
-enum class error
-{
+enum class error {
   invalid_argument = -201,
   unknown_pkt_type = -202,
   nobuf = -203,
@@ -50,7 +49,7 @@ enum class error
   callback_failure = -502
 };
 
-BNL_QUIC_EXPORT const std::error_category&
+BNL_QUIC_EXPORT const std::error_category &
 error_category() noexcept;
 
 BNL_QUIC_EXPORT std::error_code
@@ -66,7 +65,7 @@ namespace std {
 
 template<>
 struct is_error_code_enum<bnl::quic::endpoint::client::ngtcp2::error>
-  : true_type
-{};
+  : true_type {
+};
 
 } // namespace std

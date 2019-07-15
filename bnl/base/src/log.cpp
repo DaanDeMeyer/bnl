@@ -9,11 +9,11 @@ api::~api() noexcept = default;
 
 void
 api::log(log::level level,
-         const char* file,
-         const char* function,
+         const char *file,
+         const char *function,
          int line,
-         const char* format,
-         const fmt::format_args& args) const
+         const char *format,
+         const fmt::format_args &args) const
 {
   (void)level;
   (void)file;
@@ -24,8 +24,8 @@ api::log(log::level level,
 }
 
 void
-api::operator()(const char* file,
-                const char* function,
+api::operator()(const char *file,
+                const char *function,
                 int line,
                 std::error_code ec) const
 {

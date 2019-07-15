@@ -10,29 +10,30 @@ namespace bnl {
 namespace base {
 
 template<typename T>
-class result
-{
+class result {
 public:
   using value_type = T;
 
-  result(T&& value) noexcept // NOLINT
+  result(T &&value) noexcept // NOLINT
     : type_(type::value)
     , value_(std::forward<T>(value))
-  {}
+  {
+  }
 
   result(std::error_code ec) noexcept // NOLINT
     : type_(type::error)
     , ec_(ec)
-  {}
+  {
+  }
 
-  result(result<T>&& other) noexcept
+  result(result<T> &&other) noexcept
     : type_(type::error)
     , ec_()
   {
     operator=(std::move(other));
   }
 
-  result<T>& operator=(result<T>&& other) noexcept
+  result<T> &operator=(result<T> &&other) noexcept
   {
     if (&other != this) {
       destroy();
@@ -54,13 +55,13 @@ public:
 
   ~result() { destroy(); }
 
-  value_type& value() &
+  value_type &value() &
   {
     assert(type_ == type::value);
     return value_;
   }
 
-  value_type&& value() &&
+  value_type &&value() &&
   {
     assert(type_ == type::value);
     return std::move(value_);
@@ -87,16 +88,11 @@ private:
   }
 
 private:
-  enum class type : uint8_t
-  {
-    value,
-    error
-  };
+  enum class type : uint8_t { value, error };
 
   type type_;
 
-  union
-  {
+  union {
     T value_;
     std::error_code ec_;
   };
@@ -104,56 +100,56 @@ private:
 
 template<typename T>
 bool
-operator==(const result<T>& lhs, std::error_code rhs)
+operator==(const result<T> &lhs, std::error_code rhs)
 {
   return lhs.error() == rhs;
 }
 
 template<typename T>
 bool
-operator!=(const result<T>& lhs, std::error_code rhs)
+operator!=(const result<T> &lhs, std::error_code rhs)
 {
   return !(lhs == rhs);
 }
 
 template<typename T>
 bool
-operator==(const result<T>& lhs, const std::error_condition& rhs)
+operator==(const result<T> &lhs, const std::error_condition &rhs)
 {
   return lhs.error() == rhs;
 }
 
 template<typename T>
 bool
-operator!=(const result<T>& lhs, const std::error_condition& rhs)
+operator!=(const result<T> &lhs, const std::error_condition &rhs)
 {
   return !(lhs == rhs);
 }
 
 template<typename T>
 bool
-BNL_TRY_IS_ERROR(const T& result)
+BNL_TRY_IS_ERROR(const T &result)
 {
   return !result;
 }
 
 template<>
 inline bool
-BNL_TRY_IS_ERROR(const std::error_code& result)
+BNL_TRY_IS_ERROR(const std::error_code &result)
 {
   return result.value() > 0;
 }
 
 template<typename T>
 std::error_code
-BNL_TRY_GET_ERROR(const T& result)
+BNL_TRY_GET_ERROR(const T &result)
 {
   return result.error();
 }
 
 template<>
 inline std::error_code
-BNL_TRY_GET_ERROR(const std::error_code& result)
+BNL_TRY_GET_ERROR(const std::error_code &result)
 {
   return result;
 }
@@ -163,7 +159,7 @@ BNL_TRY_GET_ERROR(const std::error_code& result)
 
 #define BNL_TRY(...)                                                           \
   ({                                                                           \
-    auto&& res = (__VA_ARGS__);                                                \
+    auto &&res = (__VA_ARGS__);                                                \
     if (bnl::base::BNL_TRY_IS_ERROR(res)) {                                    \
       return bnl::base::BNL_TRY_GET_ERROR(res);                                \
     }                                                                          \

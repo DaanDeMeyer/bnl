@@ -9,8 +9,7 @@ namespace bnl {
 namespace quic {
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-transport.html#transport-parameter-definitions
-struct BNL_QUIC_EXPORT params
-{
+struct BNL_QUIC_EXPORT params {
   params() = default;
 
   uint64_t max_stream_data_bidi_local = 0;

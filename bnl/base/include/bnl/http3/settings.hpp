@@ -18,8 +18,7 @@ static constexpr uint64_t qpack_blocked_streams = 0x7U;
 
 } // namespace setting
 
-struct BNL_BASE_EXPORT settings
-{
+struct BNL_BASE_EXPORT settings {
   uint64_t max_header_list_size = (0x40ULL << 56U) - 1;
   uint64_t num_placeholders = 0;
   uint64_t qpack_max_table_capacity = 0;

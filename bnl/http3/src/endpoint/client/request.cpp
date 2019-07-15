@@ -10,10 +10,11 @@ namespace endpoint {
 namespace client {
 namespace request {
 
-receiver::receiver(uint64_t id, const log::api* logger) noexcept
+receiver::receiver(uint64_t id, const log::api *logger) noexcept
   : shared::request::receiver(id, logger)
   , logger_(logger)
-{}
+{
+}
 
 base::result<event>
 receiver::process(frame frame) noexcept

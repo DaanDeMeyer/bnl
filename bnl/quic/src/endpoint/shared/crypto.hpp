@@ -14,32 +14,15 @@ class api;
 
 namespace quic {
 
-class crypto
-{
+class crypto {
 public:
-  enum class level
-  {
-    initial,
-    early_data,
-    handshake,
-    application
-  };
+  enum class level { initial, early_data, handshake, application };
 
-  enum class aead
-  {
-    aes_128_gcm,
-    aes_256_gcm,
-    chacha20_poly1305
-  };
+  enum class aead { aes_128_gcm, aes_256_gcm, chacha20_poly1305 };
 
-  enum class hash
-  {
-    sha256,
-    sha384
-  };
+  enum class hash { sha256, sha384 };
 
-  class key_view
-  {
+  class key_view {
   public:
     key_view() = default;
     key_view(base::buffer_view data,
@@ -56,8 +39,7 @@ public:
     base::buffer_view hp_;
   };
 
-  class key
-  {
+  class key {
   public:
     key() = default;
     key(base::buffer data, base::buffer iv, base::buffer hp) noexcept;
@@ -75,7 +57,7 @@ public:
   };
 
   crypto() = default;
-  crypto(aead aead, hash hash, const log::api* logger);
+  crypto(aead aead, hash hash, const log::api *logger);
 
   crypto(crypto &&other) = default;
   crypto &operator=(crypto &&other) = default;
@@ -128,22 +110,22 @@ private:
                                          base::buffer_view info,
                                          size_t size);
 
-  friend std::ostream& operator<<(std::ostream& os, const crypto &crypto);
+  friend std::ostream &operator<<(std::ostream &os, const crypto &crypto);
 
 private:
   aead aead_ = aead::aes_128_gcm;
   hash hash_ = hash::sha256;
-  const log::api* logger_ = nullptr;
+  const log::api *logger_ = nullptr;
 };
 
-std::ostream&
-operator<<(std::ostream& os, crypto::level level);
+std::ostream &
+operator<<(std::ostream &os, crypto::level level);
 
-std::ostream&
-operator<<(std::ostream& os, crypto::aead aead);
+std::ostream &
+operator<<(std::ostream &os, crypto::aead aead);
 
-std::ostream&
-operator<<(std::ostream& os, crypto::hash hash);
+std::ostream &
+operator<<(std::ostream &os, crypto::hash hash);
 
 } // namespace quic
 } // namespace bnl
