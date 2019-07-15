@@ -3,6 +3,7 @@
 #include <bnl/base/error.hpp>
 #include <bnl/base/macro.hpp>
 
+#include <cassert>
 #include <system_error>
 #include <utility>
 
@@ -58,19 +59,13 @@ public:
 
   value_type& value() &
   {
-    if (type_ == type::error) {
-      throw std::system_error(ec_);
-    }
-
+    assert(type_ == type::value);
     return value_;
   }
 
   value_type&& value() &&
   {
-    if (type_ == type::error) {
-      throw std::system_error(ec_);
-    }
-
+    assert(type_ == type::value);
     return std::move(value_);
   }
 

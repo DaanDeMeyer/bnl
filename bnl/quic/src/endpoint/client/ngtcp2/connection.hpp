@@ -35,19 +35,19 @@ public:
 
   void set_aead_overhead(size_t overhead);
 
-  void install_initial_tx_keys(crypto::key_view key);
-  void install_initial_rx_keys(crypto::key_view key);
+  std::error_code install_initial_tx_keys(crypto::key_view key);
+  std::error_code install_initial_rx_keys(crypto::key_view key);
 
-  void install_early_keys(crypto::key_view key);
+  std::error_code install_early_keys(crypto::key_view key);
 
-  void install_handshake_tx_keys(crypto::key_view key);
-  void install_handshake_rx_keys(crypto::key_view key);
+  std::error_code install_handshake_tx_keys(crypto::key_view key);
+  std::error_code install_handshake_rx_keys(crypto::key_view key);
 
-  void install_tx_keys(crypto::key_view key);
-  void install_rx_keys(crypto::key_view key);
+  std::error_code install_tx_keys(crypto::key_view key);
+  std::error_code install_rx_keys(crypto::key_view key);
 
-  void update_tx_keys(crypto::key_view key);
-  void update_rx_keys(crypto::key_view key);
+  std::error_code update_tx_keys(crypto::key_view key);
+  std::error_code update_rx_keys(crypto::key_view key);
 
   bool get_handshake_completed() const noexcept;
   void handshake_completed() noexcept;

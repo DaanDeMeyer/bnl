@@ -17,10 +17,7 @@ static SSL_CTX*
 ssl_ctx_new()
 {
   SSL_CTX* ssl_ctx = SSL_CTX_new(TLS_method());
-
-  if (ssl_ctx == nullptr) {
-    throw std::bad_alloc();
-  }
+  assert(ssl_ctx != nullptr);
 
   SSL_CTX_set_default_verify_paths(ssl_ctx);
 
@@ -33,15 +30,11 @@ static SSL*
 ssl_new(handshake* handshake)
 {
   SSL* ssl = SSL_new(SSL_CONTEXT);
-
-  if (ssl == nullptr) {
-    throw std::bad_alloc();
-  }
+  assert(ssl != nullptr);
 
   int rv = SSL_set_ex_data(ssl, 0, handshake);
-  if (rv < 0) {
-    throw std::bad_alloc();
-  }
+  // TODO: re-enable exceptions
+  assert(rv == 1);
 
   return ssl;
 }
@@ -142,7 +135,8 @@ handshake::handshake(base::buffer_view dcid,
   , ngtcp2_(ngtcp2)
   , logger_(logger)
 {
-  RAISE(init(dcid));
+  init(dcid);
+  // TODO: re-enable exceptions
 }
 
 handshake::~handshake() = default;
@@ -160,11 +154,11 @@ handshake::init(base::buffer_view dcid)
 
   base::buffer client_secret = TRY(crypto.client_initial_secret(initial));
   crypto::key write_key = TRY(crypto.packet_protection_key(client_secret));
-  ngtcp2_->install_initial_tx_keys(write_key);
+  TRY(ngtcp2_->install_initial_tx_keys(write_key));
 
   base::buffer server_secret = TRY(crypto.server_initial_secret(initial));
   crypto::key read_key = TRY(crypto.packet_protection_key(server_secret));
-  ngtcp2_->install_initial_rx_keys(read_key);
+  TRY(ngtcp2_->install_initial_rx_keys(read_key));
 
   // ALPN
 
@@ -379,19 +373,19 @@ handshake::set_encryption_secrets(crypto::level level,
     case crypto::level::initial:
       THROW(error::handshake);
     case crypto::level::early_data:
-      ngtcp2_->install_early_keys(write_key);
+      TRY(ngtcp2_->install_early_keys(write_key));
       break;
     case crypto::level::handshake:
-      ngtcp2_->install_handshake_tx_keys(write_key);
-      ngtcp2_->install_handshake_rx_keys(read_key);
+      TRY(ngtcp2_->install_handshake_tx_keys(write_key));
+      TRY(ngtcp2_->install_handshake_rx_keys(read_key));
       LOG_T("handshake: installed handshake keys");
       break;
     case crypto::level::application:
       tx_secret_ = base::buffer(write_secret);
-      ngtcp2_->install_tx_keys(write_key);
+      TRY(ngtcp2_->install_tx_keys(write_key));
 
       rx_secret_ = base::buffer(read_secret);
-      ngtcp2_->install_rx_keys(read_key);
+      TRY(ngtcp2_->install_rx_keys(read_key));
 
       LOG_T("handshake: installed application keys");
       break;

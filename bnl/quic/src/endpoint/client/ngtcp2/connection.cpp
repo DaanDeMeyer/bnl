@@ -753,9 +753,8 @@ connection::connection(path path,
                                   &settings,
                                   nullptr,
                                   context);
-  if (rv != 0) {
-    throw std::bad_alloc();
-  }
+  // TODO: re-enable exceptions
+  assert(rv == 0);
 }
 
 connection::~connection() noexcept
@@ -824,7 +823,7 @@ connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
   return {};
 }
 
-void
+std::error_code
 connection::install_initial_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_initial_tx_keys(connection_,
@@ -835,11 +834,13 @@ connection::install_initial_tx_keys(crypto::key_view key)
                                                key.hp().data(),
                                                key.hp().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_install_initial_tx_keys, rv);
   }
+
+  return {};
 }
 
-void
+std::error_code
 connection::install_initial_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_initial_rx_keys(connection_,
@@ -850,26 +851,13 @@ connection::install_initial_rx_keys(crypto::key_view key)
                                                key.hp().data(),
                                                key.hp().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_install_initial_rx_keys, rv);
   }
+
+  return {};
 }
 
-void
-connection::install_handshake_tx_keys(crypto::key_view key)
-{
-  int rv = ngtcp2_conn_install_handshake_tx_keys(connection_,
-                                                 key.data().data(),
-                                                 key.data().size(),
-                                                 key.iv().data(),
-                                                 key.iv().size(),
-                                                 key.hp().data(),
-                                                 key.hp().size());
-  if (rv != 0) {
-    throw std::bad_alloc();
-  }
-}
-
-void
+std::error_code
 connection::install_early_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_early_keys(connection_,
@@ -880,11 +868,30 @@ connection::install_early_keys(crypto::key_view key)
                                           key.hp().data(),
                                           key.hp().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_install_early_keys, rv);
   }
+
+  return {};
 }
 
-void
+std::error_code
+connection::install_handshake_tx_keys(crypto::key_view key)
+{
+  int rv = ngtcp2_conn_install_handshake_tx_keys(connection_,
+                                                 key.data().data(),
+                                                 key.data().size(),
+                                                 key.iv().data(),
+                                                 key.iv().size(),
+                                                 key.hp().data(),
+                                                 key.hp().size());
+  if (rv != 0) {
+    THROW_NGTCP2(ngtcp2_conn_install_handshake_tx_keys, rv);
+  }
+
+  return {};
+}
+
+std::error_code
 connection::install_handshake_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_handshake_rx_keys(connection_,
@@ -895,11 +902,13 @@ connection::install_handshake_rx_keys(crypto::key_view key)
                                                  key.hp().data(),
                                                  key.hp().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_install_handshake_rx_keys, rv);
   }
+
+  return {};
 }
 
-void
+std::error_code
 connection::install_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_tx_keys(connection_,
@@ -910,11 +919,13 @@ connection::install_tx_keys(crypto::key_view key)
                                        key.hp().data(),
                                        key.hp().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_install_tx_keys, rv);
   }
+
+  return {};
 }
 
-void
+std::error_code
 connection::install_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_rx_keys(connection_,
@@ -925,11 +936,13 @@ connection::install_rx_keys(crypto::key_view key)
                                        key.hp().data(),
                                        key.hp().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_install_rx_keys, rv);
   }
+
+  return {};
 }
 
-void
+std::error_code
 connection::update_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_update_tx_key(connection_,
@@ -938,11 +951,13 @@ connection::update_tx_keys(crypto::key_view key)
                                      key.iv().data(),
                                      key.iv().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_update_tx_key, rv);
   }
+
+  return {};
 }
 
-void
+std::error_code
 connection::update_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_update_rx_key(connection_,
@@ -951,8 +966,10 @@ connection::update_rx_keys(crypto::key_view key)
                                      key.iv().data(),
                                      key.iv().size());
   if (rv != 0) {
-    throw std::bad_alloc();
+    THROW_NGTCP2(ngtcp2_conn_update_rx_key, rv);
   }
+
+  return {};
 }
 
 std::error_code
