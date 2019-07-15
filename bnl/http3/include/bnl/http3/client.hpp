@@ -1,14 +1,13 @@
 #pragma once
 
-#include <bnl/base/macro.hpp>
 #include <bnl/http3/endpoint/client/control.hpp>
 #include <bnl/http3/endpoint/client/request.hpp>
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
-
 #include <bnl/quic/event.hpp>
 
 #include <map>
+#include <utility>
 
 namespace bnl {
 
@@ -23,7 +22,8 @@ class BNL_HTTP3_EXPORT client
 public:
   explicit client(const log::api* logger);
 
-  BNL_BASE_MOVE_ONLY(client);
+  client(client&& other) = default;
+  client& operator=(client&& other) = default;
 
   base::result<quic::event> send() noexcept;
 

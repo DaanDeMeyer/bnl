@@ -34,10 +34,10 @@ public:
          clock clock,
          const log::api* logger) noexcept;
 
-  BNL_BASE_NO_COPY(client);
-  BNL_BASE_CUSTOM_MOVE(client);
+  client(client&& other) noexcept;
+  client& operator=(client&& other) noexcept;
 
-  ~client();
+  ~client() noexcept;
 
   base::result<base::buffer> send();
 

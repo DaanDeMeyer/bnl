@@ -28,7 +28,9 @@ public:
              clock clock,
              std::mt19937& prng,
              const log::api* logger);
-  ~connection() noexcept;
+
+  connection(connection&& other) = default;
+  connection& operator=(connection&& other) = default;
 
   static const base::buffer_view INITIAL_SALT;
   static const base::buffer_view ALPN_H3;
@@ -71,7 +73,7 @@ public:
   std::error_code expire();
 
 private:
-  ngtcp2_conn* connection_ = nullptr;
+  std::unique_ptr<ngtcp2_conn, void (*)(ngtcp2_conn*)> connection_;
 
   path path_;
   clock clock_;

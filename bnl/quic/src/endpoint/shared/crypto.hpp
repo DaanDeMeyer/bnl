@@ -77,6 +77,9 @@ public:
   crypto() = default;
   crypto(aead aead, hash hash, const log::api* logger);
 
+  crypto(crypto &&other) = default;
+  crypto &operator=(crypto &&other) = default;
+
   base::result<base::buffer> initial_secret(base::buffer_view dcid,
                                             base::buffer_view salt);
   base::result<base::buffer> update_secret(base::buffer_view secret);
@@ -125,11 +128,11 @@ private:
                                          base::buffer_view info,
                                          size_t size);
 
-  friend std::ostream& operator<<(std::ostream& os, crypto crypto);
+  friend std::ostream& operator<<(std::ostream& os, const crypto &crypto);
 
 private:
-  const aead aead_ = aead::aes_128_gcm;
-  const hash hash_ = hash::sha256;
+  aead aead_ = aead::aes_128_gcm;
+  hash hash_ = hash::sha256;
   const log::api* logger_ = nullptr;
 };
 

@@ -2,9 +2,9 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/macro.hpp>
 #include <bnl/base/result.hpp>
 #include <bnl/base/string_view.hpp>
+#include <bnl/base/template.hpp>
 #include <bnl/http3/export.hpp>
 
 #include <cstddef>
@@ -26,7 +26,8 @@ class BNL_HTTP3_EXPORT encoder
 public:
   explicit encoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(encoder);
+  encoder(encoder &&other) =  default;
+  encoder &operator=(encoder &&other) = default;
 
   size_t encoded_size(base::string_view string) const noexcept;
 
@@ -43,7 +44,8 @@ class BNL_HTTP3_EXPORT decoder
 public:
   explicit decoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(decoder);
+  decoder(decoder &&other) = default;
+  decoder &operator=(decoder &&other) =  default;
 
   template<typename Sequence>
   base::result<base::string> decode(Sequence& encoded,

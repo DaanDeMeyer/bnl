@@ -2,8 +2,8 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/macro.hpp>
 #include <bnl/base/result.hpp>
+#include <bnl/base/template.hpp>
 #include <bnl/http3/export.hpp>
 
 #include <cstdint>
@@ -24,7 +24,8 @@ class BNL_HTTP3_EXPORT encoder
 public:
   explicit encoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(encoder);
+  encoder(encoder&& other) = default;
+  encoder& operator=(encoder&& other) = default;
 
   size_t encoded_size(uint64_t value, uint8_t prefix) const noexcept;
 
@@ -41,7 +42,8 @@ class BNL_HTTP3_EXPORT decoder
 public:
   explicit decoder(const log::api* logger);
 
-  BNL_BASE_MOVE_ONLY(decoder);
+  decoder(decoder&& other) = default;
+  decoder& operator=(decoder&& other) = default;
 
   template<typename Sequence>
   base::result<uint64_t> decode(Sequence& encoded, uint8_t prefix) const

@@ -219,7 +219,7 @@ crypto::hash_size(hash hash) const noexcept
 }
 
 std::ostream&
-operator<<(std::ostream& os, crypto crypto)
+operator<<(std::ostream& os, const crypto& crypto)
 {
   os << "AEAD: " << crypto.aead_ << ", ";
   os << "HASH: " << crypto.hash_;

@@ -139,7 +139,12 @@ handshake::handshake(base::buffer_view dcid,
   // TODO: re-enable exceptions
 }
 
-handshake::~handshake() = default;
+handshake::handshake(handshake&& other) noexcept = default;
+
+handshake&
+handshake::operator=(handshake&& other) noexcept = default;
+
+handshake::~handshake() noexcept = default;
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#initial-secrets
 std::error_code

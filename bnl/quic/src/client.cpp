@@ -14,10 +14,11 @@ client::client(path path,
 {}
 
 client::client(client&& other) noexcept = default;
+
 client&
 client::operator=(client&&) noexcept = default;
 
-client::~client() = default;
+client::~client() noexcept = default;
 
 base::result<base::buffer>
 client::send()

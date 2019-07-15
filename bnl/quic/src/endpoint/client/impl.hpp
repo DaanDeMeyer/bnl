@@ -22,6 +22,9 @@ public:
        clock clock,
        const log::api* logger) noexcept;
 
+  impl(impl&& other) = default;
+  impl& operator=(impl&& other) = default;
+
   std::error_code client_initial();
 
   std::error_code recv_crypto_data(crypto::level level, base::buffer_view data);

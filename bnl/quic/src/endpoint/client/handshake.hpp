@@ -35,10 +35,10 @@ public:
             ngtcp2::connection* ngtcp2,
             const log::api* logger);
 
-  BNL_BASE_NO_COPY(handshake);
-  BNL_BASE_DEFAULT_MOVE(handshake);
+  handshake(handshake&& other) noexcept;
+  handshake& operator=(handshake&& other) noexcept;
 
-  ~handshake();
+  ~handshake() noexcept;
 
   // Data is passed directly to ngtcp2 so no buffer is returned.
   std::error_code send();
@@ -62,7 +62,7 @@ public:
 
 private:
   std::error_code init(base::buffer_view dcid);
-  
+
   void log_errors();
 
   base::result<crypto::aead> make_aead(const SSL_CIPHER* cipher) const noexcept;

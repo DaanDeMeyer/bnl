@@ -4,7 +4,7 @@ namespace bnl {
 namespace ip {
 
 endpoint::endpoint(ip::address address, uint16_t port) noexcept
-  : address_(std::move(address))
+  : address_(address)
   , port_(port)
 {}
 

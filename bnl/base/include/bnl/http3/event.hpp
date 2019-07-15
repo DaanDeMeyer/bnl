@@ -41,9 +41,9 @@ public:
   event(uint64_t id, bool fin, payload::error error) noexcept;
 
   event(const event& other) noexcept;
-  event(event&& other) noexcept;
-
   event& operator=(const event&) = delete;
+
+  event(event&& other) noexcept;
   event& operator=(event&&) = delete;
 
   ~event() noexcept;

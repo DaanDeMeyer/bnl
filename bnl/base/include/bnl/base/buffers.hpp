@@ -2,7 +2,6 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/export.hpp>
-#include <bnl/base/macro.hpp>
 
 #include <deque>
 
@@ -17,6 +16,9 @@ public:
   using lookahead_type = lookahead;
 
   buffers() = default;
+
+  buffers(buffers&& other) = default;
+  buffers& operator=(buffers&& other) = default;
 
   size_t size() const noexcept;
   bool empty() const noexcept;
@@ -55,7 +57,8 @@ public:
   lookahead(const lookahead& other) noexcept;
   lookahead& operator=(const lookahead&) = delete;
 
-  BNL_BASE_NO_MOVE(lookahead);
+  lookahead(lookahead&& other) = delete;
+  lookahead& operator=(lookahead&& other) = delete;
 
   ~lookahead() = default;
 

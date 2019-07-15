@@ -2,7 +2,7 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/macro.hpp>
+#include <bnl/base/template.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/codec/qpack.hpp>
 #include <bnl/http3/export.hpp>
@@ -24,7 +24,8 @@ class BNL_HTTP3_EXPORT encoder
 public:
   explicit encoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(encoder);
+  encoder(encoder&& other) = default;
+  encoder& operator=(encoder&& other) = default;
 
   std::error_code add(header_view header);
   std::error_code fin() noexcept;
@@ -56,7 +57,8 @@ class BNL_HTTP3_EXPORT decoder
 public:
   explicit decoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(decoder);
+  decoder(decoder&& other) = default;
+  decoder& operator=(decoder&& other) = default;
 
   bool started() const noexcept;
 

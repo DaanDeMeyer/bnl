@@ -24,6 +24,9 @@ public:
     , callable_(reinterpret_cast<void*>(&callable))
   {}
 
+  function_view(const function_view &other) = default;
+  function_view &operator=(const function_view &other) = default;
+
   Return operator()(Params... params) const
   {
     return callback_(callable_, std::forward<Params>(params)...);

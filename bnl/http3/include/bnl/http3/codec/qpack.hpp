@@ -2,7 +2,7 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/macro.hpp>
+#include <bnl/base/template.hpp>
 #include <bnl/http3/codec/qpack/literal.hpp>
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 #include <bnl/http3/export.hpp>
@@ -30,7 +30,8 @@ class BNL_HTTP3_EXPORT encoder
 public:
   explicit encoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(encoder);
+  encoder(encoder&& other) = default;
+  encoder& operator=(encoder&& other) = default;
 
   uint64_t count() const noexcept;
 
@@ -61,7 +62,8 @@ class BNL_HTTP3_EXPORT decoder
 public:
   explicit decoder(const log::api* logger);
 
-  BNL_BASE_MOVE_ONLY(decoder);
+  decoder(decoder&& other) = default;
+  decoder& operator=(decoder&& other) = default;
 
   uint64_t count() const noexcept;
 

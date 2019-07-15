@@ -2,7 +2,6 @@
 
 #include <bnl/base/buffer_view.hpp>
 #include <bnl/base/export.hpp>
-#include <bnl/base/macro.hpp>
 
 #include <array>
 #include <cstdint>
@@ -29,8 +28,11 @@ public:
     : buffer(reinterpret_cast<const uint8_t*>(data), Size - 1)
   {}
 
-  BNL_BASE_CUSTOM_COPY(buffer);
-  BNL_BASE_CUSTOM_MOVE(buffer);
+  buffer(const buffer& other);
+  buffer& operator=(const buffer& other);
+
+  buffer(buffer&& other) noexcept;
+  buffer& operator=(buffer&& other) noexcept;
 
   ~buffer() noexcept;
 
@@ -112,9 +114,10 @@ public:
   lookahead(const buffer& buffer) noexcept; // NOLINT
 
   lookahead(const lookahead& other) noexcept;
-  const lookahead& operator=(const lookahead&) = delete;
+  const lookahead& operator=(const lookahead& other) = delete;
 
-  BNL_BASE_NO_MOVE(lookahead);
+  lookahead(lookahead&& other) = delete;
+  lookahead& operator=(lookahead&& other) = delete;
 
   ~lookahead() = default;
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bnl/base/macro.hpp>
 #include <bnl/http3/endpoint/server/control.hpp>
 #include <bnl/http3/endpoint/server/request.hpp>
 #include <bnl/http3/event.hpp>
@@ -23,7 +22,8 @@ class BNL_HTTP3_EXPORT server
 public:
   explicit server(const log::api* logger);
 
-  BNL_BASE_MOVE_ONLY(server);
+  server(server&& other) = default;
+  server& operator=(server&& other) = default;
 
   base::result<quic::event> send() noexcept;
 

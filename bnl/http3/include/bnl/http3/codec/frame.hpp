@@ -2,8 +2,8 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/macro.hpp>
 #include <bnl/base/result.hpp>
+#include <bnl/base/template.hpp>
 #include <bnl/http3/codec/varint.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/settings.hpp>
@@ -115,6 +115,9 @@ public:
   frame(frame::payload::max_push_id max_push_id) noexcept;       // NOLINT
   frame(frame::payload::duplicate_push duplicate_push) noexcept; // NOLINT
 
+  frame(const frame& other) = default;
+  frame& operator=(const frame& other) = delete;
+
   operator type() const noexcept; // NOLINT
 
 private:
@@ -147,7 +150,8 @@ class BNL_HTTP3_EXPORT frame::encoder
 public:
   explicit encoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(encoder);
+  encoder(encoder&& other) = default;
+  encoder& operator=(encoder&& other) = default;
 
   base::result<size_t> encoded_size(const frame& frame) const noexcept;
 
@@ -169,7 +173,8 @@ class BNL_HTTP3_EXPORT frame::decoder
 public:
   explicit decoder(const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(decoder);
+  decoder(decoder&& other) = default;
+  decoder& operator=(decoder&& other) = default;
 
   template<typename Sequence>
   base::result<frame::type> peek(const Sequence& encoded) const noexcept;

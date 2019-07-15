@@ -229,7 +229,7 @@ encrypt_cb(ngtcp2_conn* connection,
     return NGTCP2_ERR_CALLBACK_FAILURE;
   }
 
-  crypto crypto = result.value();
+  crypto crypto = std::move(result).value();
 
   std::error_code ec =
     result.value().encrypt(base::buffer_view_mut(dest, dest_size),
@@ -265,7 +265,7 @@ decrypt_cb(ngtcp2_conn* connection,
     return NGTCP2_ERR_CALLBACK_FAILURE;
   }
 
-  crypto crypto = result.value();
+  crypto crypto = std::move(result).value();
 
   std::error_code ec =
     crypto.decrypt(base::buffer_view_mut(dest, dest_size),
@@ -320,7 +320,7 @@ hp_mask_cb(ngtcp2_conn* connection,
     return NGTCP2_ERR_CALLBACK_FAILURE;
   }
 
-  crypto crypto = result.value();
+  crypto crypto = std::move(result).value();
 
   std::error_code ec = crypto.hp_mask(base::buffer_view_mut(dest, dest_size),
                                       base::buffer_view(key, key_size),
@@ -696,7 +696,8 @@ connection::connection(path path,
                        clock clock,
                        std::mt19937& prng,
                        const log::api* logger)
-  : path_(path)
+  : connection_(nullptr, ngtcp2_conn_del)
+  , path_(path)
   , clock_(std::move(clock))
   , logger_(logger)
 {
@@ -744,7 +745,9 @@ connection::connection(path path,
 
   ngtcp2_path_storage ngtcp2_path = make_path(path_);
 
-  int rv = ngtcp2_conn_client_new(&connection_,
+  ngtcp2_conn *connection = nullptr;
+
+  int rv = ngtcp2_conn_client_new(&connection,
                                   &dcid,
                                   &scid,
                                   &ngtcp2_path.path,
@@ -755,11 +758,8 @@ connection::connection(path path,
                                   context);
   // TODO: re-enable exceptions
   assert(rv == 0);
-}
 
-connection::~connection() noexcept
-{
-  ngtcp2_conn_del(connection_);
+  connection_ = decltype(connection_)(connection, ngtcp2_conn_del);
 }
 
 const base::buffer_view connection::INITIAL_SALT = NGTCP2_INITIAL_SALT;
@@ -768,26 +768,26 @@ const base::buffer_view connection::ALPN_H3 = NGTCP2_ALPN_H3;
 void
 connection::set_aead_overhead(size_t overhead)
 {
-  ngtcp2_conn_set_aead_overhead(connection_, overhead);
+  ngtcp2_conn_set_aead_overhead(connection_.get(), overhead);
 }
 
 bool
 connection::get_handshake_completed() const noexcept
 {
-  return ngtcp2_conn_get_handshake_completed(connection_) != 0;
+  return ngtcp2_conn_get_handshake_completed(connection_.get()) != 0;
 }
 
 void
 connection::handshake_completed() noexcept
 {
-  ngtcp2_conn_handshake_completed(connection_);
+  ngtcp2_conn_handshake_completed(connection_.get());
 }
 
 base::result<base::buffer>
 connection::get_local_transport_parameters() noexcept
 {
   ngtcp2_transport_params params;
-  ngtcp2_conn_get_local_transport_params(connection_, &params);
+  ngtcp2_conn_get_local_transport_params(connection_.get(), &params);
 
   std::array<uint8_t, 64> tp = {};
 
@@ -815,7 +815,7 @@ connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
     THROW_NGTCP2(ngtcp2_decode_transport_params, static_cast<error>(rv));
   }
 
-  rv = ngtcp2_conn_set_remote_transport_params(connection_, &params);
+  rv = ngtcp2_conn_set_remote_transport_params(connection_.get(), &params);
   if (rv != 0) {
     THROW_NGTCP2(ngtcp2_set_remote_transport_params, static_cast<error>(rv));
   }
@@ -826,7 +826,7 @@ connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
 std::error_code
 connection::install_initial_tx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_initial_tx_keys(connection_,
+  int rv = ngtcp2_conn_install_initial_tx_keys(connection_.get(),
                                                key.data().data(),
                                                key.data().size(),
                                                key.iv().data(),
@@ -843,7 +843,7 @@ connection::install_initial_tx_keys(crypto::key_view key)
 std::error_code
 connection::install_initial_rx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_initial_rx_keys(connection_,
+  int rv = ngtcp2_conn_install_initial_rx_keys(connection_.get(),
                                                key.data().data(),
                                                key.data().size(),
                                                key.iv().data(),
@@ -860,7 +860,7 @@ connection::install_initial_rx_keys(crypto::key_view key)
 std::error_code
 connection::install_early_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_early_keys(connection_,
+  int rv = ngtcp2_conn_install_early_keys(connection_.get(),
                                           key.data().data(),
                                           key.data().size(),
                                           key.iv().data(),
@@ -877,7 +877,7 @@ connection::install_early_keys(crypto::key_view key)
 std::error_code
 connection::install_handshake_tx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_handshake_tx_keys(connection_,
+  int rv = ngtcp2_conn_install_handshake_tx_keys(connection_.get(),
                                                  key.data().data(),
                                                  key.data().size(),
                                                  key.iv().data(),
@@ -894,7 +894,7 @@ connection::install_handshake_tx_keys(crypto::key_view key)
 std::error_code
 connection::install_handshake_rx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_handshake_rx_keys(connection_,
+  int rv = ngtcp2_conn_install_handshake_rx_keys(connection_.get(),
                                                  key.data().data(),
                                                  key.data().size(),
                                                  key.iv().data(),
@@ -911,7 +911,7 @@ connection::install_handshake_rx_keys(crypto::key_view key)
 std::error_code
 connection::install_tx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_tx_keys(connection_,
+  int rv = ngtcp2_conn_install_tx_keys(connection_.get(),
                                        key.data().data(),
                                        key.data().size(),
                                        key.iv().data(),
@@ -928,7 +928,7 @@ connection::install_tx_keys(crypto::key_view key)
 std::error_code
 connection::install_rx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_install_rx_keys(connection_,
+  int rv = ngtcp2_conn_install_rx_keys(connection_.get(),
                                        key.data().data(),
                                        key.data().size(),
                                        key.iv().data(),
@@ -945,7 +945,7 @@ connection::install_rx_keys(crypto::key_view key)
 std::error_code
 connection::update_tx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_update_tx_key(connection_,
+  int rv = ngtcp2_conn_update_tx_key(connection_.get(),
                                      key.data().data(),
                                      key.data().size(),
                                      key.iv().data(),
@@ -960,7 +960,7 @@ connection::update_tx_keys(crypto::key_view key)
 std::error_code
 connection::update_rx_keys(crypto::key_view key)
 {
-  int rv = ngtcp2_conn_update_rx_key(connection_,
+  int rv = ngtcp2_conn_update_rx_key(connection_.get(),
                                      key.data().data(),
                                      key.data().size(),
                                      key.iv().data(),
@@ -976,7 +976,7 @@ std::error_code
 connection::submit_crypto_data(crypto::level level, base::buffer_view data)
 {
   int rv = ngtcp2_conn_submit_crypto_data(
-    connection_, make_crypto_level(level), data.data(), data.size());
+    connection_.get(), make_crypto_level(level), data.data(), data.size());
   if (rv != 0) {
     THROW_NGTCP2(ngtcp2_submit_crypto_data, static_cast<error>(rv));
   }
@@ -993,7 +993,7 @@ connection::write_pkt()
   std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage; // NOLINT
 
   duration ts = TRY(clock_());
-  ssize_t rv = ngtcp2_conn_write_pkt(connection_,
+  ssize_t rv = ngtcp2_conn_write_pkt(connection_.get(),
                                      &path.path,
                                      storage.data(),
                                      storage.size(),
@@ -1019,7 +1019,7 @@ connection::read_pkt(base::buffer_view packet)
 
   duration ts = TRY(clock_());
   int rv = ngtcp2_conn_read_pkt(
-    connection_, &path.path, packet.data(), packet.size(), make_timestamp(ts));
+    connection_.get(), &path.path, packet.data(), packet.size(), make_timestamp(ts));
   if (rv != 0) {
     THROW_NGTCP2(ngtcp2_conn_read_pkt, static_cast<error>(rv));
   }
@@ -1030,21 +1030,21 @@ connection::read_pkt(base::buffer_view packet)
 base::buffer_view
 connection::dcid() const noexcept
 {
-  const ngtcp2_cid* dcid = ngtcp2_conn_get_dcid(connection_);
+  const ngtcp2_cid* dcid = ngtcp2_conn_get_dcid(connection_.get());
   return { dcid->data, dcid->datalen };
 }
 
 duration
 connection::timeout() const noexcept
 {
-  uint64_t timeout = ngtcp2_conn_get_idle_timeout(connection_);
+  uint64_t timeout = ngtcp2_conn_get_idle_timeout(connection_.get());
   return make_timestamp(timeout);
 }
 
 duration
 connection::expiry() const noexcept
 {
-  uint64_t expiry = ngtcp2_conn_get_expiry(connection_);
+  uint64_t expiry = ngtcp2_conn_get_expiry(connection_.get());
   return make_timestamp(expiry);
 }
 
@@ -1054,15 +1054,15 @@ connection::expire()
   duration now = TRY(clock_());
   ngtcp2_tstamp ts = make_timestamp(now);
 
-  if (ngtcp2_conn_loss_detection_expiry(connection_) <= ts) {
-    int rv = ngtcp2_conn_on_loss_detection_timer(connection_, ts);
+  if (ngtcp2_conn_loss_detection_expiry(connection_.get()) <= ts) {
+    int rv = ngtcp2_conn_on_loss_detection_timer(connection_.get(), ts);
     if (rv != 0) {
       THROW_NGTCP2(ngtcp2_conn_on_loss_detection_timer, static_cast<error>(rv));
     }
   }
 
-  if (ngtcp2_conn_ack_delay_expiry(connection_) <= ts) {
-    ngtcp2_conn_cancel_expired_ack_delay_timer(connection_, ts);
+  if (ngtcp2_conn_ack_delay_expiry(connection_.get()) <= ts) {
+    ngtcp2_conn_cancel_expired_ack_delay_timer(connection_.get(), ts);
   }
 
   return {};

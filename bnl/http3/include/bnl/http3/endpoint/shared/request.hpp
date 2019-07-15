@@ -2,7 +2,6 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/macro.hpp>
 #include <bnl/http3/codec/body.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/codec/headers.hpp>
@@ -27,7 +26,8 @@ class BNL_HTTP3_EXPORT sender
 public:
   sender(uint64_t id, const log::api* logger) noexcept;
 
-  BNL_BASE_MOVE_ONLY(sender);
+  sender(sender &&other) = default;
+  sender &operator=(sender &&other) = default;
 
   bool finished() const noexcept;
 
@@ -61,8 +61,8 @@ class BNL_HTTP3_EXPORT receiver
 public:
   receiver(uint64_t id, const log::api* logger) noexcept;
 
-  BNL_BASE_NO_COPY(receiver);
-  BNL_BASE_DEFAULT_MOVE(receiver);
+  receiver(receiver &&other) = default;
+  receiver &operator=(receiver &&other) = default;
 
   virtual ~receiver() noexcept;
 

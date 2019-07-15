@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bnl/base/error.hpp>
-#include <bnl/base/macro.hpp>
 
 #include <cassert>
 #include <system_error>
@@ -25,8 +24,6 @@ public:
     : type_(type::error)
     , ec_(ec)
   {}
-
-  BNL_BASE_NO_COPY(result);
 
   result(result<T>&& other) noexcept
     : type_(type::error)
