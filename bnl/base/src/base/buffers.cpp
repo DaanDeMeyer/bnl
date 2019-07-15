@@ -6,16 +6,16 @@
 namespace bnl {
 namespace base {
 
-static size_t
-find_first_not_empty(const std::deque<buffer>& buffers)
+static std::list<buffer>::iterator
+find_first_not_empty(std::list<buffer>& buffers)
 {
-  for (size_t i = 0; i < buffers.size(); i++) {
-    if (!buffers[i].empty()) {
-      return i;
+  for (auto it = buffers.begin(); it != buffers.end(); it++) {
+    if (!it->empty()) {
+      return it;
     }
   }
 
-  return buffers.size() - 1;
+  return buffers.end();
 }
 
 size_t
@@ -40,13 +40,13 @@ uint8_t buffers::operator[](size_t index) const noexcept
 {
   assert(index < size());
 
-  size_t i = 0;
-  while (index >= buffers_[i].size()) {
-    index -= buffers_[i].size();
-    i++;
+  auto it = buffers_.begin();
+  while (it != buffers_.end() && index >= it->size()) {
+    index -= it->size();
+    it++;
   }
 
-  return buffers_[i][index];
+  return (*it)[index];
 }
 
 uint8_t buffers::operator*() const noexcept
@@ -59,22 +59,23 @@ buffers::slice(size_t size)
 {
   assert(size <= this->size());
 
-  size_t start = find_first_not_empty(buffers_);
+  auto begin = find_first_not_empty(buffers_);
+  assert(begin != buffers_.end());
 
-  assert(start <= buffers_.size());
-
-  size_t end = start;
+  auto end = begin;
   size_t left = size;
-  while (left > buffers_[end].size()) {
-    left -= buffers_[end].size();
+  while (end != buffers_.end() && left > end->size()) {
+    left -= end->size();
     end++;
   }
 
-  if (start == end) {
-    return buffers_[start].slice(left);
+  assert(end != buffers_.end());
+
+  if (begin == end) {
+    return begin->slice(left);
   }
 
-  buffer result = concat(start, end, left);
+  buffer result = concat(begin, end, left);
 
   consume(result.size());
 
@@ -116,13 +117,16 @@ buffers::consume(size_t size) noexcept
 {
   assert(size <= this->size());
 
-  for (size_t i = 0; size != 0; i++) {
-    size_t to_consume = std::min(size, buffers_[i].size());
-    buffers_[i].consume(to_consume);
+  for (auto it = buffers_.begin(); size != 0; it++) {
+    size_t to_consume = std::min(size, it->size());
+    it->consume(to_consume);
     size -= to_consume;
   }
 
-  discard();
+  auto it = buffers_.begin();
+  while (it != buffers_.end() && it->empty()) {
+    it = buffers_.erase(it);
+  }
 }
 
 size_t
@@ -137,20 +141,14 @@ buffers::consumed() const noexcept
   return consumed;
 }
 
-void
-buffers::discard() noexcept
-{
-  while (!buffers_.empty() && buffers_.front().empty()) {
-    buffers_.pop_front();
-  }
-}
-
 buffer
-buffers::concat(size_t start, size_t end, size_t left) const
+buffers::concat(std::list<buffer>::iterator start,
+                std::list<buffer>::iterator end,
+                size_t left) const
 {
   size_t size = 0;
-  for (size_t i = start; i < end; i++) {
-    size += buffers_[i].size();
+  for (auto it = start; it != end; it++) {
+    size += it->size();
   }
 
   size += left;
@@ -158,12 +156,12 @@ buffers::concat(size_t start, size_t end, size_t left) const
   buffer result(size);
   size_t offset = 0;
 
-  for (size_t i = start; i < end; i++) {
-    std::copy_n(buffers_[i].data(), buffers_[i].size(), result.data() + offset);
-    offset += buffers_[i].size();
+  for (auto it = start; it != end; it++) {
+    std::copy_n(it->data(), it->size(), result.data() + offset);
+    offset += it->size();
   }
 
-  std::copy_n(buffers_[end].data(), left, result.data() + offset);
+  std::copy_n(end->data(), left, result.data() + offset);
 
   return result;
 }

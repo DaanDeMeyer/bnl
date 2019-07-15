@@ -3,7 +3,7 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/export.hpp>
 
-#include <deque>
+#include <list>
 
 namespace bnl {
 namespace base {
@@ -40,11 +40,12 @@ public:
   size_t consumed() const noexcept;
 
 private:
-  std::deque<buffer> buffers_;
+  buffer concat(std::list<buffer>::iterator start,
+                std::list<buffer>::iterator end,
+                size_t left) const;
 
-  void discard() noexcept;
-
-  buffer concat(size_t start, size_t end, size_t left) const;
+private:
+  std::list<buffer> buffers_;
 };
 
 class BNL_BASE_EXPORT buffers::lookahead
