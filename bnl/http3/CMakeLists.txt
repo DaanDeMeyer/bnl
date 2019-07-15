@@ -64,6 +64,6 @@ foreach(ACTION encode decode)
   )
 
   target_sources(bnl-http3-qpack-interop-${ACTION} PRIVATE
-    app/qpack-interop-${ACTION}.cpp
+    app/qpack/qpack-interop-${ACTION}.cpp
   )
 endforeach()
