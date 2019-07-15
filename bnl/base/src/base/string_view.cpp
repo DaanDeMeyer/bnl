@@ -79,8 +79,7 @@ operator!=(string_view lhs, string_view rhs) noexcept
 std::ostream&
 operator<<(std::ostream& out, string_view string)
 {
-  out.write(string.data(), static_cast<std::streamsize>(string.size()));
-  return out;
+  return out.write(string.data(), static_cast<std::streamsize>(string.size()));
 }
 
 } // namespace base
