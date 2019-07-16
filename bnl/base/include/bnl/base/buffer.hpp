@@ -3,20 +3,18 @@
 #include <bnl/base/buffer_view.hpp>
 #include <bnl/base/export.hpp>
 
-#include <array>
 #include <cstdint>
-#include <memory>
 
 namespace bnl {
 namespace base {
 
-class BNL_BASE_EXPORT buffer {
+class BNL_BASE_EXPORT buffer { // NOLINT
 public:
   class lookahead;
 
   using lookahead_type = lookahead;
 
-  buffer() noexcept;
+  buffer() = default; // NOLINT
   buffer(const uint8_t *data, size_t size);
   buffer(const char *data, size_t size);
 
@@ -70,24 +68,22 @@ public:
   static buffer concat(const buffer &first, const buffer &second);
 
 private:
-  buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
-
-  bool sso() const noexcept;
+  buffer(uint32_t *rc, uint8_t *begin, uint8_t *end) noexcept;
 
   void init(size_t size);
+
+  bool sso() const noexcept;
+  static bool sso(size_t size) noexcept;
 
   void destroy() noexcept;
 
 private:
   static constexpr size_t SSO_THRESHOLD = 20;
 
+  uint8_t sso_[SSO_THRESHOLD];
+  uint32_t *rc_ = nullptr;
   uint8_t *begin_ = nullptr;
   uint8_t *end_ = nullptr;
-
-  union {
-    std::array<uint8_t, SSO_THRESHOLD> sso_;
-    std::shared_ptr<uint8_t> shared_;
-  };
 };
 
 class BNL_BASE_EXPORT buffer::lookahead {

@@ -6,10 +6,6 @@
 namespace bnl {
 namespace base {
 
-buffer::buffer() noexcept
-  : sso_()
-{}
-
 buffer::buffer(size_t size) // NOLINT
 {
   init(size);
@@ -41,10 +37,29 @@ buffer::operator=(const buffer &other)
   if (&other != this) {
     destroy();
     init(other.size());
-    std::copy_n(other.data(), other.size(), begin());
+    std::copy(other.begin(), other.end(), begin());
   }
 
   return *this;
+}
+
+void
+buffer::init(size_t size)
+{
+  rc_ = sso(size)
+          ? nullptr
+          // Allocate 4 extra bytes to store the reference count.
+          : reinterpret_cast<uint32_t *>(new uint8_t[sizeof(uint32_t) + size]);
+  begin_ = sso(size) ? sso_
+                     // The reference count is stored at the begin of the buffer
+                     // so the actual data starts at a 4 byte offset.
+                     : reinterpret_cast<uint8_t *>(rc_) + sizeof(uint32_t);
+  end_ = begin_ + size;
+
+  if (rc_ != nullptr) {
+    // Initialize the reference count.
+    (*rc_) = 1;
+  }
 }
 
 buffer::buffer(buffer &&other) noexcept
@@ -59,18 +74,17 @@ buffer::operator=(buffer &&other) noexcept
   if (&other != this) {
     destroy();
 
-    bool sso = other.size() <= SSO_THRESHOLD;
-
-    if (sso) {
-      new (&sso_) decltype(sso_)(other.sso_);
-      begin_ = sso_.data();
+    if (other.sso()) {
+      begin_ = sso_;
+      end_ = begin_ + other.size();
+      std::copy(other.begin(), other.end(), begin_);
     } else {
-      new (&shared_) decltype(shared_)(std::move(other.shared_));
-      begin_ = shared_.get();
+      rc_ = other.rc_;
+      begin_ = other.begin_;
+      end_ = other.end_;
     }
 
-    end_ = begin() + other.size();
-
+    other.rc_ = nullptr;
     other.begin_ = nullptr;
     other.end_ = nullptr;
   }
@@ -156,23 +170,23 @@ buffer::end() noexcept
 void
 buffer::consume(size_t size) noexcept
 {
-  bool sso = this->sso();
-
   assert(size <= this->size());
   begin_ += size;
+}
 
-  // If we weren't small-size-optimized before but are small enough to be now,
-  // we do so.
-  if (!sso && this->sso()) {
-    std::array<uint8_t, SSO_THRESHOLD> tmp; // NOLINT
-    std::copy_n(this->data(), this->size(), tmp.data());
-    size_t tmp_size = this->size();
+void
+buffer::destroy() noexcept
+{
+  if (rc_ == nullptr) {
+    return;
+  }
 
-    shared_.~shared_ptr();
-    new (&sso_) decltype(sso_)(tmp);
-
-    begin_ = sso_.data();
-    end_ = begin_ + tmp_size;
+  (*rc_)--;
+  if (*rc_ == 0) {
+    // The reference count pointer conveniently also points to the start of the
+    // allocated array.
+    delete[] reinterpret_cast<uint8_t *>(rc_); // NOLINT
+    rc_ = nullptr;
   }
 }
 
@@ -187,10 +201,10 @@ buffer::slice(size_t size) noexcept
 
   buffer result;
 
-  if (sso() || size <= SSO_THRESHOLD) {
+  if (sso(size)) {
     result = buffer(data(), size);
   } else {
-    result = buffer(std::shared_ptr<uint8_t>(shared_, data()), size);
+    result = buffer(rc_, data(), data() + size);
   }
 
   consume(size);
@@ -214,46 +228,25 @@ buffer::concat(const buffer &first, const buffer &second)
   return result;
 }
 
-buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
-  : begin_(data.get())
-  , end_(begin() + size)
-  , shared_(std::move(data))
-{}
+buffer::buffer(uint32_t *rc, uint8_t *begin, uint8_t *end) noexcept // NOLINT
+  : rc_(rc)
+  , begin_(begin)
+  , end_(end)
+{
+  // Increment the reference count.
+  (*rc_)++;
+}
 
 bool
 buffer::sso() const noexcept
 {
-  return size() <= SSO_THRESHOLD;
+  return rc_ == nullptr;
 }
 
-void
-buffer::init(size_t size)
+bool
+buffer::sso(size_t size) noexcept
 {
-  if (size <= SSO_THRESHOLD) {
-    new (&sso_) decltype(sso_)();
-    begin_ = sso_.begin();
-  } else {
-    // `std::shared_ptr` only works with arrays starting from C++17. For
-    // previous versions, we have to explicitly specify the array deleter.
-    new (&shared_) decltype(shared_)(new uint8_t[size],
-                                     std::default_delete<uint8_t[]>());
-    begin_ = shared_.get();
-  }
-
-  end_ = begin() + size;
-}
-
-void
-buffer::destroy() noexcept
-{
-  if (sso()) {
-    sso_.~array();
-  } else {
-    shared_.~shared_ptr();
-  }
-
-  begin_ = nullptr;
-  end_ = nullptr;
+  return size <= SSO_THRESHOLD;
 }
 
 buffer::lookahead::lookahead(const buffer &buffer) noexcept

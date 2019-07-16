@@ -7,6 +7,7 @@
 #include <endpoint/shared/crypto.hpp>
 
 #include <random>
+#include <memory>
 
 using ngtcp2_conn = struct ngtcp2_conn;
 

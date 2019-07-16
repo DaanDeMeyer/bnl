@@ -2,6 +2,8 @@
 
 #include <bnl/base/buffer.hpp>
 
+#include <utility>
+
 using namespace bnl;
 
 TEST_CASE("buffer")
