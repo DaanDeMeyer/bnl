@@ -139,10 +139,10 @@ handshake::handshake(base::buffer_view dcid,
   // TODO: re-enable exceptions
 }
 
-handshake::handshake(handshake &&other) noexcept = default;
+handshake::handshake(handshake &&other) = default; // NOLINT
 
 handshake &
-handshake::operator=(handshake &&other) noexcept = default;
+handshake::operator=(handshake &&other) = default; // NOLINT
 
 handshake::~handshake() noexcept = default;
 

@@ -34,8 +34,8 @@ public:
             ngtcp2::connection *ngtcp2,
             const log::api *logger);
 
-  handshake(handshake &&other) noexcept;
-  handshake &operator=(handshake &&other) noexcept;
+  handshake(handshake &&other); // NOLINT
+  handshake &operator=(handshake &&other); // NOLINT
 
   ~handshake() noexcept;
 
