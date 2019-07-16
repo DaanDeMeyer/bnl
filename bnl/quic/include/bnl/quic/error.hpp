@@ -8,7 +8,7 @@
 namespace bnl {
 namespace quic {
 
-enum class error : uint32_t { handshake, crypto, path_validation };
+enum class error : uint32_t { handshake, crypto, path_validation, finished };
 
 BNL_QUIC_EXPORT const std::error_category &
 error_category() noexcept;
