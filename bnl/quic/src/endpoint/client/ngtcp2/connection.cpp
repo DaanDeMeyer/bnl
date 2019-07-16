@@ -757,6 +757,7 @@ connection::connection(path path,
                                   nullptr,
                                   context);
   // TODO: re-enable exceptions
+  (void)rv;
   assert(rv == 0);
 
   connection_ = decltype(connection_)(connection, ngtcp2_conn_del);

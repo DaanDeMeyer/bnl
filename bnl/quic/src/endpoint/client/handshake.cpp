@@ -34,6 +34,7 @@ ssl_new(handshake *handshake)
 
   int rv = SSL_set_ex_data(ssl, 0, handshake);
   // TODO: re-enable exceptions
+  (void)rv;
   assert(rv == 1);
 
   return ssl;

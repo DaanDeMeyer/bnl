@@ -239,6 +239,9 @@ operator<<(std::ostream &os, crypto::level level)
     case crypto::level::application:
       return os << "application";
   }
+
+  assert(false);
+  return os;
 }
 
 std::ostream &
@@ -252,6 +255,9 @@ operator<<(std::ostream &os, crypto::aead aead)
     case crypto::aead::chacha20_poly1305:
       return os << "CHACHA_POLY1305";
   }
+
+  assert(false);
+  return os;
 }
 
 std::ostream &
@@ -263,6 +269,9 @@ operator<<(std::ostream &os, crypto::hash hash)
     case crypto::hash::sha384:
       return os << "SHA384";
   }
+
+  assert(false);
+  return os;
 }
 
 } // namespace quic
