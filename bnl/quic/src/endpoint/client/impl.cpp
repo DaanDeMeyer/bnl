@@ -21,8 +21,7 @@ impl::impl(path path,
   , handshake_(ngtcp2_.dcid(), &ngtcp2_, logger)
   , path_(path)
   , logger_(logger)
-{
-}
+{}
 
 std::error_code
 impl::client_initial()
@@ -250,10 +249,19 @@ impl::send()
 {
   TRY(handshake_.send());
 
-  // TODO: Streams
-  base::buffer packet = TRY(ngtcp2_.write_pkt());
+  {
+    base::result<base::buffer> result = ngtcp2_.write_pkt();
+    if (result) {
+      return std::move(result).value();
+    }
 
-  return packet;
+    CHECK(result == base::error::idle, result.error());
+  }
+
+  {
+  }
+
+  THROW(base::error::idle);
 }
 
 std::error_code
