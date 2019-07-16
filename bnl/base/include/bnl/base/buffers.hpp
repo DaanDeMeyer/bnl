@@ -71,8 +71,6 @@ public:
   void consume(size_t size) noexcept;
   size_t consumed() const noexcept;
 
-  buffer copy(size_t size) const;
-
 private:
   const buffers &buffers_;
   size_t previous_ = 0;

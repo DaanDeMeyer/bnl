@@ -207,18 +207,5 @@ buffers::lookahead::consumed() const noexcept
   return position_;
 }
 
-buffer
-buffers::lookahead::copy(size_t size) const
-{
-  assert(size <= this->size());
-
-  buffer result(size);
-  for (size_t i = 0; i < size; i++) {
-    result[i] = operator[](i);
-  }
-
-  return result;
-}
-
 } // namespace base
 } // namespace bnl

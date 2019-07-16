@@ -134,7 +134,7 @@ TEST_CASE("frame")
     http3::frame frame = http3::frame::payload::duplicate_push{ 50 };
 
     base::buffer encoded = EXTRACT(encoder.encode(frame));
-    base::buffer incomplete = encoded.copy(encoded.size() - 1);
+    base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
     base::result<http3::frame> result = decoder.decode(incomplete);
 

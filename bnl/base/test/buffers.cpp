@@ -9,7 +9,6 @@ TEST_CASE("buffers")
   base::buffers buffers;
 
   REQUIRE(buffers.size() == 0);
-  REQUIRE(buffers.consumed() == 0);
 
   base::buffer first = "abc";
   base::buffer second = "fdeapdf";

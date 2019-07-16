@@ -168,7 +168,7 @@ TEST_CASE("varint")
     base::buffer encoded = EXTRACT(encoder.encode(varint));
     REQUIRE(encoded.size() == sizeof(uint16_t));
 
-    base::buffer incomplete = encoded.copy(encoded.size() - 1);
+    base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
     base::result<uint64_t> result = decoder.decode(incomplete);
 

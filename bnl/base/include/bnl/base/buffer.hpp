@@ -64,10 +64,6 @@ public:
   // returned buffer will be the sole owner of the slice of memory.
   buffer slice(size_t size) noexcept;
 
-  // Copies the next `size` bytes to a new buffer and returns it. In contrast to
-  // `slice`, this method does not consume any bytes of this buffer.
-  buffer copy(size_t size) noexcept;
-
   operator buffer_view() const noexcept; // NOLINT
 
   static buffer concat(const buffer &first, const buffer &second);
@@ -115,8 +111,6 @@ public:
 
   void consume(size_t size) noexcept;
   size_t consumed() const noexcept;
-
-  buffer copy(size_t size) const;
 
 private:
   const buffer &buffer_;

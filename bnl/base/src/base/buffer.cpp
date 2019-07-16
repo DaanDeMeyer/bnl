@@ -192,13 +192,6 @@ buffer::slice(size_t size) noexcept
   return result;
 }
 
-buffer
-buffer::copy(size_t size) noexcept
-{
-  assert(size <= this->size());
-  return buffer(data(), size);
-}
-
 buffer::operator buffer_view() const noexcept
 {
   return { data(), size() };
@@ -297,13 +290,6 @@ size_t
 buffer::lookahead::consumed() const noexcept
 {
   return position_;
-}
-
-buffer
-buffer::lookahead::copy(size_t size) const
-{
-  assert(size <= this->size());
-  return buffer(buffer_.data() + previous_ + position_, size);
 }
 
 } // namespace base

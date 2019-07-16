@@ -62,12 +62,12 @@ TEST_CASE("huffman")
     base::string data("abcde");
     base::buffer encoded = encoder.encode(data);
 
-    base::buffer incomplete = encoded.copy(2);
+    base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
     base::result<base::string> result =
       decoder.decode(incomplete, encoded.size());
 
     REQUIRE(result == base::error::incomplete);
-    REQUIRE(incomplete.size() == 2);
+    REQUIRE(incomplete.size() == encoded.size() - 1);
   }
 }
