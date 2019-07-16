@@ -133,7 +133,8 @@ function(bnl_add_common TARGET OUTPUT_DIRECTORY)
       -Wall
       -Wextra
       -Wconversion
-      -Wsign-conversion
+      # Disabled until https://github.com/fmtlib/fmt/issues/1228 is fixed.
+      -Wno-sign-conversion
       -Wno-unknown-pragmas
       $<$<BOOL:${BNL_WARNINGS_AS_ERRORS}>:-Werror>
     )

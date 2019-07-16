@@ -277,9 +277,9 @@ impl::recv(base::buffer_view data, event::handler handler)
 }
 
 void
-impl::add(quic::event event)
+impl::add(quic::event event) // NOLINT
 {
-  (void)event; // NOLINT
+  (void)event;
   // TODO
 }
 
