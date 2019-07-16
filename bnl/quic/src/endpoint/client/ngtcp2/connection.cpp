@@ -232,11 +232,11 @@ encrypt_cb(ngtcp2_conn *connection,
   crypto crypto = std::move(result).value();
 
   std::error_code ec =
-    result.value().encrypt(base::buffer_view_mut(dest, dest_size),
-                           base::buffer_view(plaintext, plaintext_size),
-                           base::buffer_view(key, key_size),
-                           base::buffer_view(nonce, nonce_size),
-                           base::buffer_view(ad, ad_size));
+    crypto.encrypt(base::buffer_view_mut(dest, dest_size),
+                   base::buffer_view(plaintext, plaintext_size),
+                   base::buffer_view(key, key_size),
+                   base::buffer_view(nonce, nonce_size),
+                   base::buffer_view(ad, ad_size));
 
   // TODO: Fix after https://github.com/ngtcp2/ngtcp2/pull/128
   return ec ? static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE)
@@ -1025,7 +1025,7 @@ connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
                                         &stream_data_written,
                                         NGTCP2_WRITE_STREAM_FLAG_NONE,
                                         static_cast<int64_t>(id),
-                                        fin,
+                                        static_cast<uint8_t>(fin),
                                         data.data(),
                                         data.size(),
                                         make_timestamp(ts));
