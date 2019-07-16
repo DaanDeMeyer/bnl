@@ -12,6 +12,7 @@ public:
   address();
   address(ipv4::address address) noexcept; // NOLINT
   address(ipv6::address address) noexcept; // NOLINT
+  address(base::buffer_view bytes) noexcept; // NOLINT
 
   address(const address &other) = default;
   address &operator=(const address &other) = default;
@@ -26,8 +27,8 @@ private:
   type type_;
 
   union {
-    ipv4::address ipv4;
-    ipv6::address ipv6;
+    ipv4::address ipv4_;
+    ipv6::address ipv6_;
   };
 };
 
