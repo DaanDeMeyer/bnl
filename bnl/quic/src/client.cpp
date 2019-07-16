@@ -13,7 +13,7 @@ client::client(path path,
       new endpoint::client::impl(path, params, std::move(clock), logger)))
 {}
 
-client::client(client &&other) noexcept = default;
+client::client(client &&) noexcept = default;
 
 client &
 client::operator=(client &&) noexcept = default;
