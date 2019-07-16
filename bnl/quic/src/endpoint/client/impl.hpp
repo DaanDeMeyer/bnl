@@ -38,7 +38,7 @@ public:
 
   void stream_opened(uint64_t id);
   void stream_closed(uint64_t id, uint64_t error);
-  void stream_reset(uint64_t id, size_t final_size, uint64_t error);
+  void stream_reset(uint64_t id, uint64_t final_size, uint64_t error);
 
   std::error_code recv_stateless_reset(base::buffer_view bytes,
                                        base::buffer_view token);

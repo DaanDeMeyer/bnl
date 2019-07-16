@@ -103,7 +103,7 @@ impl::stream_closed(uint64_t id, uint64_t error)
 }
 
 void
-impl::stream_reset(uint64_t id, size_t final_size, uint64_t error)
+impl::stream_reset(uint64_t id, uint64_t final_size, uint64_t error)
 {
   (void)final_size;
 

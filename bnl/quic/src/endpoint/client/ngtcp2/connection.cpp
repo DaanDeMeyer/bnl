@@ -574,7 +574,7 @@ select_preferred_addr_cb(ngtcp2_conn *connection,
 static int
 stream_reset_cb(ngtcp2_conn *connection,
                 int64_t id,
-                size_t final_size,
+                uint64_t final_size,
                 uint64_t error,
                 void *context,
                 void *stream_context)
