@@ -111,9 +111,9 @@ size_t
 crypto::aead_overhead() const noexcept
 {
   switch (aead_) {
-    case aead::aes_128_gcm:
-    case aead::aes_256_gcm:
-    case aead::chacha20_poly1305:
+    case crypto::aead::aes_128_gcm:
+    case crypto::aead::aes_256_gcm:
+    case crypto::aead::chacha20_poly1305:
       return 16;
   }
 
@@ -179,10 +179,10 @@ size_t
 crypto::aead_key_size(aead aead) const noexcept
 {
   switch (aead) {
-    case aead::aes_128_gcm:
+    case crypto::aead::aes_128_gcm:
       return 16;
-    case aead::aes_256_gcm:
-    case aead::chacha20_poly1305:
+    case crypto::aead::aes_256_gcm:
+    case crypto::aead::chacha20_poly1305:
       return 32;
   }
 
@@ -195,9 +195,9 @@ size_t
 crypto::aead_nonce_min_size(aead aead) const noexcept
 {
   switch (aead) {
-    case aead::aes_128_gcm:
-    case aead::aes_256_gcm:
-    case aead::chacha20_poly1305:
+    case crypto::aead::aes_128_gcm:
+    case crypto::aead::aes_256_gcm:
+    case crypto::aead::chacha20_poly1305:
       return 12;
   }
 
@@ -209,9 +209,9 @@ size_t
 crypto::hash_size(hash hash) const noexcept
 {
   switch (hash) {
-    case hash::sha256:
+    case crypto::hash::sha256:
       return 32;
-    case hash::sha384:
+    case crypto::hash::sha384:
       return 48;
   }
 
