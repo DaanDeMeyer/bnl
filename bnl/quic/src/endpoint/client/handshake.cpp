@@ -172,7 +172,7 @@ handshake::init(base::buffer_view dcid)
     static_cast<uint32_t>(ngtcp2::connection::ALPN_H3.size());
 
   int rv = SSL_set_alpn_protos(ssl_.get(), alpn, alpn_size);
-  CHECK(rv == 0, error::handshake);
+  CHECK(rv == 0, quic::error::handshake);
 
   // Client mode
 
@@ -192,12 +192,12 @@ handshake::init(base::buffer_view dcid)
 
   base::buffer tp = TRY(ngtcp2_->get_local_transport_parameters());
   rv = SSL_set_quic_transport_params(ssl_.get(), tp.data(), tp.size());
-  CHECK(rv == 1, error::handshake);
+  CHECK(rv == 1, quic::error::handshake);
 
   // QUIC
 
   rv = SSL_set_quic_method(ssl_.get(), ssl_quic_method_.get());
-  CHECK(rv == 1, error::handshake);
+  CHECK(rv == 1, quic::error::handshake);
 
   return {};
 }
@@ -215,7 +215,7 @@ handshake::send()
         break;
       default:
         log_errors();
-        THROW(error::handshake);
+        THROW(quic::error::handshake);
     }
   }
 
@@ -229,14 +229,14 @@ handshake::recv(crypto::level level, base::buffer_view data)
     ssl_.get(), make_crypto_level(level), data.data(), data.size());
   if (rv == 0) {
     log_errors();
-    THROW(error::handshake);
+    THROW(quic::error::handshake);
   }
 
   if (completed()) {
     rv = SSL_process_quic_post_handshake(ssl_.get());
     if (rv == 0) {
       log_errors();
-      THROW(error::handshake);
+      THROW(quic::error::handshake);
     }
 
     return {};
@@ -252,7 +252,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
         THROW(base::error::incomplete);
       default:
         log_errors();
-        THROW(error::handshake);
+        THROW(quic::error::handshake);
     }
   }
 
@@ -298,7 +298,7 @@ handshake::negotiated_crypto() const noexcept
 
   if (cipher == nullptr) {
     LOG_E("Cipher suite not negotiated yet");
-    THROW(error::handshake);
+    THROW(quic::error::handshake);
   }
 
   crypto::aead aead = TRY(make_aead(cipher));
@@ -320,7 +320,7 @@ handshake::make_aead(const SSL_CIPHER *cipher) const noexcept
   }
 
   LOG_E("Unsupported Cipher Suite: {}", SSL_CIPHER_standard_name(cipher));
-  THROW(error::handshake);
+  THROW(quic::error::handshake);
 }
 
 base::result<crypto::hash>
@@ -335,7 +335,7 @@ handshake::make_hash(const SSL_CIPHER *cipher) const noexcept
   }
 
   LOG_E("Unsupported Cipher Suite: {}", SSL_CIPHER_standard_name(cipher));
-  THROW(error::handshake);
+  THROW(quic::error::handshake);
 }
 
 std::error_code
@@ -376,7 +376,7 @@ handshake::set_encryption_secrets(crypto::level level,
 
   switch (level) {
     case crypto::level::initial:
-      THROW(error::handshake);
+      THROW(quic::error::handshake);
     case crypto::level::early_data:
       TRY(ngtcp2_->install_early_keys(write_key));
       break;
