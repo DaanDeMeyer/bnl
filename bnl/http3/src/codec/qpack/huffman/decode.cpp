@@ -40,8 +40,7 @@ namespace huffman {
 
 decoder::decoder(const log::api *logger) noexcept
   : logger_(logger)
-{
-}
+{}
 
 template<typename Sequence>
 base::result<base::string>

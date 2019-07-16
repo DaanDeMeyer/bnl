@@ -9,8 +9,7 @@ namespace prefix_int {
 
 encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
-{
-}
+{}
 
 size_t
 encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept

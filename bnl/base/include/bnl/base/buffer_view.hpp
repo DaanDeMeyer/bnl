@@ -16,8 +16,7 @@ public:
   template<size_t Size>
   buffer_view(const char (&data)[Size]) noexcept // NOLINT
     : buffer_view(reinterpret_cast<const uint8_t *>(data), Size - 1)
-  {
-  }
+  {}
 
   buffer_view(const buffer_view &other) = default;
   buffer_view &operator=(const buffer_view &other) = default;

@@ -17,8 +17,7 @@ stream::stream(uint64_t id,
   : id_(id)
   , connection_(connection)
   , logger_(logger)
-{
-}
+{}
 
 base::result<base::buffer>
 stream::send()

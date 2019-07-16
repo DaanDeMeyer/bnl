@@ -13,8 +13,7 @@ namespace request {
 receiver::receiver(uint64_t id, const log::api *logger) noexcept
   : shared::request::receiver(id, logger)
   , logger_(logger)
-{
-}
+{}
 
 base::result<event>
 receiver::process(frame frame) noexcept

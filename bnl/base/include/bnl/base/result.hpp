@@ -17,14 +17,12 @@ public:
   result(T &&value) noexcept // NOLINT
     : type_(type::value)
     , value_(std::forward<T>(value))
-  {
-  }
+  {}
 
   result(std::error_code ec) noexcept // NOLINT
     : type_(type::error)
     , ec_(ec)
-  {
-  }
+  {}
 
   result(result<T> &&other) noexcept
     : type_(type::error)

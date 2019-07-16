@@ -176,14 +176,12 @@ buffers::concat(std::list<buffer>::iterator start,
 
 buffers::lookahead::lookahead(const buffers &buffers) noexcept
   : buffers_(buffers)
-{
-}
+{}
 
 buffers::lookahead::lookahead(const lookahead &other) noexcept
   : buffers_(other.buffers_)
   , previous_(other.previous_ + other.position_)
-{
-}
+{}
 
 size_t
 buffers::lookahead::size() const noexcept

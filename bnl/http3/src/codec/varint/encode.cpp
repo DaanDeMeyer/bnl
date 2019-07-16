@@ -10,8 +10,7 @@ namespace varint {
 
 encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
-{
-}
+{}
 
 base::result<size_t>
 encoder::encoded_size(uint64_t varint) const noexcept

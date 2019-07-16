@@ -15,8 +15,7 @@ sender::sender(uint64_t id, const log::api *logger) noexcept
   , body_(logger)
   , id_(id)
   , logger_(logger)
-{
-}
+{}
 
 bool
 sender::finished() const noexcept
@@ -86,8 +85,7 @@ receiver::receiver(uint64_t id, const log::api *logger) noexcept
   , body_(logger)
   , id_(id)
   , logger_(logger)
-{
-}
+{}
 
 receiver::~receiver() noexcept = default;
 

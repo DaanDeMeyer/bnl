@@ -11,8 +11,7 @@ namespace prefix_int {
 
 decoder::decoder(const log::api *logger)
   : logger_(logger)
-{
-}
+{}
 
 template<typename Sequence>
 base::result<uint64_t>

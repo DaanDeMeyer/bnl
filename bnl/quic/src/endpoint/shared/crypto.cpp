@@ -15,8 +15,7 @@ crypto::key_view::key_view(base::buffer_view data,
   : data_(data)
   , iv_(iv)
   , hp_(hp)
-{
-}
+{}
 
 base::buffer_view
 crypto::key_view::data() const noexcept
@@ -40,8 +39,7 @@ crypto::key::key(base::buffer data, base::buffer iv, base::buffer hp) noexcept
   : data_(std::move(data))
   , iv_(std::move(iv))
   , hp_(std::move(hp))
-{
-}
+{}
 
 base::buffer_view
 crypto::key::data() const noexcept
@@ -70,8 +68,7 @@ crypto::crypto(aead aead, hash hash, const log::api *logger)
   : aead_(aead)
   , hash_(hash)
   , logger_(logger)
-{
-}
+{}
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.2
 

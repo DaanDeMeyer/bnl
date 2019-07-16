@@ -9,8 +9,7 @@ namespace base {
 buffer_view::buffer_view(const uint8_t *data, size_t size) noexcept
   : data_(data)
   , size_(size)
-{
-}
+{}
 
 const uint8_t *
 buffer_view::data() const noexcept
@@ -58,8 +57,7 @@ operator!=(buffer_view lhs, buffer_view rhs) noexcept
 buffer_view_mut::buffer_view_mut(uint8_t *data, size_t size) noexcept
   : data_(data)
   , size_(size)
-{
-}
+{}
 
 uint8_t *
 buffer_view_mut::data() noexcept

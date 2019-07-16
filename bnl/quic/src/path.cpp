@@ -6,8 +6,7 @@ namespace quic {
 path::path(ip::endpoint local, ip::endpoint remote) noexcept
   : local_(local)
   , remote_(remote)
-{
-}
+{}
 
 ip::endpoint
 path::local() const noexcept

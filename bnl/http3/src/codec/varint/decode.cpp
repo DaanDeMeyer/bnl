@@ -10,8 +10,7 @@ namespace varint {
 
 decoder::decoder(const log::api *logger) noexcept
   : logger_(logger)
-{
-}
+{}
 
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.

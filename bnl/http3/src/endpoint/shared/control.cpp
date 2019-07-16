@@ -14,8 +14,7 @@ sender::sender(uint64_t id, const log::api *logger) noexcept
   : frame_(logger)
   , id_(id)
   , logger_(logger)
-{
-}
+{}
 
 base::result<quic::event>
 sender::send() noexcept
@@ -38,8 +37,7 @@ receiver::receiver(uint64_t id, const log::api *logger) noexcept
   : frame_(logger)
   , id_(id)
   , logger_(logger)
-{
-}
+{}
 
 receiver::~receiver() noexcept = default;
 

@@ -9,8 +9,7 @@ namespace base {
 buffer::buffer() noexcept
   : type_(type::sso)
   , sso_()
-{
-}
+{}
 
 buffer::buffer(const uint8_t *data, size_t size)
   : buffer(size)
@@ -37,8 +36,7 @@ buffer::buffer(size_t size) // NOLINT
 
 buffer::buffer(buffer_view data) noexcept
   : buffer(data.data(), data.size())
-{
-}
+{}
 
 buffer::buffer(const buffer &other)
   : buffer()
@@ -271,8 +269,7 @@ buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
   : type_(type::shared)
   , size_(size)
   , shared_(std::move(data))
-{
-}
+{}
 
 void
 buffer::upgrade() noexcept
@@ -306,14 +303,12 @@ buffer::destroy() noexcept
 
 buffer::lookahead::lookahead(const buffer &buffer) noexcept
   : buffer_(buffer)
-{
-}
+{}
 
 buffer::lookahead::lookahead(const lookahead &other) noexcept
   : buffer_(other.buffer_)
   , previous_(other.previous_ + other.position_)
-{
-}
+{}
 
 size_t
 buffer::lookahead::size() const noexcept

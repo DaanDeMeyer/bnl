@@ -12,8 +12,7 @@ namespace http3 {
 frame::decoder::decoder(const log::api *logger) noexcept
   : varint_(logger)
   , logger_(logger)
-{
-}
+{}
 
 template<typename Sequence>
 base::result<frame::type>

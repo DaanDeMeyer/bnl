@@ -12,8 +12,7 @@ encoder::encoder(const log::api *logger) noexcept
   : frame_(logger)
   , qpack_(logger)
   , logger_(logger)
-{
-}
+{}
 
 std::error_code
 encoder::add(header_view header)
@@ -80,8 +79,7 @@ decoder::decoder(const log::api *logger) noexcept
   : frame_(logger)
   , qpack_(logger)
   , logger_(logger)
-{
-}
+{}
 
 bool
 decoder::started() const noexcept

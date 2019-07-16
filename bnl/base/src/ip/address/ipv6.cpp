@@ -15,8 +15,7 @@ address::address(base::buffer_view bytes) noexcept
 
 address::address(const uint8_t *bytes) noexcept
   : address({ bytes, size })
-{
-}
+{}
 
 base::buffer_view
 address::bytes() const noexcept

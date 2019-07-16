@@ -11,8 +11,7 @@ namespace body {
 encoder::encoder(const log::api *logger) noexcept
   : frame_(logger)
   , logger_(logger)
-{
-}
+{}
 
 std::error_code
 encoder::add(base::buffer body)
@@ -81,8 +80,7 @@ encoder::encode() noexcept
 decoder::decoder(const log::api *logger) noexcept
   : frame_(logger)
   , logger_(logger)
-{
-}
+{}
 
 bool
 decoder::in_progress() const noexcept

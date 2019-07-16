@@ -11,8 +11,7 @@ client::client(const log::api *logger)
   : control_{ endpoint::client::control::sender(logger),
               endpoint::client::control::receiver(logger) }
   , logger_(logger)
-{
-}
+{}
 
 base::result<quic::event>
 client::send() noexcept

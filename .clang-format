@@ -3,5 +3,8 @@ BasedOnStyle: Mozilla
 ---
 Language: Cpp
 PointerAlignment: Right
-BreakBeforeBraces: WebKit
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  SplitEmptyFunction: false
 ---

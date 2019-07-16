@@ -19,8 +19,7 @@ encoder::encoder(const log::api *logger) noexcept
   : prefix_int_(logger)
   , literal_(logger)
   , logger_(logger)
-{
-}
+{}
 
 uint64_t
 encoder::count() const noexcept

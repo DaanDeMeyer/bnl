@@ -8,8 +8,7 @@ event::event() noexcept // NOLINT
   , id(0)
   , fin(true)
   , error()
-{
-}
+{}
 
 event::event(uint64_t id, // NOLINT
              bool fin,
@@ -18,32 +17,28 @@ event::event(uint64_t id, // NOLINT
   , id(id)
   , fin(fin)
   , settings(settings)
-{
-}
+{}
 
 event::event(uint64_t id, bool fin, payload::header header) noexcept // NOLINT
   : type_(event::type::header)
   , id(id)
   , fin(fin)
   , header(std::move(header))
-{
-}
+{}
 
 event::event(uint64_t id, bool fin, payload::body body) noexcept // NOLINT
   : type_(event::type::body)
   , id(id)
   , fin(fin)
   , body(std::move(body))
-{
-}
+{}
 
 event::event(uint64_t id, bool fin, payload::error error) noexcept // NOLINT
   : type_(event::type::error)
   , id(id)
   , fin(fin)
   , error(error)
-{
-}
+{}
 
 event::event(const event &other) noexcept // NOLINT
   : type_(other.type_)

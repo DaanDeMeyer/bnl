@@ -37,8 +37,7 @@ namespace huffman {
 
 encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
-{
-}
+{}
 
 size_t
 encoder::encoded_size(base::string_view string) const noexcept

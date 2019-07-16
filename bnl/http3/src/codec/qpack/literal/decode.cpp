@@ -15,8 +15,7 @@ decoder::decoder(const log::api *logger) noexcept
   : prefix_int_(logger)
   , huffman_(logger)
   , logger_(logger)
-{
-}
+{}
 
 template<typename Sequence>
 base::result<base::string>

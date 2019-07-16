@@ -16,8 +16,7 @@ decoder::decoder(const log::api *logger)
   : prefix_int_(logger)
   , literal_(logger)
   , logger_(logger)
-{
-}
+{}
 
 uint64_t
 decoder::count() const noexcept

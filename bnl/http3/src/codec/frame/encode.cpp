@@ -12,8 +12,7 @@ namespace http3 {
 frame::encoder::encoder(const log::api *logger) noexcept
   : varint_(logger)
   , logger_(logger)
-{
-}
+{}
 
 base::result<uint64_t>
 frame::encoder::payload_size(const frame &frame) const noexcept

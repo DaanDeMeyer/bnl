@@ -25,8 +25,7 @@ public:
   template<size_t Size>
   buffer(const char (&data)[Size]) noexcept // NOLINT
     : buffer(reinterpret_cast<const uint8_t *>(data), Size - 1)
-  {
-  }
+  {}
 
   buffer(const buffer &other);
   buffer &operator=(const buffer &other);

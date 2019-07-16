@@ -258,9 +258,6 @@ impl::send()
     CHECK(result == base::error::idle, result.error());
   }
 
-  {
-  }
-
   THROW(base::error::idle);
 }
 

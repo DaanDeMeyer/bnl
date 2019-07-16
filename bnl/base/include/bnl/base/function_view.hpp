@@ -21,8 +21,7 @@ public:
                     function_view>::value>::type * = nullptr) // NOLINT
     : callback_(callback_fn<typename std::remove_reference<Callable>::type>)
     , callable_(reinterpret_cast<void *>(&callable))
-  {
-  }
+  {}
 
   function_view(const function_view &other) = default;
   function_view &operator=(const function_view &other) = default;
