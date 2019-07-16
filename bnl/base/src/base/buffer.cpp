@@ -21,6 +21,12 @@ buffer::buffer(const uint8_t *data, size_t size)
   std::copy_n(data, size, begin());
 }
 
+buffer::buffer(const char *data, size_t size)
+  : buffer(size)
+{
+  std::copy_n(data, size, begin());
+}
+
 buffer::buffer(buffer_view data) noexcept
   : buffer(data.data(), data.size())
 {}

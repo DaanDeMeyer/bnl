@@ -18,6 +18,7 @@ public:
 
   buffer() noexcept;
   buffer(const uint8_t *data, size_t size);
+  buffer(const char *data, size_t size);
 
   explicit buffer(size_t size);
   explicit buffer(buffer_view data) noexcept;
