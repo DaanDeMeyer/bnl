@@ -36,7 +36,6 @@ public:
   buffer &back() noexcept;
 
   void consume(size_t size) noexcept;
-  size_t consumed() const noexcept;
 
 private:
   void discard();

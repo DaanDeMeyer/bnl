@@ -128,18 +128,6 @@ buffers::consume(size_t size) noexcept
   discard();
 }
 
-size_t
-buffers::consumed() const noexcept
-{
-  size_t consumed = 0;
-
-  for (const buffer &buffer : buffers_) {
-    consumed += buffer.consumed();
-  }
-
-  return consumed;
-}
-
 void
 buffers::discard()
 {

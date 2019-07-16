@@ -7,31 +7,18 @@ namespace bnl {
 namespace base {
 
 buffer::buffer() noexcept
-  : type_(type::sso)
-  , sso_()
+  : sso_()
 {}
+
+buffer::buffer(size_t size) // NOLINT
+{
+  init(size);
+}
 
 buffer::buffer(const uint8_t *data, size_t size)
   : buffer(size)
 {
-  std::copy_n(data, size, this->data());
-}
-
-buffer::buffer(size_t size) // NOLINT
-  : type_(size <= SSO_THRESHOLD ? type::sso : type::unique)
-  , size_(size)
-{
-  switch (type_) {
-    case type::sso:
-      new (&sso_) decltype(sso_)();
-      break;
-    case type::unique:
-      new (&unique_) decltype(unique_)(new uint8_t[size]);
-      break;
-    default:
-      assert(false);
-      break;
-  }
+  std::copy_n(data, size, begin());
 }
 
 buffer::buffer(buffer_view data) noexcept
@@ -39,35 +26,16 @@ buffer::buffer(buffer_view data) noexcept
 {}
 
 buffer::buffer(const buffer &other)
-  : buffer()
-{
-  operator=(other);
-}
+  : buffer(other.data(), other.size())
+{}
 
 buffer &
 buffer::operator=(const buffer &other)
 {
   if (&other != this) {
     destroy();
-
-    type_ = other.size() <= SSO_THRESHOLD ? type::sso : type::unique;
-    size_ = other.size();
-    position_ = 0;
-
-    switch (type_) {
-      case type::sso:
-        new (&sso_) decltype(sso_)();
-        break;
-      default:
-        new (&unique_) decltype(unique_)(new uint8_t[size_]);
-        break;
-    }
-
-    std::copy_n(other.data(), size_, data());
-
-    type_ = other.type_;
-    size_ = other.size_;
-    position_ = other.position_;
+    init(other.size());
+    std::copy_n(other.data(), other.size(), begin());
   }
 
   return *this;
@@ -85,24 +53,20 @@ buffer::operator=(buffer &&other) noexcept
   if (&other != this) {
     destroy();
 
-    type_ = other.type_;
-    size_ = other.size_;
-    position_ = other.position_;
+    bool sso = other.size() <= SSO_THRESHOLD;
 
-    switch (type_) {
-      case type::sso:
-        new (&sso_) decltype(sso_)(other.sso_);
-        break;
-      case type::unique:
-        new (&unique_) decltype(unique_)(std::move(other.unique_));
-        break;
-      case type::shared:
-        new (&shared_) decltype(shared_)(std::move(other.shared_));
-        break;
+    if (sso) {
+      new (&sso_) decltype(sso_)(other.sso_);
+      begin_ = sso_.data();
+    } else {
+      new (&shared_) decltype(shared_)(std::move(other.shared_));
+      begin_ = shared_.get();
     }
 
-    other.size_ = 0;
-    other.position_ = 0;
+    end_ = begin() + other.size();
+
+    other.begin_ = nullptr;
+    other.end_ = nullptr;
   }
 
   return *this;
@@ -116,33 +80,13 @@ buffer::~buffer() noexcept
 uint8_t *
 buffer::data() noexcept
 {
-  switch (type_) {
-    case type::sso:
-      return sso_.data() + position_;
-    case type::unique:
-      return unique_.get() + position_;
-    case type::shared:
-      return static_cast<uint8_t *>(shared_.get()) + position_;
-  }
-
-  assert(false);
-  return nullptr;
+  return begin();
 }
 
 const uint8_t *
 buffer::data() const noexcept
 {
-  switch (type_) {
-    case type::sso:
-      return sso_.data() + position_;
-    case type::unique:
-      return unique_.get() + position_;
-    case type::shared:
-      return static_cast<uint8_t *>(shared_.get()) + position_;
-  }
-
-  assert(false);
-  return nullptr;
+  return begin();
 }
 
 uint8_t buffer::operator[](size_t index) const noexcept
@@ -170,7 +114,7 @@ uint8_t &buffer::operator*() noexcept
 size_t
 buffer::size() const noexcept
 {
-  return size_ - position_;
+  return static_cast<size_t>(end() - begin());
 }
 
 bool
@@ -182,38 +126,48 @@ buffer::empty() const noexcept
 const uint8_t *
 buffer::begin() const noexcept
 {
-  return data();
+  return begin_;
 }
 
 const uint8_t *
 buffer::end() const noexcept
 {
-  return data() + size();
+  return end_;
 }
 
 uint8_t *
 buffer::begin() noexcept
 {
-  return data();
+  return begin_;
 }
 
 uint8_t *
 buffer::end() noexcept
 {
-  return data() + size();
+  return end_;
 }
 
 void
 buffer::consume(size_t size) noexcept
 {
-  assert(size <= this->size());
-  position_ += size;
-}
+  bool sso = this->sso();
 
-size_t
-buffer::consumed() const noexcept
-{
-  return position_;
+  assert(size <= this->size());
+  begin_ += size;
+
+  // If we weren't small-size-optimized before but are small enough to be now,
+  // we do so.
+  if (!sso && this->sso()) {
+    std::array<uint8_t, SSO_THRESHOLD> tmp; // NOLINT
+    std::copy_n(this->data(), this->size(), tmp.data());
+    size_t tmp_size = this->size();
+
+    shared_.~shared_ptr();
+    new (&sso_) decltype(sso_)(tmp);
+
+    begin_ = sso_.data();
+    end_ = begin_ + tmp_size;
+  }
 }
 
 buffer
@@ -225,17 +179,13 @@ buffer::slice(size_t size) noexcept
     return buffer();
   }
 
-  if (size <= SSO_THRESHOLD || type_ == type::sso) {
-    buffer result = buffer(data(), size);
-    consume(size);
-    return result;
-  }
+  buffer result;
 
-  if (type_ == type::unique) {
-    upgrade();
+  if (sso() || size <= SSO_THRESHOLD) {
+    result = buffer(data(), size);
+  } else {
+    result = buffer(std::shared_ptr<uint8_t>(shared_, data()), size);
   }
-
-  buffer result = buffer(std::shared_ptr<uint8_t>(shared_, data()), size);
 
   consume(size);
 
@@ -266,39 +216,42 @@ buffer::concat(const buffer &first, const buffer &second)
 }
 
 buffer::buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept // NOLINT
-  : type_(type::shared)
-  , size_(size)
+  : begin_(data.get())
+  , end_(begin() + size)
   , shared_(std::move(data))
 {}
 
-void
-buffer::upgrade() noexcept
+bool
+buffer::sso() const noexcept
 {
-  assert(type_ == type::unique);
+  return size() <= SSO_THRESHOLD;
+}
 
-  std::unique_ptr<uint8_t[]> temp = std::move(unique_);
-  unique_.~unique_ptr();
-  new (&shared_) decltype(shared_)(temp.release(), temp.get_deleter());
-  type_ = type::shared;
+void
+buffer::init(size_t size)
+{
+  if (size <= SSO_THRESHOLD) {
+    new (&sso_) decltype(sso_)();
+    begin_ = sso_.begin();
+  } else {
+    new (&shared_) decltype(shared_)(new uint8_t[size]);
+    begin_ = shared_.get();
+  }
+
+  end_ = begin() + size;
 }
 
 void
 buffer::destroy() noexcept
 {
-  switch (type_) {
-    case type::sso:
-      sso_.~array();
-      break;
-    case type::unique:
-      unique_.~unique_ptr();
-      break;
-    case type::shared:
-      shared_.~shared_ptr();
-      break;
+  if (sso()) {
+    sso_.~array();
+  } else {
+    shared_.~shared_ptr();
   }
 
-  position_ = 0;
-  size_ = 0;
+  begin_ = nullptr;
+  end_ = nullptr;
 }
 
 buffer::lookahead::lookahead(const buffer &buffer) noexcept

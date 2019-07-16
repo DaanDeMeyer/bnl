@@ -54,7 +54,6 @@ public:
   bool empty() const noexcept;
 
   void consume(size_t size) noexcept;
-  size_t consumed() const noexcept;
 
   // Returns a buffer to the next `size` bytes of this buffer and consumes
   // `size` bytes from this buffer. Both this buffer and the returned buffer
@@ -76,25 +75,20 @@ public:
 private:
   buffer(std::shared_ptr<uint8_t> data, size_t size) noexcept;
 
-  void upgrade() noexcept;
+  bool sso() const noexcept;
+
+  void init(size_t size);
 
   void destroy() noexcept;
 
 private:
-  enum class type { sso, unique, shared };
-
-  type type_;
-  size_t size_ = 0;
-  size_t position_ = 0;
-
   static constexpr size_t SSO_THRESHOLD = 20;
+
+  uint8_t *begin_ = nullptr;
+  uint8_t *end_ = nullptr;
 
   union {
     std::array<uint8_t, SSO_THRESHOLD> sso_;
-    // Type erase `std::unique_ptr` deleter so any kind of deleter can be stored
-    // in `buffer`.
-    std::unique_ptr<uint8_t[]> unique_;
-    // `std::shared_ptr<uint8_t[]>` requires C++17.
     std::shared_ptr<uint8_t> shared_;
   };
 };
