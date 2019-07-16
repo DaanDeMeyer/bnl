@@ -227,7 +227,10 @@ buffer::init(size_t size)
     new (&sso_) decltype(sso_)();
     begin_ = sso_.begin();
   } else {
-    new (&shared_) decltype(shared_)(new uint8_t[size]);
+    // `std::shared_ptr` only works with arrays starting from C++17. For
+    // previous versions, we have to explicitly specify the array deleter.
+    new (&shared_) decltype(shared_)(new uint8_t[size],
+                                     std::default_delete<uint8_t[]>());
     begin_ = shared_.get();
   }
 
