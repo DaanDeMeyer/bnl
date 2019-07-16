@@ -27,6 +27,8 @@ error_category_impl::message(int condition) const noexcept
       return "crypto";
     case error::path_validation:
       return "path validation";
+    case error::finished:
+      return "finished";
   }
 
   return "unknown error";
