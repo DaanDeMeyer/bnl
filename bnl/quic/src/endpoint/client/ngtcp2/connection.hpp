@@ -62,6 +62,9 @@ public:
 
   base::result<base::buffer> write_pkt();
 
+  base::result<std::pair<base::buffer, size_t>>
+  write_stream(uint64_t id, base::buffer_view data, bool fin);
+
   std::error_code read_pkt(base::buffer_view packet);
 
   base::buffer_view dcid() const noexcept;

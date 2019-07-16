@@ -990,7 +990,7 @@ connection::write_pkt()
   ngtcp2_path_storage path = make_path(path_);
 
   // TODO: Handle IPV6
-  std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage; // NOLINT
+  std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage = {};
 
   duration ts = TRY(clock_());
   ssize_t rv = ngtcp2_conn_write_pkt(connection_.get(),
@@ -1006,10 +1006,39 @@ connection::write_pkt()
     THROW_NGTCP2(ngtcp2_conn_write_pkt, static_cast<error>(rv));
   }
 
-  size_t packet_size = static_cast<size_t>(rv);
-  base::buffer packet(storage.data(), packet_size);
+  return base::buffer(storage.data(), static_cast<size_t>(rv));
+  ;
+}
 
-  return packet;
+base::result<std::pair<base::buffer, size_t>>
+connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
+{
+  std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage = {};
+
+  ssize_t stream_data_written = 0;
+
+  duration ts = TRY(clock_());
+  ssize_t rv = ngtcp2_conn_write_stream(connection_.get(),
+                                        nullptr,
+                                        storage.data(),
+                                        storage.size(),
+                                        &stream_data_written,
+                                        NGTCP2_WRITE_STREAM_FLAG_NONE,
+                                        static_cast<int64_t>(id),
+                                        fin,
+                                        data.data(),
+                                        data.size(),
+                                        make_timestamp(ts));
+  if (rv < 0) {
+    THROW_NGTCP2(ngtcp2_conn_write_stream, rv);
+  }
+
+  stream_data_written = stream_data_written == -1 ? 0 : stream_data_written;
+
+  base::buffer packet(storage.data(), static_cast<size_t>(rv));
+
+  return std::make_pair(std::move(packet),
+                        static_cast<size_t>(stream_data_written));
 }
 
 std::error_code
