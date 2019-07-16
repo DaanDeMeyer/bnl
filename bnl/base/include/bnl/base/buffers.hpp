@@ -39,6 +39,8 @@ public:
   size_t consumed() const noexcept;
 
 private:
+  void discard();
+
   buffer concat(std::list<buffer>::iterator start,
                 std::list<buffer>::iterator end,
                 size_t left) const;

@@ -72,7 +72,9 @@ buffers::slice(size_t size)
   assert(end != buffers_.end());
 
   if (begin == end) {
-    return begin->slice(left);
+    base::buffer result = begin->slice(left);
+    discard();
+    return result;
   }
 
   buffer result = concat(begin, end, left);
@@ -123,10 +125,7 @@ buffers::consume(size_t size) noexcept
     size -= to_consume;
   }
 
-  auto it = buffers_.begin();
-  while (it != buffers_.end() && it->empty()) {
-    it = buffers_.erase(it);
-  }
+  discard();
 }
 
 size_t
@@ -139,6 +138,15 @@ buffers::consumed() const noexcept
   }
 
   return consumed;
+}
+
+void
+buffers::discard()
+{
+  auto it = buffers_.begin();
+  while (it != buffers_.end() && it->empty()) {
+    it = buffers_.erase(it);
+  }
 }
 
 buffer
