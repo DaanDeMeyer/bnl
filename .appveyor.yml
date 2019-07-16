@@ -51,6 +51,7 @@ before_build:
       -DBNL_TEST=ON
       -DBNL_WARNINGS_AS_ERRORS=ON
       -DBNL_TIDY=ON
+      -DBNL_INSTALL=OFF
 
 build_script: cmake --build build --parallel 2
 

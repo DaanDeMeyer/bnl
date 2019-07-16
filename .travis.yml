@@ -79,5 +79,6 @@ script:
       -DBNL_WARNINGS_AS_ERRORS=ON
       -DBNL_TIDY=$BNL_TIDY
       -DBNL_SANITIZERS=ON
+      -DBNL_INSTALL=OFF
   - cmake --build build --parallel 2
   - build/test
