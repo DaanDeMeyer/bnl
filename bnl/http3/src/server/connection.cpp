@@ -57,7 +57,7 @@ connection::recv(quic::event event, event::handler handler)
     auto control_handler = [this, &handler](http3::event event) {
       switch (event) {
         case event::type::settings:
-          settings_.remote = event.settings;
+          settings_.peer = event.settings;
           break;
         default:
           break;

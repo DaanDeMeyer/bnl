@@ -186,11 +186,11 @@ connection::update_key()
 
 std::error_code
 connection::path_validation(base::buffer_view local,
-                            base::buffer_view remote,
+                            base::buffer_view peer,
                             bool succeeded)
 {
   (void)local;
-  (void)remote;
+  (void)peer;
 
   CHECK(succeeded, error::path_validation);
 

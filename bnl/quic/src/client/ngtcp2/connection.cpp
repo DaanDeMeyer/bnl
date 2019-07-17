@@ -68,15 +68,15 @@ static ngtcp2_path_storage
 make_path(const path &path)
 {
   base::buffer_view local = path.local().address().bytes();
-  base::buffer_view remote = path.local().address().bytes();
+  base::buffer_view peer = path.local().address().bytes();
 
   ngtcp2_path_storage storage = {};
   ngtcp2_path_storage_init(&storage,
                            local.data(),
                            local.size(),
                            nullptr,
-                           remote.data(),
-                           remote.size(),
+                           peer.data(),
+                           peer.size(),
                            nullptr);
 
   return storage;
@@ -540,10 +540,10 @@ connection::path_validation(ngtcp2_conn *connection,
   auto client = static_cast<client::connection *>(context);
 
   base::buffer_view local(path->local.addr, path->local.addrlen);
-  base::buffer_view remote(path->local.addr, path->local.addrlen);
+  base::buffer_view peer(path->local.addr, path->local.addrlen);
   bool succeeded = result == NGTCP2_PATH_VALIDATION_RESULT_SUCCESS;
 
-  std::error_code ec = client->path_validation(local, remote, succeeded);
+  std::error_code ec = client->path_validation(local, peer, succeeded);
 
   return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
 }

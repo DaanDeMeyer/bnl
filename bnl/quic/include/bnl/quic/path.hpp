@@ -11,17 +11,17 @@ namespace quic {
 class BNL_QUIC_EXPORT path {
 public:
   path() = default;
-  path(ip::endpoint local, ip::endpoint remote) noexcept;
+  path(ip::endpoint local, ip::endpoint peer) noexcept;
 
   path(const path &other) = default;
   path &operator=(const path &other) = default;
 
   ip::endpoint local() const noexcept;
-  ip::endpoint remote() const noexcept;
+  ip::endpoint peer() const noexcept;
 
 private:
   ip::endpoint local_;
-  ip::endpoint remote_;
+  ip::endpoint peer_;
 };
 
 }

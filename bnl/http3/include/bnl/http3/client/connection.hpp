@@ -46,7 +46,7 @@ private:
 
   struct {
     settings local;
-    settings remote;
+    settings peer;
   } settings_;
 
   control_t control_;

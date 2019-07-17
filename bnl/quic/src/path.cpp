@@ -3,9 +3,9 @@
 namespace bnl {
 namespace quic {
 
-path::path(ip::endpoint local, ip::endpoint remote) noexcept
+path::path(ip::endpoint local, ip::endpoint peer) noexcept
   : local_(local)
-  , remote_(remote)
+  , peer_(peer)
 {}
 
 ip::endpoint
@@ -15,9 +15,9 @@ path::local() const noexcept
 }
 
 ip::endpoint
-path::remote() const noexcept
+path::peer() const noexcept
 {
-  return remote_;
+  return peer_;
 }
 
 }

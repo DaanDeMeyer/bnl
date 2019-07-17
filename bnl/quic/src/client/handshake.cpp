@@ -258,11 +258,11 @@ handshake::recv(crypto::level level, base::buffer_view data)
 
   ngtcp2_->handshake_completed();
 
-  const uint8_t *remote_tp = nullptr;
-  size_t remote_tp_len = 0;
-  SSL_get_peer_quic_transport_params(ssl_.get(), &remote_tp, &remote_tp_len);
+  const uint8_t *peer_tp = nullptr;
+  size_t peer_tp_len = 0;
+  SSL_get_peer_quic_transport_params(ssl_.get(), &peer_tp, &peer_tp_len);
 
-  base::buffer_view view(remote_tp, remote_tp_len);
+  base::buffer_view view(peer_tp, peer_tp_len);
   TRY(ngtcp2_->set_remote_transport_parameters(view));
 
   return {};
