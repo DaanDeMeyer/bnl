@@ -128,6 +128,6 @@ decoder::decode(Sequence &encoded)
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_BODY_DECODE_IMPL);
 
-} // namespace body
-} // namespace http3
-} // namespace bnl
+}
+}
+}

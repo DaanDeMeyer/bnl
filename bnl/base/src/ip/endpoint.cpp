@@ -20,5 +20,5 @@ endpoint::port() const noexcept
   return port_;
 }
 
-} // namespace ip
-} // namespace bnl
+}
+}

@@ -44,5 +44,5 @@ operator!=(string_view lhs, string_view rhs) noexcept;
 BNL_BASE_EXPORT std::ostream &
 operator<<(std::ostream &out, string_view string);
 
-} // namespace base
-} // namespace bnl
+}
+}

@@ -65,7 +65,7 @@ private:
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
 
-} // namespace huffman
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}

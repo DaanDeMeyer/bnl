@@ -111,5 +111,5 @@ operator!=(const frame &lhs, const frame &rhs)
   return !(lhs == rhs);
 }
 
-} // namespace http3
-} // namespace bnl
+}
+}

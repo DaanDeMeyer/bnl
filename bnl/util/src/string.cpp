@@ -15,5 +15,5 @@ is_lowercase(base::string_view string)
   return true;
 }
 
-} // namespace util
-} // namespace bnl
+}
+}

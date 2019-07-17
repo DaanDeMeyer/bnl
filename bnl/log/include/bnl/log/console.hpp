@@ -19,5 +19,5 @@ private:
   log::level level_ = log::level::trace;
 };
 
-} // namespace log
-} // namespace bnl
+}
+}

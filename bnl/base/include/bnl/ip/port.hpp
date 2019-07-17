@@ -7,5 +7,5 @@ namespace ip {
 
 using port = uint16_t;
 
-} // namespace ip
-} // namespace bnl
+}
+}

@@ -116,7 +116,7 @@ decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_IMPL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);
 
-} // namespace huffman
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}

@@ -27,5 +27,5 @@ private:
   std::array<uint8_t, size> bytes_ = {};
 };
 
-} // namespace ipv4
-} // namespace bnl
+}
+}

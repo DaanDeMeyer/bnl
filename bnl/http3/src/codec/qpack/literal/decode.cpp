@@ -57,7 +57,7 @@ decoder::decode(Sequence &encoded, uint8_t prefix) const
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_IMPL(BNL_HTTP3_QPACK_LITERAL_DECODE_IMPL);
 
-} // namespace literal
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}

@@ -49,5 +49,5 @@ public:
   };
 };
 
-} // namespace quic
-} // namespace bnl
+}
+}

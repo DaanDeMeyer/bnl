@@ -115,6 +115,6 @@ decoder::decode(Sequence &encoded) const noexcept
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_VARINT_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_IMPL(BNL_HTTP3_VARINT_DECODE_IMPL);
 
-} // namespace varint
-} // namespace http3
-} // namespace bnl
+}
+}
+}

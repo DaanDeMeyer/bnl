@@ -144,8 +144,8 @@ const symbol table[] = {
   /*  */ { 0x3fffffffu, 30 }
 };
 
-} // namespace encode
-} // namespace huffman
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}
+}

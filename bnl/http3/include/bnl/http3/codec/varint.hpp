@@ -61,7 +61,7 @@ private:
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_VARINT_DECODE_IMPL);
 
-} // namespace varint
+}
 
-} // namespace http3
-} // namespace bnl
+}
+}

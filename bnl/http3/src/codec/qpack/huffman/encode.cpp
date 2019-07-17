@@ -136,7 +136,7 @@ encoder::encode(base::string_view string) const
   return encoded;
 }
 
-} // namespace huffman
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}

@@ -82,5 +82,5 @@ operator<<(std::ostream &out, string_view string)
   return out.write(string.data(), static_cast<std::streamsize>(string.size()));
 }
 
-} // namespace base
-} // namespace bnl
+}
+}

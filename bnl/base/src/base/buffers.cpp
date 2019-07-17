@@ -207,5 +207,5 @@ buffers::lookahead::consumed() const noexcept
   return position_;
 }
 
-} // namespace base
-} // namespace bnl
+}
+}

@@ -152,8 +152,8 @@ BNL_TRY_GET_ERROR(const std::error_code &result)
   return result;
 }
 
-} // namespace base
-} // namespace bnl
+}
+}
 
 #define BNL_TRY(...)                                                           \
   ({                                                                           \

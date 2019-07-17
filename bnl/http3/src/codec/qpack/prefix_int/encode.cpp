@@ -72,7 +72,7 @@ encoder::encode(uint64_t value, uint8_t prefix) const
   return encoded;
 }
 
-} // namespace prefix_int
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}

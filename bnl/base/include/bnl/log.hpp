@@ -48,8 +48,8 @@ protected:
                    const fmt::format_args &args) const;
 };
 
-} // namespace log
-} // namespace bnl
+}
+}
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"

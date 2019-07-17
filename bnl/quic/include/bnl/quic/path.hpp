@@ -24,5 +24,5 @@ private:
   ip::endpoint remote_;
 };
 
-} // namespace quic
-} // namespace bnl
+}
+}

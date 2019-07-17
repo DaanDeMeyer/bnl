@@ -23,8 +23,8 @@ error_category() noexcept;
 BNL_BASE_EXPORT std::error_code
 make_error_code(error error) noexcept;
 
-} // namespace base
-} // namespace bnl
+}
+}
 
 namespace std {
 
@@ -32,4 +32,4 @@ template<>
 struct is_error_code_enum<bnl::base::error> : true_type {
 };
 
-} // namespace std
+}

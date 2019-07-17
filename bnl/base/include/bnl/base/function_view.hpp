@@ -48,5 +48,5 @@ private:
   }
 };
 
-} // namespace base
-} // namespace bnl
+}
+}

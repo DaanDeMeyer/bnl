@@ -7,4 +7,5 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: true
   SplitEmptyFunction: false
+  SplitEmptyRecord: false
 ---

@@ -380,8 +380,8 @@ find_index(header_view header)
   return { type::missing, {} };
 }
 
-} // namespace fixed
-} // namespace table
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}
+}

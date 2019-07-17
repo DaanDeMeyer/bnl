@@ -60,5 +60,5 @@ make_error_code(error error) noexcept
   return { static_cast<int>(error), error_category() };
 }
 
-} // namespace http3
-} // namespace bnl
+}
+}

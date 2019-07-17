@@ -27,20 +27,20 @@ target_sources(bnl-http3 PRIVATE
   src/codec/varint/encode.cpp
   src/codec/body.cpp
   src/codec/headers.cpp
-  src/endpoint/client/control.cpp
-  src/endpoint/client/request.cpp
-  src/endpoint/server/control.cpp
-  src/endpoint/server/request.cpp
-  src/endpoint/shared/control.cpp
-  src/endpoint/shared/request.cpp
-  src/client.cpp
-  src/server.cpp
+  src/client/connection.cpp
+  src/client/stream/control.cpp
+  src/client/stream/request.cpp
+  src/endpoint/stream/control.cpp
+  src/endpoint/stream/request.cpp
+  src/server/connection.cpp
+  src/server/stream/control.cpp
+  src/server/stream/request.cpp
   src/error.cpp
 )
 
 if(BNL_TEST)
   target_sources(bnl-test PRIVATE
-    test/endpoint.cpp
+    test/connection.cpp
     test/frame.cpp
     test/huffman.cpp
     test/qpack.cpp

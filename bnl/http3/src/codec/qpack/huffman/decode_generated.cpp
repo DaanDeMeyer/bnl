@@ -4885,8 +4885,8 @@ const node table[][16] = {
   },
 };
 
-} // namespace decode
-} // namespace huffman
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}
+}

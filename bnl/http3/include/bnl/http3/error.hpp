@@ -37,8 +37,8 @@ error_category() noexcept;
 BNL_HTTP3_EXPORT std::error_code
 make_error_code(error error) noexcept;
 
-} // namespace http3
-} // namespace bnl
+}
+}
 
 namespace std {
 
@@ -46,4 +46,4 @@ template<>
 struct is_error_code_enum<bnl::http3::error> : true_type {
 };
 
-} // namespace std
+}

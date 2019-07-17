@@ -82,6 +82,6 @@ private:
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_QPACK_DECODE_IMPL);
 
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}

@@ -63,5 +63,5 @@ header::operator header_view() const noexcept
   return { name(), value() };
 }
 
-} // namespace http3
-} // namespace bnl
+}
+}

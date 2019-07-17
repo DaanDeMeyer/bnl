@@ -20,5 +20,5 @@ path::remote() const noexcept
   return remote_;
 }
 
-} // namespace quic
-} // namespace bnl
+}
+}

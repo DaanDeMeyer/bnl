@@ -13,5 +13,5 @@ host::name() const noexcept
   return { name_.data(), name_.size() };
 }
 
-} // namespace ip
-} // namespace bnl
+}
+}

@@ -71,5 +71,5 @@ event::operator event::type() const noexcept
   return type_;
 }
 
-} // namespace quic
-} // namespace bnl
+}
+}

@@ -32,5 +32,5 @@ address::bytes() const noexcept
   return { bytes_.data(), bytes_.size() };
 }
 
-} // namespace ipv4
-} // namespace bnl
+}
+}

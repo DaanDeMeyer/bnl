@@ -32,5 +32,5 @@ private:
   };
 };
 
-} // namespace ip
-} // namespace bnl
+}
+}

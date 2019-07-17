@@ -14,7 +14,7 @@ namespace bnl {
 
 namespace log {
 class api;
-} // namespace log
+}
 
 namespace http3 {
 namespace headers {
@@ -77,6 +77,6 @@ private:
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_HEADERS_DECODE_IMPL);
 
-} // namespace headers
-} // namespace http3
-} // namespace bnl
+}
+}
+}

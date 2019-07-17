@@ -203,5 +203,5 @@ frame::encoder::encode(const frame &frame) const
   return encoded;
 }
 
-} // namespace http3
-} // namespace bnl
+}
+}

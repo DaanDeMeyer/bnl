@@ -117,5 +117,5 @@ private:
   size_t position_ = 0;
 };
 
-} // namespace base
-} // namespace bnl
+}
+}

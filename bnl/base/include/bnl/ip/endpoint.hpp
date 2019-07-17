@@ -22,5 +22,5 @@ private:
   ip::port port_ = 0;
 };
 
-} // namespace ip
-} // namespace bnl
+}
+}

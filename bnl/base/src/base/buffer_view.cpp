@@ -94,5 +94,5 @@ buffer_view_mut::operator buffer_view() const noexcept
   return { data_, size() };
 }
 
-} // namespace base
-} // namespace bnl
+}
+}

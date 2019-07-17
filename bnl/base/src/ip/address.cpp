@@ -62,5 +62,5 @@ address::bytes() const noexcept
   return {};
 }
 
-} // namespace ip
-} // namespace bnl
+}
+}

@@ -54,4 +54,4 @@ make_scope_exit(EF &&exit_function) noexcept
 #define SCOPE_EXIT(code)                                                       \
   auto SCOPE_EXIT_IMPL_3(_scope_exit_) = make_scope_exit([&]() { code; })
 
-} // namespace bnl
+}

@@ -124,6 +124,6 @@ encoder::encode(uint64_t varint) const
   return encoded;
 }
 
-} // namespace varint
-} // namespace http3
-} // namespace bnl
+}
+}
+}

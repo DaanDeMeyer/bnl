@@ -73,6 +73,6 @@ private:
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_BODY_DECODE_IMPL);
 
-} // namespace body
-} // namespace http3
-} // namespace bnl
+}
+}
+}

@@ -20,6 +20,7 @@ Checks:
 -fuchsia-trailing-return,
 -google-build-using-namespace,
 -google-readability-function-size,
+-google-readability-namespace-comments,
 -google-readability-todo,
 -google-runtime-references,
 -hicpp-avoid-c-arrays,

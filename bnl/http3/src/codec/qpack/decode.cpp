@@ -117,6 +117,6 @@ decoder::decode(Sequence &encoded)
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_DECODE_IMPL);
 
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}

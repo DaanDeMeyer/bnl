@@ -414,8 +414,8 @@ find_header_only(uint8_t index)
   return { false, {} };
 }
 
-} // namespace fixed
-} // namespace table
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}
+}

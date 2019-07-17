@@ -145,6 +145,6 @@ encoder::encode(header_view header)
   return encoded;
 }
 
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}

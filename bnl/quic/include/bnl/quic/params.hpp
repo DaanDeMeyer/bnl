@@ -25,5 +25,5 @@ struct BNL_QUIC_EXPORT params {
   milliseconds max_ack_delay = milliseconds(25);
 };
 
-} // namespace quic
-} // namespace bnl
+}
+}

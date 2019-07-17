@@ -15,5 +15,5 @@ using milliseconds = std::chrono::duration<uint64_t, std::milli>;
 
 using clock = std::function<base::result<duration>()>;
 
-} // namespace quic
-} // namespace bnl
+}
+}

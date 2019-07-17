@@ -105,5 +105,5 @@ event::operator event::type() const noexcept
   return type_;
 }
 
-} // namespace http3
-} // namespace bnl
+}
+}

@@ -48,5 +48,5 @@ api::operator()(const char *file,
       fmt::make_format_args(ec.message()));
 }
 
-} // namespace log
-} // namespace bnl
+}
+}

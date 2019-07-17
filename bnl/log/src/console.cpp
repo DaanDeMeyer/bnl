@@ -64,5 +64,5 @@ console::log(log::level level,
   fflush(output);
 }
 
-} // namespace log
-} // namespace bnl
+}
+}

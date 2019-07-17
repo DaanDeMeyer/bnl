@@ -23,5 +23,5 @@ private:
   base::string name_;
 };
 
-} // namespace ip
-} // namespace bnl
+}
+}

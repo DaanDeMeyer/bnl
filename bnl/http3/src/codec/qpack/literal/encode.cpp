@@ -62,7 +62,7 @@ encoder::encode(base::string_view literal, uint8_t prefix) const
   return encoded;
 }
 
-} // namespace literal
-} // namespace qpack
-} // namespace http3
-} // namespace bnl
+}
+}
+}
+}
