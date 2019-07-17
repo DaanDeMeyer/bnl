@@ -89,48 +89,17 @@ connection::recv(quic::event event, event::handler handler)
   return {};
 }
 
-std::error_code
-connection::header(uint64_t id, header_view header)
+base::result<response::handle>
+connection::response(uint64_t id)
 {
   auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
+  if (match == requests_.end()) {
+    THROW(error::stream_closed);
+  }
 
-  server::stream::request::sender &sender = match->second.first;
+  stream::request::sender &sender = match->second.first;
 
-  return sender.header(header);
-}
-
-std::error_code
-connection::body(uint64_t id, base::buffer body)
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  server::stream::request::sender &sender = match->second.first;
-
-  return sender.body(std::move(body));
-}
-
-std::error_code
-connection::start(uint64_t id) noexcept
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  server::stream::request::sender &sender = match->second.first;
-
-  return sender.start();
-}
-
-std::error_code
-connection::fin(uint64_t id) noexcept
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  server::stream::request::sender &sender = match->second.first;
-
-  return sender.fin();
+  return response::handle(&sender);
 }
 
 }

@@ -17,6 +17,49 @@ sender::sender(uint64_t id, const log::api *logger) noexcept
   , logger_(logger)
 {}
 
+sender::sender(sender &&other) noexcept
+  : handle_(other.handle_)
+  , state_(other.state_)
+  , headers_(std::move(other.headers_))
+  , body_(std::move(other.body_))
+  , id_(other.id_)
+  , logger_(other.logger_)
+{
+  if (handle_ != nullptr) {
+    handle_->sender_ = this;
+  }
+
+  other.handle_ = nullptr;
+}
+
+sender &
+sender::operator=(sender &&other) noexcept
+{
+  if (&other != this) {
+    handle_ = other.handle_;
+    state_ = other.state_;
+    headers_ = std::move(other.headers_);
+    body_ = std::move(other.body_);
+    id_ = other.id_;
+    logger_ = other.logger_;
+
+    if (handle_ != nullptr) {
+      handle_->sender_ = this;
+    }
+
+    other.handle_ = nullptr;
+  }
+
+  return *this;
+}
+
+sender::~sender() noexcept
+{
+  if (handle_ != nullptr) {
+    handle_->sender_ = nullptr;
+  }
+}
+
 bool
 sender::finished() const noexcept
 {
@@ -77,6 +120,88 @@ std::error_code
 sender::fin() noexcept
 {
   return body_.fin();
+}
+
+sender::handle::handle(sender *sender)
+  : id_(sender->id_)
+  , sender_(sender)
+{
+  sender_->handle_ = this;
+}
+
+sender::handle::handle(handle &&other) noexcept
+  : handle()
+{
+  operator=(std::move(other));
+}
+
+sender::handle &
+sender::handle::operator=(sender::handle &&other) noexcept
+{
+  if (&other != this) {
+    id_ = other.id_;
+    sender_ = other.sender_;
+    other.id_ = UINT64_MAX;
+    other.sender_ = nullptr;
+
+    if (sender_ != nullptr) {
+      sender_->handle_ = this;
+    }
+  }
+
+  return *this;
+}
+
+sender::handle::~handle()
+{
+  if (sender_ != nullptr) {
+    sender_->handle_ = nullptr;
+  }
+}
+
+uint64_t sender::handle::id() const noexcept
+{
+  return id_;
+}
+
+std::error_code
+sender::handle::header(header_view header)
+{
+  if (sender_ == nullptr) {
+    return error::invalid_handle;
+  }
+
+  return sender_->header(header);
+}
+
+std::error_code
+sender::handle::body(base::buffer body)
+{
+  if (sender_ == nullptr) {
+    return error::invalid_handle;
+  }
+
+  return sender_->body(std::move(body));
+}
+
+std::error_code
+sender::handle::start() noexcept
+{
+  if (sender_ == nullptr) {
+    return error::invalid_handle;
+  }
+
+  return sender_->start();
+}
+
+std::error_code
+sender::handle::fin() noexcept
+{
+  if (sender_ == nullptr) {
+    return error::invalid_handle;
+  }
+
+  return sender_->fin();
 }
 
 receiver::receiver(uint64_t id, const log::api *logger) noexcept

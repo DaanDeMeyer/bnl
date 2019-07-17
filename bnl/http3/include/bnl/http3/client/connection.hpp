@@ -16,6 +16,11 @@ class api;
 }
 
 namespace http3 {
+
+namespace request {
+using handle = endpoint::stream::request::sender::handle;
+}
+
 namespace client {
 
 class BNL_HTTP3_EXPORT connection {
@@ -29,13 +34,7 @@ public:
 
   std::error_code recv(quic::event event, event::handler handler);
 
-  uint64_t request();
-
-  std::error_code header(uint64_t id, header_view header);
-  std::error_code body(uint64_t id, base::buffer body);
-
-  std::error_code start(uint64_t id) noexcept;
-  std::error_code fin(uint64_t id) noexcept;
+  base::result<request::handle> request(uint64_t id);
 
 private:
   // Use `_t` to avoid conflict with `request` method.

@@ -28,7 +28,9 @@ enum class error : uint32_t {
 
   varint_overflow = UINT16_MAX + 1,
   malformed_header,
-  stream_closed
+  stream_closed,
+  stream_exists,
+  invalid_handle
 };
 
 BNL_HTTP3_EXPORT const std::error_category &

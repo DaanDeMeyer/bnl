@@ -42,6 +42,10 @@ error_category_impl::message(int condition) const noexcept
       return "malformed header";
     case error::stream_closed:
       return "stream closed";
+    case error::stream_exists:
+      return "stream exists";
+    case error::invalid_handle:
+      return "invalid handle";
   }
 
   return "error not recognized";

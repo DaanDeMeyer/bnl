@@ -16,6 +16,11 @@ class api;
 }
 
 namespace http3 {
+
+namespace response {
+using handle = endpoint::stream::request::sender::handle;
+}
+
 namespace server {
 
 class BNL_HTTP3_EXPORT connection {
@@ -29,11 +34,7 @@ public:
 
   std::error_code recv(quic::event event, event::handler handler);
 
-  std::error_code header(uint64_t id, header_view header);
-  std::error_code body(uint64_t id, base::buffer body);
-
-  std::error_code start(uint64_t id) noexcept;
-  std::error_code fin(uint64_t id) noexcept;
+  base::result<response::handle> response(uint64_t id);
 
 private:
   using control = std::pair<server::stream::control::sender,

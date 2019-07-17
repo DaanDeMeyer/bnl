@@ -1,10 +1,11 @@
+#include <doctest/doctest.h>
+
 #include <bnl/base/error.hpp>
 #include <bnl/http3/client/connection.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/http3/server/connection.hpp>
 #include <bnl/log.hpp>
-
-#include <doctest/doctest.h>
+#include <bnl/util/test.hpp>
 
 #include <array>
 #include <map>
@@ -39,23 +40,23 @@ operator!=(const message &first, const message &second)
   return !(first == second);
 }
 
-template<typename Endpoint>
+template<typename Handle>
 static void
-start(Endpoint &endpoint, uint64_t id, const message &message)
+start(Handle &handle, const message &message)
 {
   std::error_code ec;
   for (const http3::header &header : message.headers) {
-    ec = endpoint.header(id, header);
+    ec = handle.header(header);
     REQUIRE(!ec);
   }
 
-  ec = endpoint.start(id);
+  ec = handle.start();
   REQUIRE(!ec);
 
-  ec = endpoint.body(id, message.body);
+  ec = handle.body(message.body);
   REQUIRE(!ec);
 
-  ec = endpoint.fin(id);
+  ec = handle.fin();
   REQUIRE(!ec);
 }
 
@@ -108,25 +109,23 @@ TEST_CASE("endpoint")
   http3::client::connection client(&logger);
   http3::server::connection server(&logger);
 
-  message request = { { { ":method", "GET" },
-                        { ":scheme", "https" },
-                        { ":authority", "www.example.com" },
-                        { ":path", "index.html" } },
-                      { "abcde" } };
+  message msg = { { { ":method", "GET" },
+                    { ":scheme", "https" },
+                    { ":authority", "www.example.com" },
+                    { ":path", "index.html" } },
+                  { "abcde" } };
 
-  uint64_t id = client.request();
-
-  start(client, id, request);
+  http3::request::handle request = EXTRACT(client.request(0));
+  start(request, msg);
 
   message decoded = transfer(client, server);
+  REQUIRE(decoded == msg);
 
-  REQUIRE(decoded == request);
+  msg = { { { ":status", "200" } }, { "qsdfg" } };
 
-  message response = { { { ":status", "200" } }, { "qsdfg" } };
-
-  start(server, id, response);
+  http3::response::handle response = EXTRACT(server.response(request.id()));
+  start(response, msg);
 
   decoded = transfer(server, client);
-
-  REQUIRE(decoded == response);
+  REQUIRE(decoded == msg);
 }

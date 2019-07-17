@@ -25,8 +25,10 @@ class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
 
-  sender(sender &&other) = default;
-  sender &operator=(sender &&other) = default;
+  sender(sender &&other) noexcept;
+  sender &operator=(sender &&other) noexcept;
+
+  ~sender() noexcept;
 
   bool finished() const noexcept;
 
@@ -38,8 +40,35 @@ public:
   std::error_code start() noexcept;
   std::error_code fin() noexcept;
 
+  class handle {
+  public:
+    handle() = default;
+    explicit handle(stream::request::sender *sender);
+
+    handle(handle &&other) noexcept;
+    handle &operator=(handle &&other) noexcept;
+
+    ~handle();
+
+    uint64_t id() const noexcept;
+
+    std::error_code header(header_view header);
+    std::error_code body(base::buffer body);
+
+    std::error_code start() noexcept;
+    std::error_code fin() noexcept;
+
+  private:
+    friend class sender;
+
+    uint64_t id_ = UINT64_MAX;
+    stream::request::sender *sender_ = nullptr;
+  };
+
 private:
   enum class state : uint8_t { headers, body, fin };
+
+  class handle *handle_ = nullptr;
 
   state state_ = state::headers;
 

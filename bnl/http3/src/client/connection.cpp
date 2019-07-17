@@ -89,10 +89,13 @@ connection::recv(quic::event event, event::handler handler)
   return {};
 }
 
-uint64_t
-connection::request()
+base::result<request::handle>
+connection::request(uint64_t id)
 {
-  uint64_t id = next_stream_id_;
+  auto match = requests_.find(id);
+  if (match != requests_.end()) {
+    THROW(error::stream_exists);
+  }
 
   client::stream::request::sender sender(id, logger_);
   client::stream::request::receiver receiver(id, logger_);
@@ -100,53 +103,7 @@ connection::request()
   request_t request = std::make_pair(std::move(sender), std::move(receiver));
   requests_.insert(std::make_pair(id, std::move(request)));
 
-  next_stream_id_ += 4;
-
-  return id;
-}
-
-std::error_code
-connection::header(uint64_t id, header_view header)
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  client::stream::request::sender &sender = match->second.first;
-
-  return sender.header(header);
-}
-
-std::error_code
-connection::body(uint64_t id, base::buffer body)
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  client::stream::request::sender &sender = match->second.first;
-
-  return sender.body(std::move(body));
-}
-
-std::error_code
-connection::start(uint64_t id) noexcept
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  client::stream::request::sender &sender = match->second.first;
-
-  return sender.start();
-}
-
-std::error_code
-connection::fin(uint64_t id) noexcept
-{
-  auto match = requests_.find(id);
-  CHECK(match != requests_.end(), error::stream_closed);
-
-  client::stream::request::sender &sender = match->second.first;
-
-  return sender.fin();
+  return request::handle(&requests_.at(id).first);
 }
 
 }
