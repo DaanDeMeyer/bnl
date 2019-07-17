@@ -3,6 +3,7 @@
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
 #include <bnl/quic/crypto.hpp>
+#include <bnl/quic/export.hpp>
 
 #include <memory>
 #include <queue>
@@ -26,7 +27,7 @@ namespace ngtcp2 {
 class connection;
 }
 
-class handshake {
+class BNL_QUIC_EXPORT handshake {
 public:
   handshake(base::buffer_view dcid,
             ngtcp2::connection *ngtcp2,

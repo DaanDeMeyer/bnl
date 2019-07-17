@@ -29,7 +29,7 @@ class connection;
 
 namespace ngtcp2 {
 
-class connection {
+class BNL_QUIC_EXPORT connection {
 public:
   connection(path path,
              const params &params,

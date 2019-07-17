@@ -2,6 +2,7 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/result.hpp>
+#include <bnl/quic/export.hpp>
 
 #include <cstddef>
 #include <system_error>
@@ -14,7 +15,7 @@ class api;
 
 namespace quic {
 
-class crypto {
+class BNL_QUIC_EXPORT crypto {
 public:
   enum class level { initial, early_data, handshake, application };
 
