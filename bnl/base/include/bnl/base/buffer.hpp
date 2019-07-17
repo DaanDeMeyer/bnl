@@ -70,6 +70,9 @@ public:
 private:
   buffer(uint32_t *rc, uint8_t *begin, uint8_t *end) noexcept;
 
+  void rc_(uint32_t *location);
+  uint32_t *rc_();
+
   void init(size_t size);
 
   bool sso() const noexcept;
@@ -81,7 +84,6 @@ private:
   static constexpr size_t SSO_THRESHOLD = 20;
 
   uint8_t sso_[SSO_THRESHOLD];
-  uint32_t *rc_ = nullptr;
   uint8_t *begin_ = nullptr;
   uint8_t *end_ = nullptr;
 };

@@ -51,20 +51,23 @@ buffer::operator=(const buffer &other)
 void
 buffer::init(size_t size)
 {
-  rc_ = sso(size)
-          ? nullptr
-          // Allocate 4 extra bytes to store the reference count.
-          : reinterpret_cast<uint32_t *>(new uint8_t[sizeof(uint32_t) + size]);
-  begin_ = sso(size) ? sso_
-                     // The reference count is stored at the begin of the buffer
-                     // so the actual data starts at a 4 byte offset.
-                     : reinterpret_cast<uint8_t *>(rc_) + sizeof(uint32_t);
-  end_ = begin_ + size;
+  if (sso(size)) {
+    begin_ = sso_;
+    rc_(nullptr);
+  } else {
+    // Allocate 4 extra bytes to store the reference count.
+    rc_(reinterpret_cast<uint32_t *>(
+      new uint8_t[sizeof(uint32_t) + size])); // NOLINT
 
-  if (rc_ != nullptr) {
     // Initialize the reference count.
-    (*rc_) = 1;
+    (*rc_()) = 1;
+
+    // The reference count is stored at the begin of the
+    // buffer so the actual data starts at a 4 byte offset.
+    begin_ = reinterpret_cast<uint8_t *>(rc_()) + sizeof(uint32_t);
   }
+
+  end_ = begin_ + size;
 }
 
 buffer::buffer(buffer &&other) noexcept
@@ -84,12 +87,12 @@ buffer::operator=(buffer &&other) noexcept
       end_ = begin_ + other.size();
       std::copy(other.begin(), other.end(), begin_);
     } else {
-      rc_ = other.rc_;
+      rc_(other.rc_());
       begin_ = other.begin_;
       end_ = other.end_;
     }
 
-    other.rc_ = nullptr;
+    other.rc_(nullptr);
     other.begin_ = nullptr;
     other.end_ = nullptr;
   }
@@ -182,16 +185,16 @@ buffer::consume(size_t size) noexcept
 void
 buffer::destroy() noexcept
 {
-  if (rc_ == nullptr) {
+  if (sso()) {
     return;
   }
 
-  (*rc_)--;
-  if (*rc_ == 0) {
+  (*rc_())--;
+  if (*rc_() == 0) {
     // The reference count pointer conveniently also points to the start of the
     // allocated array.
-    delete[] reinterpret_cast<uint8_t *>(rc_); // NOLINT
-    rc_ = nullptr;
+    delete[] reinterpret_cast<uint8_t *>(rc_()); // NOLINT
+    rc_(nullptr);
   }
 }
 
@@ -209,7 +212,7 @@ buffer::slice(size_t size) noexcept
   if (sso(size)) {
     result = buffer(data(), size);
   } else {
-    result = buffer(rc_, data(), data() + size);
+    result = buffer(rc_(), data(), data() + size);
   }
 
   consume(size);
@@ -234,18 +237,30 @@ buffer::concat(const buffer &first, const buffer &second)
 }
 
 buffer::buffer(uint32_t *rc, uint8_t *begin, uint8_t *end) noexcept // NOLINT
-  : rc_(rc)
-  , begin_(begin)
+  : begin_(begin)
   , end_(end)
 {
+  rc_(rc);
   // Increment the reference count.
-  (*rc_)++;
+  (*rc_())++;
+}
+
+void
+buffer::rc_(uint32_t *location)
+{
+  reinterpret_cast<uint32_t **>(sso_)[0] = location;
+}
+
+uint32_t *
+buffer::rc_()
+{
+  return reinterpret_cast<uint32_t **>(sso_)[0];
 }
 
 bool
 buffer::sso() const noexcept
 {
-  return rc_ == nullptr;
+  return begin_ == nullptr || (begin_ >= sso_ && begin_ <= sso_ + sizeof(sso_));
 }
 
 bool
