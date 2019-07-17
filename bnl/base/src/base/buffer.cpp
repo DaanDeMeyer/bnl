@@ -35,8 +35,13 @@ buffer &
 buffer::operator=(const buffer &other)
 {
   if (&other != this) {
-    destroy();
-    init(other.size());
+    if (other.size() > size()) {
+      destroy();
+      init(other.size());
+    } else {
+      end_ = begin_ + other.size();
+    }
+
     std::copy(other.begin(), other.end(), begin());
   }
 
