@@ -17,6 +17,10 @@ static constexpr std::array<fmt::color, 6> level_colors = {
 namespace bnl {
 namespace log {
 
+console::console(bool log_source)
+  : log_source(log_source)
+{}
+
 void
 console::log(log::level level,
              const char *file,
@@ -51,7 +55,7 @@ console::log(log::level level,
   const char *level_name = level_names[static_cast<size_t>(level)];
   fmt::print(output, color, "{} ", level_name);
 
-  if (level == log::level::error) {
+  if (log_source) {
     color = fmt::fg(fmt::color::dark_gray);
     fmt::print(output, color, "{}:{}: ", file, line);
   }

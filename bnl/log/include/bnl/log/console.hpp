@@ -8,6 +8,8 @@ namespace log {
 
 class BNL_LOG_EXPORT console : public log::api {
 public:
+  console(bool log_source = true);
+
   void log(log::level level,
            const char *file,
            const char *function,
@@ -17,6 +19,7 @@ public:
 
 private:
   log::level level_ = log::level::trace;
+  bool log_source = true;
 };
 
 }
