@@ -5,6 +5,8 @@
 #include <bnl/util/error.hpp>
 #include <bnl/util/string.hpp>
 
+#include <tuple>
+
 #include "decode_generated.cpp"
 
 namespace bnl {
