@@ -50,7 +50,6 @@ private:
 
   control_t control_;
   std::map<uint64_t, request_t> requests_;
-  uint64_t next_stream_id_ = 0;
 
   const log::api *logger_;
 };
