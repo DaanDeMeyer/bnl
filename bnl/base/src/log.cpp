@@ -29,23 +29,21 @@ api::operator()(const char *file,
                 int line,
                 std::error_code ec) const
 {
+  log::level level = log::level::error;
+
   if (ec.category() == base::error_category()) {
     switch (static_cast<base::error>(ec.value())) {
       case base::error::incomplete:
       case base::error::idle:
       case base::error::unknown:
-        return;
+        level = log::level::trace;
+        break;
       default:
         break;
     }
   }
 
-  log(log::level::error,
-      file,
-      function,
-      line,
-      "{}",
-      fmt::make_format_args(ec.message()));
+  log(level, file, function, line, "{}", fmt::make_format_args(ec.message()));
 }
 
 }
