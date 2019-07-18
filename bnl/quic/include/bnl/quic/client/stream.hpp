@@ -36,7 +36,6 @@ public:
 private:
   base::buffers buffers_;
   base::buffers keepalive_;
-  bool opened_ = false;
   bool fin_ = false;
 
   uint64_t id_;
