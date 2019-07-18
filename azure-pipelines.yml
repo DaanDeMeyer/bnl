@@ -2,7 +2,7 @@
 jobs:
 - template: ci/windows.yml
   parameters:
-    name: windows_vs2015_x86_clang
+    name: windows_vs2015_x86_clang_msvc
     image: vs2015-win2012r2
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
@@ -14,7 +14,7 @@ jobs:
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs2015_x64_clang
+    name: windows_vs2015_x64_clang_msvc
     image: vs2015-win2012r2
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
@@ -24,7 +24,7 @@ jobs:
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs2017_x86_clang
+    name: windows_vs2017_x86_clang_msvc
     image: vs2017-win2016
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
@@ -36,7 +36,7 @@ jobs:
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs2017_x64_clang
+    name: windows_vs2017_x64_clang_msvc
     image: vs2017-win2016
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
@@ -46,7 +46,7 @@ jobs:
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs_2019_x86_clang
+    name: windows_vs_2019_x86_clang_msvc
     image: windows-2019
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
@@ -58,13 +58,35 @@ jobs:
 
 - template: ci/windows.yml
   parameters:
-    name: windows_vs_2019_x64_clang
+    name: windows_vs_2019_x64_clang_msvc
     image: windows-2019
     variables:
       VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
       PLATFORM: x64
       CC: clang-cl.exe
       CXX: clang-cl.exe
+
+- template: ci/windows.yml
+  parameters:
+    name: windows_vs_2019_x86_clang_gnu
+    image: windows-2019
+    variables:
+      VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
+      PLATFORM: x86
+      CC: clang.exe
+      CXX: clang++.exe
+      CFLAGS: -m32
+      CXXFLAGS: -m32
+
+- template: ci/windows.yml
+  parameters:
+    name: windows_vs_2019_x64_clang_gnu
+    image: windows-2019
+    variables:
+      VCVARSALL: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
+      PLATFORM: x64
+      CC: clang.exe
+      CXX: clang++.exe
 
 - template: ci/macos.yml
   parameters:
