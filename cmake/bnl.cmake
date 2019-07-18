@@ -59,16 +59,6 @@ endif()
 ### Global Setup ###
 
 if(MSVC)
-  # CMake adds /W3 to CMAKE_C_FLAGS and CMAKE_CXX_FLAGS by default which
-  # results in cl.exe warnings if we add /W4 as well. To avoid these
-  # warnings we replace /W3 with /W4 instead.
-  string(REGEX REPLACE
-    "[-/]W[1-4]" ""
-    CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS}"
-  )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag(/permissive- BNL_HAVE_PERMISSIVE)
 endif()
@@ -114,6 +104,7 @@ function(bnl_add_common TARGET OUTPUT_DIRECTORY)
 
   if(MSVC)
     target_compile_options(${TARGET} PRIVATE
+      /W4
       /nologo # Silence MSVC compiler version output.
       /wd4068 # Allow unknown pragmas.
       # We assume the library is compiled with the same compiler and runtime

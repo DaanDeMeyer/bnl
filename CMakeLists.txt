@@ -1,5 +1,11 @@
-# 3.13 is required for `target_link_options`.
-cmake_minimum_required(VERSION 3.13...3.14)
+
+if(WIN32)
+  # 3.15 is required for clang with GNU command line and non-default /W3.
+  cmake_minimum_required(VERSION 3.15)
+else()
+  # 3.13 is required for `target_link_options`.
+  cmake_minimum_required(VERSION 3.13...3.15)
+endif()
 
 project(bnl
   VERSION 0.0.1
