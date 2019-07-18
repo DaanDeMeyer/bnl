@@ -21,7 +21,7 @@ FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   # https://github.com/fmtlib/fmt/pull/1134
-  GIT_TAG cadd92d69f92b668fe5c654f794994e912df8a69
+  GIT_TAG e9b9b0aefaf3dacf8554ba93bd404248574945ed
 )
 
 option(FMT_INSTALL "" ON)
