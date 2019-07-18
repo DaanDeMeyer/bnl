@@ -6,7 +6,7 @@
 
 bnl (Binary Networking Library) consists of a WIP HTTP/3 implementation and
 (soon) an easy to use wrapper around
-[ngtcp2](https://github.com/ngtcp2/ngtcp2)(a QUIC implementation).
+[ngtcp2](https://github.com/ngtcp2/ngtcp2) (a QUIC implementation).
 
 All protocols implemented under bnl work on buffers of binary data and as such,
 data can be transported between two endpoints in any way the user sees fit. One
