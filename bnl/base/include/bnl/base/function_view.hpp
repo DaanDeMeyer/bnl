@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 namespace bnl {
 namespace base {
@@ -12,39 +13,37 @@ template<typename Return, typename... Params>
 class function_view<Return(Params...)> {
 public:
   function_view() = default;
-
-  template<typename Callable>
-  function_view( // NOLINT
-    Callable &&callable,
-    typename std::enable_if<
-      !std::is_same<typename std::remove_reference<Callable>::type,
-                    function_view>::value>::type * = nullptr) // NOLINT
-    : callback_(callback_fn<typename std::remove_reference<Callable>::type>)
-    , callable_(reinterpret_cast<void *>(&callable))
+  function_view(std::nullptr_t)
   {}
 
-  function_view(const function_view &) = default;
-  function_view &operator=(const function_view &) = default;
+  template<typename Callable>
+  function_view(Callable &&callable,
+                typename std::enable_if<
+                  !std::is_same<typename std::remove_reference<Callable>::type,
+                                function_view>::value>::type * = nullptr)
+    : callback_(callback_fn<typename std::remove_reference<Callable>::type>)
+    , callable_(reinterpret_cast<intptr_t>(&callable))
+  {}
 
   Return operator()(Params... params) const
   {
-    return callback_(callable_, static_cast<Params &&>(params)...);
+    return callback_(callable_, std::forward<Params>(params)...);
   }
 
-  operator bool() const // NOLINT
+  operator bool() const
   {
     return callback_;
   }
 
 private:
-  Return (*callback_)(void *callable, Params... params) = nullptr;
-  void *callable_ = nullptr;
+  Return (*callback_)(intptr_t callable, Params... params) = nullptr;
+  intptr_t callable_;
 
   template<typename Callable>
-  static Return callback_fn(void *callable, Params... params)
+  static Return callback_fn(intptr_t callable, Params... params)
   {
     return (*reinterpret_cast<Callable *>(callable))(
-      static_cast<Params &&>(params)...);
+      std::forward<Params>(params)...);
   }
 };
 

@@ -74,7 +74,7 @@ receiver::recv(quic::data data, event::handler handler)
       return std::move(r).error();
     }
 
-    TRY(handler(std::move(r.value())));
+    TRY(handler(std::move(r).value()));
   }
 
   return success();

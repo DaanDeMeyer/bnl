@@ -73,7 +73,7 @@ connection::recv(quic::data data, event::handler handler)
   server::stream::control::receiver &control = control_.second;
 
   if (data.id == control.id()) {
-    auto control_handler = [this, &handler](http3::event event) {
+    auto control_handler = [this, handler](http3::event event) {
       switch (event) {
         case event::type::settings:
           settings_.peer = event.settings;

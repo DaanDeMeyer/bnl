@@ -27,12 +27,10 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-6.0
+            - ubuntu-toolchain-r-test
           packages:
-            - clang-6.0
-            - libc++-dev
-            - libc++abi-dev
-      env: CC=clang-6.0 CXX=clang++-6.0 CXXFLAGS=-stdlib=libc++
+            - g++-8
+      env: CC=gcc-8 CXX=g++-8
 
     - os: linux
       addons:
@@ -40,8 +38,20 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-8
-      env: CC=gcc-8 CXX=g++-8
+            - g++-9
+      env: CC=gcc-9 CXX=g++-9
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-7
+          packages:
+            - clang-7
+            - libc++-7-dev
+            - libc++abi-7-dev
+            - llvm-7
+      env: CC=clang-7 CXX=clang++-7 CXXFLAGS=-stdlib=libc++ UBSAN_SYMBOLIZER_PATH=/usr/lib/llvm-7/bin
 
     - os: linux
       addons:
@@ -53,7 +63,8 @@ matrix:
             - clang-8
             - libc++-8-dev
             - libc++abi-8-dev
-      env: CC=clang-8 CXX=clang++-8 CXXFLAGS=-stdlib=libc++
+            - llvm-8
+      env: CC=clang-8 CXX=clang++-8 CXXFLAGS=-stdlib=libc++ UBSAN_SYMBOLIZER_PATH=/usr/lib/llvm-8/bin
 
     - os: osx
       osx_image: xcode10
@@ -61,7 +72,8 @@ matrix:
 
 # Install newer CMake
 install:
-  # Download CMake manually on MacOS because brew is too slow.
+  # Download CMake manually because brew is too slow and Xenial's CMake is not
+  # up-to-date.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Linux-x86_64.tar.gz -o cmake.tar.gz;
       sudo tar xf cmake.tar.gz --strip 1 -C /usr/local;

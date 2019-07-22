@@ -91,7 +91,10 @@ transfer(Sender &sender, Receiver &receiver)
       return success();
     };
 
-    EXTRACT(receiver.recv(std::move(r.value()), handler));
+    {
+      bnl::result<void> x = receiver.recv(std::move(r).value(), handler);
+      REQUIRE(x);
+    }
   }
 
   return decoded;

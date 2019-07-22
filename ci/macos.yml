@@ -1,37 +1,37 @@
 parameters:
-  name: ''
-  image: ''
+  name: ""
+  image: ""
 
 jobs:
-- job: ${{ parameters.name }}
-  pool:
-    vmImage: ${{ parameters.image }}
-  steps:
-  # Download CMake manually because brew is too slow.
-  - script: |
-      brew uninstall cmake;
-      curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Darwin-x86_64.tar.gz -o cmake.tar.gz;
-      sudo tar xf cmake.tar.gz --strip 1 -C /Applications;
-      sudo /Applications/CMake.app/Contents/bin/cmake-gui --install;
-    displayName: Install
+  - job: ${{ parameters.name }}
+    pool:
+      vmImage: ${{ parameters.image }}
+    steps:
+      # Download CMake manually because brew is too slow.
+      - script: |
+          brew uninstall cmake;
+          curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Darwin-x86_64.tar.gz -o cmake.tar.gz;
+          sudo tar xf cmake.tar.gz --strip 1 -C /Applications;
+          sudo /Applications/CMake.app/Contents/bin/cmake-gui --install;
+        displayName: Install
 
-  - script: |
-      export PATH=/usr/local/bin:$PATH;
-      cmake \
-        -B $(Build.SourcesDirectory)/build \
-        -S $(Build.SourcesDirectory) \
-        -DCMAKE_BUILD_TYPE=Debug \
-        -DBUILD_SHARED_LIBS=ON \
-        -DBNL_TEST=ON \
-        -DBNL_WARNINGS_AS_ERRORS=ON \
-        -DBNL_SANITIZERS=ON \
-        -DBNL_INSTALL=OFF
-    displayName: Configure
+      - script: |
+          export PATH=/usr/local/bin:$PATH;
+          cmake \
+            -B $(Build.SourcesDirectory)/build \
+            -S $(Build.SourcesDirectory) \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBNL_TEST=ON \
+            -DBNL_WARNINGS_AS_ERRORS=ON \
+            -DBNL_SANITIZERS=ON \
+            -DBNL_INSTALL=OFF
+        displayName: Configure
 
-  - script: |
-      export PATH=/usr/local/bin:$PATH;
-      cmake --build $(Build.SourcesDirectory)/build --parallel 2
-    displayName: Build
+      - script: |
+          export PATH=/usr/local/bin:$PATH;
+          cmake --build $(Build.SourcesDirectory)/build --parallel 2
+        displayName: Build
 
-  - script: build/test
-    displayName: Test
+      - script: build/test
+        displayName: Test
