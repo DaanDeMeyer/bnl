@@ -20,9 +20,7 @@ namespace ngtcp2 {
 #define THROW_NGTCP2(function, rv)                                             \
   {                                                                            \
     code code_ = make_status_code(static_cast<error>(rv));                     \
-    fmt::string_view view = { code_.message().data(),                          \
-                              code_.message().size() };                        \
-    LOG_E("{}: {}", #function, view);                                          \
+    LOG_E("{}: {}", #function, code_.message());                               \
     return code_;                                                              \
   }                                                                            \
   (void) 0

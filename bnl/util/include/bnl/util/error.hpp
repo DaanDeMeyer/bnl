@@ -5,6 +5,25 @@
 
 #include <cstdlib>
 
+namespace fmt {
+template<>
+struct formatter<bnl::status_code_domain::string_ref> {
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const bnl::status_code_domain::string_ref &string,
+              FormatContext &ctx)
+  {
+    return format_to(
+      ctx.out(), "{}", fmt::string_view(string.data(), string.size()));
+  }
+};
+}
+
 #define NOTREACHED()                                                           \
   LOG_E("Assertion failed: NOTREACHED()");                                     \
   std::abort();                                                                \

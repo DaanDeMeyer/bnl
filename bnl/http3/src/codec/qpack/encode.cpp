@@ -30,8 +30,7 @@ result<size_t>
 encoder::encoded_size(header_view header) const noexcept
 {
   if (!util::is_lowercase(header.name())) {
-    fmt::string_view view(header.name().data(), header.name().size());
-    LOG_E("Header ({}) is not lowercase", view);
+    LOG_E("Header ({}) is not lowercase", header);
     THROW(error::malformed_header);
   }
 
