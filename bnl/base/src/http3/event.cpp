@@ -34,18 +34,27 @@ event::event(event &&other) noexcept // NOLINT
   }
 }
 
+// `header.~header();` doesn't work in clang
+// (https://bugs.llvm.org/show_bug.cgi?id=12350) so we use a template function
+// to circumvent it.
+template<class T>
+void
+destroy(T &t)
+{
+  t.~T();
+}
+
 event::~event() noexcept
 {
   switch (type_) {
     case event::type::settings:
-      settings.~settings();
+      destroy(settings);
       break;
     case event::type::header:
-      using header = payload::header;
-      this->header.~header();
+      destroy(header);
       break;
     case event::type::body:
-      body.~data();
+      destroy(body);
       break;
   }
 }
