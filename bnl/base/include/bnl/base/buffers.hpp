@@ -28,12 +28,10 @@ public:
   buffer slice(size_t size);
 
   void push(buffer buffer);
+  buffer pop();
 
   const buffer &front() const noexcept;
   const buffer &back() const noexcept;
-
-  buffer &front() noexcept;
-  buffer &back() noexcept;
 
   void consume(size_t size) noexcept;
 

@@ -90,6 +90,15 @@ buffers::push(buffer buffer)
   buffers_.emplace_back(std::move(buffer));
 }
 
+buffer
+buffers::pop()
+{
+  assert(size() > 0);
+  buffer result = std::move(buffers_.front());
+  buffers_.pop_front();
+  return result;
+}
+
 const buffer &
 buffers::front() const noexcept
 {
@@ -98,18 +107,6 @@ buffers::front() const noexcept
 
 const buffer &
 buffers::back() const noexcept
-{
-  return buffers_.back();
-}
-
-buffer &
-buffers::front() noexcept
-{
-  return buffers_.front();
-}
-
-buffer &
-buffers::back() noexcept
 {
   return buffers_.back();
 }

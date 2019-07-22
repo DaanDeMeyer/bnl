@@ -411,7 +411,7 @@ handshake::add_handshake_data(crypto::level level, base::buffer_view data)
   base::buffers &keepalive = keepalive_[util::to_underlying(level)];
 
   keepalive.push(base::buffer(data));
-  base::buffer &buffer = keepalive.back();
+  const base::buffer &buffer = keepalive.back();
 
   TRY(ngtcp2_->submit_crypto_data(level, buffer));
 

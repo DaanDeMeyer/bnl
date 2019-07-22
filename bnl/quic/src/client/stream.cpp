@@ -34,7 +34,7 @@ stream::send()
     opened_ = true;
   }
 
-  base::buffer &first = buffers_.front();
+  const base::buffer &first = buffers_.front();
   bool fin = fin_ && (first == buffers_.back());
 
   base::buffer packet;
