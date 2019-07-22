@@ -40,7 +40,7 @@ stream::send()
   base::buffer packet;
   size_t stream_bytes_written = 0;
 
-  result<std::pair<base::buffer, uint64_t>> r =
+  result<std::pair<base::buffer, size_t>> r =
     ngtcp2_->write_stream(id_, first, fin);
 
   if (!r) {
