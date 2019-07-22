@@ -2,10 +2,12 @@
 BasedOnStyle: Mozilla
 ---
 Language: Cpp
+AllowShortFunctionsOnASingleLine: false
 PointerAlignment: Right
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: true
   SplitEmptyFunction: false
   SplitEmptyRecord: false
+SpaceAfterCStyleCast: true
 ---
