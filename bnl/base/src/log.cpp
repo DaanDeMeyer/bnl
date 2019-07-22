@@ -2,6 +2,14 @@
 
 #include <bnl/base/error.hpp>
 
+#include <ostream>
+
+std::ostream &
+operator<<(std::ostream &os, const bnl::status_code_domain::string_ref &string)
+{
+  return os.write(string.data(), string.size());
+}
+
 namespace bnl {
 namespace log {
 
