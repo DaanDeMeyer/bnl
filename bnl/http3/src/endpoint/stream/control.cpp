@@ -89,10 +89,11 @@ receiver::process() noexcept
     // the control stream until we've decoded the type.
     case state::type: {
       uint64_t type = TRY(varint_.decode(buffers_));
+      (void) type; // Silence GCC 9 Wunused-variable warning
       assert(type == control::type);
       state_ = state::settings;
     }
-
+    /* FALLTHRU */
     case state::settings: {
       frame frame = TRY(frame_.decode(buffers_));
 

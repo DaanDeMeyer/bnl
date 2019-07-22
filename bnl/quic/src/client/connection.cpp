@@ -302,6 +302,8 @@ connection::add(event event)
     case event::type::error:
       THROW(error::not_implemented);
   }
+
+  NOTREACHED();
 }
 
 result<void>

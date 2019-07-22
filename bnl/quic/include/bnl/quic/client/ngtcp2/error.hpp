@@ -171,6 +171,8 @@ public:
       case error::callback_failure:
         return string_ref("callback failure");
     }
+
+    return string_ref("unknown");
   }
 
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS) || 0

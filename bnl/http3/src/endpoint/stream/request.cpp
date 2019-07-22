@@ -355,7 +355,7 @@ receiver::process() noexcept
     }
   }
 
-  return sc;
+  return failure(std::move(sc));
 }
 
 }

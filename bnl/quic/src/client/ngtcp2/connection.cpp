@@ -168,7 +168,7 @@ connection::in_encrypt(ngtcp2_conn *connection,
 
   // TODO: Fix after https://github.com/ngtcp2/ngtcp2/pull/128
   return r ? static_cast<ssize_t>(plaintext_size + crypto.aead_overhead())
-           : NGTCP2_ERR_CALLBACK_FAILURE;
+           : static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE);
 }
 
 ssize_t

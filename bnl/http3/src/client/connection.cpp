@@ -67,6 +67,8 @@ connection::recv(quic::event event, event::handler handler)
     case quic::event::type::error:
       THROW(error::not_implemented);
   }
+
+  NOTREACHED();
 }
 
 result<void>
