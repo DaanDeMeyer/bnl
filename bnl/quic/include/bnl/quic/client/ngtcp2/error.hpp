@@ -50,7 +50,7 @@ enum class error {
 class domain;
 using code = status_code<domain>;
 
-class domain : public outcome::status_code_domain {
+class domain : public status_code_domain {
 public:
   using value_type = error;
 
@@ -88,8 +88,7 @@ public:
     return false;
   }
 
-  outcome::generic_code _generic_code(const status_code<void> &sc) const
-    noexcept final
+  generic_code _generic_code(const status_code<void> &sc) const noexcept final
   {
     (void) sc;
     return errc::unknown;
@@ -178,7 +177,7 @@ public:
   void _do_throw_exception(const status_code<void> &sc) const final
   {
 
-    throw outcome::status_error<domain>(static_cast<const code &>(sc));
+    throw status_error<domain>(static_cast<const code &>(sc));
   }
 #endif
 };
@@ -194,7 +193,7 @@ domain::get()
 inline code
 make_status_code(error error)
 {
-  return code(outcome::in_place, error);
+  return code(in_place, error);
 }
 
 }
