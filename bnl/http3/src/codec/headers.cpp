@@ -24,7 +24,7 @@ encoder::add(header_view header)
   base::buffer encoded = TRY(qpack_.encode(header));
   buffers_.emplace(std::move(encoded));
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -36,7 +36,7 @@ encoder::fin() noexcept
 
   state_ = state::frame;
 
-  return bnl::success();
+  return success();
 }
 
 bool

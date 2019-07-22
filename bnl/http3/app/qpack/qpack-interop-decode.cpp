@@ -80,7 +80,7 @@ decode(base::buffer &encoded, std::ofstream &output)
 
   write(output, headers);
 
-  return bnl::success();
+  return success();
 }
 
 int

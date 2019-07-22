@@ -67,7 +67,7 @@ stream::add(base::buffer buffer)
 
   buffers_.push(std::move(buffer));
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -77,7 +77,7 @@ stream::fin()
 
   fin_ = true;
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -93,7 +93,7 @@ stream::ack(size_t size)
 
   keepalive_.consume(size);
 
-  return bnl::success();
+  return success();
 }
 
 bool

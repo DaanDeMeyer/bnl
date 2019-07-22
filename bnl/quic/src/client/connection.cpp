@@ -33,7 +33,7 @@ connection::recv_crypto_data(crypto::level level, base::buffer_view data)
   result<void> r = handshake_.recv(level, data);
 
   if (r || r.error() == base::error::incomplete) {
-    return bnl::success();
+    return success();
   }
 
   return std::move(r).error();
@@ -77,7 +77,7 @@ connection::acked_stream_data_offset(uint64_t id, size_t size)
     streams_.erase(id);
   }
 
-  return bnl::success();
+  return success();
 }
 
 void
@@ -203,7 +203,7 @@ connection::path_validation(base::buffer_view local,
     THROW(error::path_validation);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -231,7 +231,7 @@ connection::select_preferred_address(base::buffer_view_mut dest,
       assert(false);
   }
 
-  return bnl::success();
+  return success();
 }
 
 void
@@ -290,7 +290,7 @@ connection::recv(base::buffer_view data, event::handler handler)
     TRY(handler(std::move(event)));
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -321,7 +321,7 @@ connection::add(quic::data data) // NOLINT
     TRY(stream.fin());
   }
 
-  return bnl::success();
+  return success();
 }
 
 duration

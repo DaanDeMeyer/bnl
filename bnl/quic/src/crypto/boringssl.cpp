@@ -119,7 +119,7 @@ crypto::encrypt(base::buffer_view_mut dest,
 
   assert(out_size == max_size);
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -155,7 +155,7 @@ crypto::decrypt(base::buffer_view_mut dest,
     THROW(error::crypto);
   }
 
-  return bnl::success();
+  return success();
 }
 
 static uint32_t
@@ -210,7 +210,7 @@ crypto::hp_mask(base::buffer_view_mut dest,
     }
   }
 
-  return bnl::success();
+  return success();
 }
 }
 }

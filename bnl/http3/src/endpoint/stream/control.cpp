@@ -68,7 +68,7 @@ receiver::recv(quic::data data, event::handler handler)
     result<http3::event> r = process();
     if (!r) {
       if (r.error() == base::error::incomplete) {
-        return bnl::success();
+        return success();
       }
 
       return std::move(r).error();
@@ -77,7 +77,7 @@ receiver::recv(quic::data data, event::handler handler)
     TRY(handler(std::move(r.value())));
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<event>

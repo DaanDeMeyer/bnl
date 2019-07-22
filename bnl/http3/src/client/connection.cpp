@@ -93,7 +93,7 @@ connection::recv(quic::data data, event::handler handler)
 
   // TODO: Actually handle unidirectional streams.
   if ((data.id & 0x2U) != 0) {
-    return bnl::success();
+    return success();
   }
 
   auto match = requests_.find(id);
@@ -110,7 +110,7 @@ connection::recv(quic::data data, event::handler handler)
     requests_.erase(id);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<request::handle>

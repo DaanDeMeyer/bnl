@@ -234,7 +234,7 @@ receiver::start() noexcept
 
   state_ = state::headers;
 
-  return bnl::success();
+  return success();
 }
 
 const headers::decoder &
@@ -262,7 +262,7 @@ receiver::recv(quic::data data, event::handler handler)
       }
 
       if (r.error() == base::error::incomplete) {
-        return bnl::success();
+        return success();
       }
 
       return std::move(r).error();
@@ -271,7 +271,7 @@ receiver::recv(quic::data data, event::handler handler)
     TRY(handler(std::move(r.value())));
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<event>

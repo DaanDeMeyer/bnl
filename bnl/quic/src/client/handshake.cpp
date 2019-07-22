@@ -205,7 +205,7 @@ handshake::init(base::buffer_view dcid)
     THROW(quic::error::handshake);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -225,7 +225,7 @@ handshake::send()
     }
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -245,7 +245,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
       THROW(quic::error::handshake);
     }
 
-    return bnl::success();
+    return success();
   }
 
   rv = SSL_do_handshake(ssl_.get());
@@ -271,7 +271,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
   base::buffer_view view(peer_tp, peer_tp_len);
   TRY(ngtcp2_->set_remote_transport_parameters(view));
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -288,7 +288,7 @@ handshake::ack(crypto::level level, size_t size)
 
   keepalive.consume(size);
 
-  return bnl::success();
+  return success();
 }
 
 bool
@@ -357,7 +357,7 @@ handshake::update_keys()
   crypto::key read_key = TRY(crypto.packet_protection_key(rx_secret_));
   TRY(ngtcp2_->update_rx_keys(read_key));
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -402,7 +402,7 @@ handshake::set_encryption_secrets(crypto::level level,
       break;
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -415,7 +415,7 @@ handshake::add_handshake_data(crypto::level level, base::buffer_view data)
 
   TRY(ngtcp2_->submit_crypto_data(level, buffer));
 
-  return bnl::success();
+  return success();
 }
 
 void

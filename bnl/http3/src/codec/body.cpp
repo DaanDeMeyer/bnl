@@ -22,7 +22,7 @@ encoder::add(base::buffer body)
 
   buffers_.emplace(std::move(body));
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -38,7 +38,7 @@ encoder::fin() noexcept
     state_ = state::fin;
   }
 
-  return bnl::success();
+  return success();
 }
 
 bool

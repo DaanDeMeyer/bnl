@@ -821,7 +821,7 @@ connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
     THROW_NGTCP2(ngtcp2_set_remote_transport_params, static_cast<error>(rv));
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -838,7 +838,7 @@ connection::install_initial_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_initial_tx_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -855,7 +855,7 @@ connection::install_initial_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_initial_rx_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -872,7 +872,7 @@ connection::install_early_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_early_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -889,7 +889,7 @@ connection::install_handshake_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_handshake_tx_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -906,7 +906,7 @@ connection::install_handshake_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_handshake_rx_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -923,7 +923,7 @@ connection::install_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_tx_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -940,7 +940,7 @@ connection::install_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_rx_keys, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -955,7 +955,7 @@ connection::update_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_update_tx_key, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -970,7 +970,7 @@ connection::update_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_update_rx_key, rv);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -982,7 +982,7 @@ connection::submit_crypto_data(crypto::level level, base::buffer_view data)
     THROW_NGTCP2(ngtcp2_submit_crypto_data, static_cast<error>(rv));
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<base::buffer>
@@ -1059,7 +1059,7 @@ connection::read_pkt(base::buffer_view packet)
     THROW_NGTCP2(ngtcp2_conn_read_pkt, static_cast<error>(rv));
   }
 
-  return bnl::success();
+  return success();
 }
 
 base::buffer_view
@@ -1100,7 +1100,7 @@ connection::expire()
     ngtcp2_conn_cancel_expired_ack_delay_timer(connection_.get(), ts);
   }
 
-  return bnl::success();
+  return success();
 }
 
 result<void>
@@ -1122,7 +1122,7 @@ connection::open(uint64_t id)
   // Users are required to open streams in ascending order.
   assert(static_cast<uint64_t>(quic_id) == id);
 
-  return bnl::success();
+  return success();
 }
 
 }

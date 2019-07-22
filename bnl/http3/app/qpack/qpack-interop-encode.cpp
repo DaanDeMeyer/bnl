@@ -82,7 +82,7 @@ encode(uint64_t id,
     write(output, encoded);
   }
 
-  return bnl::success();
+  return success();
 }
 
 int
