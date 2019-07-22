@@ -5,6 +5,25 @@
 
 #include <fmt/core.h>
 
+namespace fmt {
+template<>
+struct formatter<bnl::status_code_domain::string_ref> {
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const bnl::status_code_domain::string_ref &string,
+              FormatContext &ctx)
+  {
+    return format_to(
+      ctx.out(), "{}", fmt::string_view(string.data(), string.size()));
+  }
+};
+}
+
 namespace bnl {
 namespace log {
 
@@ -32,11 +51,6 @@ public:
   {
     log(level, file, function, line, format, fmt::make_format_args(args...));
   }
-
-  void operator()(const char *file,
-                  const char *function,
-                  int line,
-                  const status_code<void> &sc) const;
 
 protected:
   virtual void log(log::level level,
