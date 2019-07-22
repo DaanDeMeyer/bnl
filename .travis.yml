@@ -20,8 +20,8 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-5
-      env: CC=gcc-5 CXX=g++-5
+            - g++-6
+      env: CC=gcc-6 CXX=g++-6
 
     - os: linux
       addons:
@@ -30,7 +30,9 @@ matrix:
             - llvm-toolchain-xenial-6.0
           packages:
             - clang-6.0
-      env: CC=clang-6.0 CXX=clang++-6.0
+            - libc++-dev
+            - libc++abi-dev
+      env: CC=clang-6.0 CXX=clang++-6.0 CXXFLAGS=-stdlib=libc++
 
     - os: linux
       addons:
@@ -49,7 +51,9 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - clang-8
-      env: CC=clang-8 CXX=clang++-8
+            - libc++-8-dev
+            - libc++abi-8-dev
+      env: CC=clang-8 CXX=clang++-8 CXXFLAGS=-stdlib=libc++
 
     - os: osx
       osx_image: xcode10
@@ -59,11 +63,11 @@ matrix:
 install:
   # Download CMake manually on MacOS because brew is too slow.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.4/cmake-3.13.4-Linux-x86_64.tar.gz -o cmake.tar.gz;
+      curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Linux-x86_64.tar.gz -o cmake.tar.gz;
       sudo tar xf cmake.tar.gz --strip 1 -C /usr/local;
     else
       brew uninstall cmake;
-      curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.4/cmake-3.13.4-Darwin-x86_64.tar.gz -o cmake.tar.gz;
+      curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Darwin-x86_64.tar.gz -o cmake.tar.gz;
       sudo tar xf cmake.tar.gz --strip 1 -C /Applications;
       sudo /Applications/CMake.app/Contents/bin/cmake-gui --install;
     fi;
