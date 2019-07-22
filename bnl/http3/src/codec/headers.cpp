@@ -14,25 +14,29 @@ encoder::encoder(const log::api *logger) noexcept
   , logger_(logger)
 {}
 
-std::error_code
+result<void>
 encoder::add(header_view header)
 {
-  CHECK(state_ == state::idle, error::internal_error);
+  if (state_ != state::idle) {
+    THROW(connection::error::internal);
+  }
 
   base::buffer encoded = TRY(qpack_.encode(header));
   buffers_.emplace(std::move(encoded));
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 encoder::fin() noexcept
 {
-  CHECK(state_ == state::idle, error::internal_error);
+  if (state_ != state::idle) {
+    THROW(connection::error::internal);
+  }
 
   state_ = state::frame;
 
-  return {};
+  return bnl::success();
 }
 
 bool
@@ -41,13 +45,13 @@ encoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-base::result<base::buffer>
+result<base::buffer>
 encoder::encode() noexcept
 {
   switch (state_) {
 
     case state::idle:
-      THROW(base::error::idle);
+      return base::error::idle;
 
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
@@ -69,7 +73,7 @@ encoder::encode() noexcept
     }
 
     case state::fin:
-      THROW(error::internal_error);
+      THROW(connection::error::internal);
   }
 
   NOTREACHED();
@@ -94,7 +98,7 @@ decoder::finished() const noexcept
 }
 
 template<typename Sequence>
-base::result<header>
+result<header>
 decoder::decode(Sequence &encoded)
 {
   switch (state_) {
@@ -102,20 +106,26 @@ decoder::decode(Sequence &encoded)
     case state::frame: {
       frame::type type = TRY(frame_.peek(encoded));
 
-      CHECK(type == frame::type::headers, base::error::unknown);
+      if (type != frame::type::headers) {
+        return base::error::delegate;
+      }
 
       frame frame = TRY(frame_.decode(encoded));
 
       state_ = state::qpack;
       headers_size_ = frame.headers.size;
 
-      CHECK(headers_size_ != 0, error::malformed_frame);
+      if (headers_size_ == 0) {
+        THROW(connection::error::malformed_frame);
+      }
     }
     /* FALLTHRU */
     case state::qpack: {
       header header = TRY(qpack_.decode(encoded));
 
-      CHECK(qpack_.count() <= headers_size_, error::malformed_frame);
+      if (qpack_.count() > headers_size_) {
+        THROW(connection::error::malformed_frame);
+      }
 
       bool fin = qpack_.count() == headers_size_;
       state_ = fin ? state::fin : state_;
@@ -124,7 +134,7 @@ decoder::decode(Sequence &encoded)
     }
 
     case state::fin:
-      THROW(error::internal_error);
+      THROW(connection::error::internal);
   }
 
   NOTREACHED();

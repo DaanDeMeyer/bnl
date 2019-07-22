@@ -33,7 +33,7 @@ ssl_new(handshake *handshake)
 
   int rv = SSL_set_ex_data(ssl, 0, handshake);
   // TODO: re-enable exceptions
-  (void)rv;
+  (void) rv;
   assert(rv == 1);
 
   return ssl;
@@ -84,12 +84,12 @@ set_encryption_secrets_cb(SSL *ssl,
 {
   auto handshake = static_cast<class handshake *>(SSL_get_app_data(ssl));
 
-  std::error_code ec =
+  result<void> r =
     handshake->set_encryption_secrets(make_crypto_level(level),
                                       base::buffer_view(read_secret, size),
                                       base::buffer_view(write_secret, size));
 
-  return ec ? 0 : 1;
+  return r ? 1 : 0;
 }
 
 static int
@@ -100,17 +100,17 @@ add_handshake_data_cb(SSL *ssl,
 {
   auto handshake = static_cast<class handshake *>(SSL_get_app_data(ssl));
 
-  std::error_code ec = handshake->add_handshake_data(
-    make_crypto_level(level), base::buffer_view(data, size));
+  result<void> r = handshake->add_handshake_data(make_crypto_level(level),
+                                                 base::buffer_view(data, size));
 
-  return ec ? 0 : 1;
+  return r ? 1 : 0;
 }
 
 static int
 flush_flight_cb(SSL *ssl)
 {
   // TODO: Implement
-  (void)ssl;
+  (void) ssl;
   return 1;
 }
 
@@ -118,9 +118,9 @@ static int
 send_alert_cb(SSL *ssl, ssl_encryption_level_t level, uint8_t alert)
 {
   // TODO: Implement
-  (void)ssl;
-  (void)level;
-  (void)alert;
+  (void) ssl;
+  (void) level;
+  (void) alert;
   return 1;
 }
 
@@ -135,7 +135,7 @@ handshake::handshake(base::buffer_view dcid,
   , ngtcp2_(ngtcp2)
   , logger_(logger)
 {
-  init(dcid);
+  init(dcid).assume_value();
   // TODO: re-enable exceptions
 }
 
@@ -147,7 +147,7 @@ handshake::operator=(handshake &&) = default; // NOLINT
 handshake::~handshake() noexcept = default;
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#initial-secrets
-std::error_code
+result<void>
 handshake::init(base::buffer_view dcid)
 {
   // Initial Keys
@@ -172,7 +172,9 @@ handshake::init(base::buffer_view dcid)
     static_cast<uint32_t>(ngtcp2::connection::ALPN_H3.size());
 
   int rv = SSL_set_alpn_protos(ssl_.get(), alpn, alpn_size);
-  CHECK(rv == 0, quic::error::handshake);
+  if (rv == 1) {
+    THROW(quic::error::handshake);
+  }
 
   // Client mode
 
@@ -192,17 +194,21 @@ handshake::init(base::buffer_view dcid)
 
   base::buffer tp = TRY(ngtcp2_->get_local_transport_parameters());
   rv = SSL_set_quic_transport_params(ssl_.get(), tp.data(), tp.size());
-  CHECK(rv == 1, quic::error::handshake);
+  if (rv == 0) {
+    THROW(quic::error::handshake);
+  }
 
   // QUIC
 
   rv = SSL_set_quic_method(ssl_.get(), ssl_quic_method_.get());
-  CHECK(rv == 1, quic::error::handshake);
+  if (rv == 0) {
+    THROW(quic::error::handshake);
+  }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 handshake::send()
 {
   int rv = SSL_do_handshake(ssl_.get());
@@ -219,10 +225,10 @@ handshake::send()
     }
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 handshake::recv(crypto::level level, base::buffer_view data)
 {
   int rv = SSL_provide_quic_data(
@@ -239,7 +245,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
       THROW(quic::error::handshake);
     }
 
-    return {};
+    return bnl::success();
   }
 
   rv = SSL_do_handshake(ssl_.get());
@@ -249,7 +255,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
     switch (error) {
       case SSL_ERROR_WANT_READ:
       case SSL_ERROR_WANT_WRITE:
-        THROW(base::error::incomplete);
+        return base::error::incomplete;
       default:
         log_errors();
         THROW(quic::error::handshake);
@@ -265,10 +271,10 @@ handshake::recv(crypto::level level, base::buffer_view data)
   base::buffer_view view(peer_tp, peer_tp_len);
   TRY(ngtcp2_->set_remote_transport_parameters(view));
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 handshake::ack(crypto::level level, size_t size)
 {
   base::buffers &keepalive = keepalive_[util::to_underlying(level)];
@@ -277,12 +283,12 @@ handshake::ack(crypto::level level, size_t size)
     LOG_E("ngtcp2's acked crypto data ({}) exceeds remaining data ({})",
           size,
           keepalive.size());
-    THROW(base::error::internal);
+    THROW(quic::connection::error::internal);
   }
 
   keepalive.consume(size);
 
-  return {};
+  return bnl::success();
 }
 
 bool
@@ -291,7 +297,7 @@ handshake::completed() const noexcept
   return ngtcp2_->get_handshake_completed();
 }
 
-base::result<crypto>
+result<crypto>
 handshake::negotiated_crypto() const noexcept
 {
   const SSL_CIPHER *cipher = SSL_get_current_cipher(ssl_.get());
@@ -307,7 +313,7 @@ handshake::negotiated_crypto() const noexcept
   return quic::crypto(aead, hash, logger_);
 }
 
-base::result<crypto::aead>
+result<crypto::aead>
 handshake::make_aead(const SSL_CIPHER *cipher) const noexcept
 {
   switch (SSL_CIPHER_get_id(cipher)) {
@@ -323,7 +329,7 @@ handshake::make_aead(const SSL_CIPHER *cipher) const noexcept
   THROW(quic::error::handshake);
 }
 
-base::result<crypto::hash>
+result<crypto::hash>
 handshake::make_hash(const SSL_CIPHER *cipher) const noexcept
 {
   switch (SSL_CIPHER_get_id(cipher)) {
@@ -338,23 +344,23 @@ handshake::make_hash(const SSL_CIPHER *cipher) const noexcept
   THROW(quic::error::handshake);
 }
 
-std::error_code
+result<void>
 handshake::update_keys()
 {
   quic::crypto crypto = TRY(this->negotiated_crypto());
 
   tx_secret_ = TRY(crypto.update_secret(tx_secret_));
   crypto::key write_key = TRY(crypto.packet_protection_key(tx_secret_));
-  ngtcp2_->update_tx_keys(write_key);
+  TRY(ngtcp2_->update_tx_keys(write_key));
 
   rx_secret_ = TRY(crypto.update_secret(rx_secret_));
   crypto::key read_key = TRY(crypto.packet_protection_key(rx_secret_));
-  ngtcp2_->update_rx_keys(read_key);
+  TRY(ngtcp2_->update_rx_keys(read_key));
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 handshake::set_encryption_secrets(crypto::level level,
                                   base::buffer_view read_secret,
                                   base::buffer_view write_secret)
@@ -396,10 +402,10 @@ handshake::set_encryption_secrets(crypto::level level,
       break;
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 handshake::add_handshake_data(crypto::level level, base::buffer_view data)
 {
   base::buffers &keepalive = keepalive_[util::to_underlying(level)];
@@ -409,7 +415,7 @@ handshake::add_handshake_data(crypto::level level, base::buffer_view data)
 
   TRY(ngtcp2_->submit_crypto_data(level, buffer));
 
-  return {};
+  return bnl::success();
 }
 
 void

@@ -15,7 +15,7 @@ frame::decoder::decoder(const log::api *logger) noexcept
 {}
 
 template<typename Sequence>
-base::result<frame::type>
+result<frame::type>
 frame::decoder::peek(const Sequence &encoded) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
@@ -43,7 +43,7 @@ frame::decoder::peek(const Sequence &encoded) const noexcept
 }
 
 template<typename Sequence>
-base::result<frame>
+result<frame>
 frame::decoder::decode(Sequence &encoded) const noexcept
 {
   // frame has no copy constructor so we check the while condition inside the
@@ -51,28 +51,28 @@ frame::decoder::decode(Sequence &encoded) const noexcept
   while (true) {
     typename Sequence::lookahead_type lookahead(encoded);
 
-    base::result<frame> result = decode_single(lookahead);
-    if (!result && result.error() != base::error::unknown) {
-      return result.error();
+    result<frame> r = decode_single(lookahead);
+    if (!r && r.error() != base::error::delegate) {
+      return std::move(r).error();
     }
 
     encoded.consume(lookahead.consumed());
 
-    if (result) {
-      return result;
+    if (r) {
+      return r;
     }
   }
 }
 
 template<typename Lookahead>
-base::result<frame>
+result<frame>
 frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 {
   uint64_t type = TRY(varint_.decode(lookahead));
   uint64_t payload_encoded_size = TRY(varint_.decode(lookahead));
 
   // Use lambda to get around lack of copy assignment operator on `frame`.
-  auto payload_decode = [&]() -> base::result<frame> {
+  auto payload_decode = [&]() -> result<frame> {
     switch (static_cast<frame::type>(type)) {
       case frame::type::data: {
         frame::payload::data data{};
@@ -80,7 +80,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
         data.size = payload_encoded_size;
         payload_encoded_size = 0;
 
-        return frame(data);
+        return data;
       }
 
       case frame::type::headers: {
@@ -89,7 +89,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
         headers.size = payload_encoded_size;
         payload_encoded_size = 0;
 
-        return frame(headers);
+        return headers;
       }
 
       case frame::type::priority: {
@@ -107,7 +107,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         priority.weight = TRY(uint8_decode(lookahead));
 
-        return frame(priority);
+        return priority;
       }
 
       case frame::type::cancel_push: {
@@ -115,7 +115,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         cancel_push.push_id = TRY(varint_.decode(lookahead));
 
-        return frame(cancel_push);
+        return cancel_push;
       }
 
       case frame::type::settings: {
@@ -149,7 +149,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
           }
         }
 
-        return frame(settings);
+        return settings;
       }
 
       case frame::type::push_promise: {
@@ -171,7 +171,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
           payload_encoded_size = varint_encoded_size;
         }
 
-        return frame(push_promise);
+        return push_promise;
       }
 
       case frame::type::goaway: {
@@ -179,7 +179,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         goaway.stream_id = TRY(varint_.decode(lookahead));
 
-        return frame(goaway);
+        return goaway;
       }
 
       case frame::type::max_push_id: {
@@ -187,7 +187,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         max_push_id.push_id = TRY(varint_.decode(lookahead));
 
-        return frame(max_push_id);
+        return max_push_id;
       }
 
       case frame::type::duplicate_push: {
@@ -195,7 +195,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         duplicate_push.push_id = TRY(varint_.decode(lookahead));
 
-        return frame(duplicate_push);
+        return duplicate_push;
       }
 
       default:
@@ -204,7 +204,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         // TODO: Error on unreasonable unknown frame payload size.
         lookahead.consume(static_cast<size_t>(payload_encoded_size));
-        THROW(base::error::unknown);
+        return base::error::delegate;
     }
   };
 
@@ -215,17 +215,19 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
   if (actual_encoded_size != payload_encoded_size) {
     LOG_E("Frame payload's actual length does not match its advertised length");
-    THROW(error::malformed_frame);
+    THROW(connection::error::malformed_frame);
   }
 
   return frame;
 }
 
 template<typename Lookahead>
-base::result<uint8_t>
+result<uint8_t>
 frame::decoder::uint8_decode(Lookahead &lookahead) const noexcept
 {
-  CHECK(!lookahead.empty(), base::error::incomplete);
+  if (lookahead.empty()) {
+    return base::error::incomplete;
+  }
 
   uint8_t result = *lookahead;
 

@@ -14,8 +14,8 @@ public:
   address(ipv6::address address) noexcept; // NOLINT
   address(base::buffer_view bytes) noexcept; // NOLINT
 
-  address(const address &other) = default;
-  address &operator=(const address &other) = default;
+  address(const address &) = default;
+  address &operator=(const address &) = default;
 
   enum class type { ipv4, ipv6 };
 

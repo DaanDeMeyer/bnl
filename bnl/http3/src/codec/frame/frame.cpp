@@ -1,5 +1,9 @@
 #include <bnl/http3/codec/frame.hpp>
 
+#include <bnl/util/enum.hpp>
+
+#include <fmt/ostream.h>
+
 namespace bnl {
 namespace http3 {
 
@@ -109,6 +113,46 @@ bool
 operator!=(const frame &lhs, const frame &rhs)
 {
   return !(lhs == rhs);
+}
+
+std::ostream &
+operator<<(std::ostream &os, const frame &frame)
+{
+  uint64_t type = util::to_underlying(static_cast<frame::type>(frame));
+
+  constexpr const char *format = "{} ({:#04x})";
+
+  switch (frame) {
+    case frame::type::data:
+      fmt::print(os, format, "DATA", type);
+      break;
+    case frame::type::headers:
+      fmt::print(os, format, "HEADERS", type);
+      break;
+    case frame::type::priority:
+      fmt::print(os, format, "PRIORITY", type);
+      break;
+    case frame::type::settings:
+      fmt::print(os, format, "SETTINGS", type);
+      break;
+    case frame::type::cancel_push:
+      fmt::print(os, format, "CANCEL_PUSH", type);
+      break;
+    case frame::type::push_promise:
+      fmt::print(os, format, "PUSH_PROMISE", type);
+      break;
+    case frame::type::goaway:
+      fmt::print(os, format, "GOAWAY", type);
+      break;
+    case frame::type::max_push_id:
+      fmt::print(os, format, "MAX_PUSH_ID", type);
+      break;
+    case frame::type::duplicate_push:
+      fmt::print(os, format, "DUPLICATE_PUSH", type);
+      break;
+  }
+
+  return os;
 }
 
 }

@@ -35,7 +35,6 @@ target_sources(bnl-http3 PRIVATE
   src/server/connection.cpp
   src/server/stream/control.cpp
   src/server/stream/request.cpp
-  src/error.cpp
 )
 
 if(BNL_TEST)

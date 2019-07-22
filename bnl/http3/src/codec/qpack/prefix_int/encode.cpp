@@ -7,10 +7,6 @@ namespace http3 {
 namespace qpack {
 namespace prefix_int {
 
-encoder::encoder(const log::api *logger) noexcept
-  : logger_(logger)
-{}
-
 size_t
 encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
 {
@@ -67,7 +63,7 @@ encoder::encode(uint64_t value, uint8_t prefix) const
   size_t encoded_size = this->encoded_size(value, prefix);
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == encode(encoded.data(), value, prefix));
+  encode(encoded.data(), value, prefix);
 
   return encoded;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility>
+#include <type_traits>
 
 namespace bnl {
 namespace base {
@@ -23,12 +23,12 @@ public:
     , callable_(reinterpret_cast<void *>(&callable))
   {}
 
-  function_view(const function_view &other) = default;
-  function_view &operator=(const function_view &other) = default;
+  function_view(const function_view &) = default;
+  function_view &operator=(const function_view &) = default;
 
   Return operator()(Params... params) const
   {
-    return callback_(callable_, std::forward<Params>(params)...);
+    return callback_(callable_, static_cast<Params &&>(params)...);
   }
 
   operator bool() const // NOLINT
@@ -44,7 +44,7 @@ private:
   static Return callback_fn(void *callable, Params... params)
   {
     return (*reinterpret_cast<Callable *>(callable))(
-      std::forward<Params>(params)...);
+      static_cast<Params &&>(params)...);
   }
 };
 

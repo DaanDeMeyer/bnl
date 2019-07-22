@@ -38,53 +38,53 @@ public:
              std::mt19937 &prng,
              const log::api *logger);
 
-  connection(connection &&other) = default;
-  connection &operator=(connection &&other) = default;
+  connection(connection &&) = default;
+  connection &operator=(connection &&) = default;
 
   static const base::buffer_view INITIAL_SALT;
   static const base::buffer_view ALPN_H3;
 
   void set_aead_overhead(size_t overhead);
 
-  std::error_code install_initial_tx_keys(crypto::key_view key);
-  std::error_code install_initial_rx_keys(crypto::key_view key);
+  result<void> install_initial_tx_keys(crypto::key_view key);
+  result<void> install_initial_rx_keys(crypto::key_view key);
 
-  std::error_code install_early_keys(crypto::key_view key);
+  result<void> install_early_keys(crypto::key_view key);
 
-  std::error_code install_handshake_tx_keys(crypto::key_view key);
-  std::error_code install_handshake_rx_keys(crypto::key_view key);
+  result<void> install_handshake_tx_keys(crypto::key_view key);
+  result<void> install_handshake_rx_keys(crypto::key_view key);
 
-  std::error_code install_tx_keys(crypto::key_view key);
-  std::error_code install_rx_keys(crypto::key_view key);
+  result<void> install_tx_keys(crypto::key_view key);
+  result<void> install_rx_keys(crypto::key_view key);
 
-  std::error_code update_tx_keys(crypto::key_view key);
-  std::error_code update_rx_keys(crypto::key_view key);
+  result<void> update_tx_keys(crypto::key_view key);
+  result<void> update_rx_keys(crypto::key_view key);
 
   bool get_handshake_completed() const noexcept;
   void handshake_completed() noexcept;
 
-  base::result<base::buffer> get_local_transport_parameters() noexcept;
-  std::error_code set_remote_transport_parameters(
+  result<base::buffer> get_local_transport_parameters() noexcept;
+  result<void> set_remote_transport_parameters(
     base::buffer_view encoded) noexcept;
 
-  std::error_code submit_crypto_data(crypto::level level,
-                                     base::buffer_view data);
+  result<void> submit_crypto_data(crypto::level level, base::buffer_view data);
 
-  base::result<base::buffer> write_pkt();
+  result<base::buffer> write_pkt();
 
-  base::result<std::pair<base::buffer, size_t>>
-  write_stream(uint64_t id, base::buffer_view data, bool fin);
+  result<std::pair<base::buffer, size_t>> write_stream(uint64_t id,
+                                                       base::buffer_view data,
+                                                       bool fin);
 
-  std::error_code read_pkt(base::buffer_view packet);
+  result<void> read_pkt(base::buffer_view packet);
 
   base::buffer_view dcid() const noexcept;
 
   duration timeout() const noexcept;
   duration expiry() const noexcept;
 
-  std::error_code expire();
+  result<void> expire();
 
-  base::result<uint64_t> open_bidi_stream();
+  result<void> open(uint64_t id);
 
 private:
   static int client_initial(ngtcp2_conn *connection, void *context);

@@ -24,7 +24,7 @@ public:
   receiver(uint64_t id, const log::api *logger) noexcept;
 
 private:
-  base::result<event> process(frame frame) noexcept final;
+  result<event> process(frame frame) noexcept final;
 
 private:
   const log::api *logger_;

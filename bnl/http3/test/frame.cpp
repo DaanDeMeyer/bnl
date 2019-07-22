@@ -82,7 +82,10 @@ TEST_CASE("frame")
   SUBCASE("settings")
   {
     http3::frame frame = http3::frame::payload::settings();
-    http3::frame decoded = encode_and_decode<17>(frame, encoder, decoder);
+
+    // Size 15 because default num placeholders is not encoded.
+    http3::frame decoded = encode_and_decode<15>(frame, encoder, decoder);
+
     REQUIRE(decoded.settings.max_header_list_size ==
             frame.settings.max_header_list_size);
     REQUIRE(decoded.settings.num_placeholders ==
@@ -125,8 +128,8 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::data{ 4611686018427387904 };
 
-    base::result<base::buffer> result = encoder.encode(frame);
-    REQUIRE(result == http3::error::varint_overflow);
+    result<base::buffer> r = encoder.encode(frame);
+    REQUIRE(r.error() == http3::error::varint_overflow);
   }
 
   SUBCASE("decode: incomplete")
@@ -136,9 +139,9 @@ TEST_CASE("frame")
     base::buffer encoded = EXTRACT(encoder.encode(frame));
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    base::result<http3::frame> result = decoder.decode(incomplete);
+    result<http3::frame> r = decoder.decode(incomplete);
 
-    REQUIRE(result == base::error::incomplete);
+    REQUIRE(r.error() == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
     http3::frame decoded = EXTRACT(decoder.decode(encoded));
@@ -157,9 +160,9 @@ TEST_CASE("frame")
     // Mangle the frame length.
     const_cast<uint8_t *>(encoded.data())[1] = 16; // NOLINT
 
-    base::result<http3::frame> result = decoder.decode(encoded);
+    result<http3::frame> r = decoder.decode(encoded);
 
-    REQUIRE(result == http3::error::malformed_frame);
+    REQUIRE(r.error() == http3::connection::error::malformed_frame);
     REQUIRE(encoded.size() == 6);
   }
 }

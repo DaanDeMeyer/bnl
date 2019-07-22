@@ -17,21 +17,24 @@ namespace endpoint {
 namespace stream {
 namespace control {
 
+static constexpr uint64_t type = 0x0;
+
 class BNL_HTTP3_EXPORT sender {
 public:
   sender(uint64_t id, const log::api *logger) noexcept;
 
-  sender(sender &&other) = default;
-  sender &operator=(sender &&other) = default;
+  sender(sender &&) = default;
+  sender &operator=(sender &&) = default;
 
-  base::result<quic::event> send() noexcept;
+  result<quic::event> send() noexcept;
 
 private:
-  enum class state : uint8_t { settings, idle };
+  enum class state : uint8_t { type, settings, idle };
 
-  state state_ = state::settings;
+  state state_ = state::type;
   settings settings_;
 
+  varint::encoder varint_;
   frame::encoder frame_;
 
   uint64_t id_;
@@ -42,27 +45,28 @@ class BNL_HTTP3_EXPORT receiver {
 public:
   receiver(uint64_t id, const log::api *logger) noexcept;
 
-  receiver(receiver &&other) = default;
-  receiver &operator=(receiver &&other) = default;
+  receiver(receiver &&) = default;
+  receiver &operator=(receiver &&) = default;
 
   virtual ~receiver() noexcept;
 
   uint64_t id() const noexcept;
 
-  std::error_code recv(quic::event event, event::handler handler);
+  result<void> recv(quic::data data, event::handler handler);
 
 protected:
-  virtual base::result<event> process(frame frame) noexcept = 0;
+  virtual result<event> process(frame frame) noexcept = 0;
 
 private:
-  base::result<event> process() noexcept;
+  result<event> process() noexcept;
 
 private:
-  enum class state : uint8_t { settings, active };
+  enum class state : uint8_t { type, settings, active };
 
-  state state_ = state::settings;
+  state state_ = state::type;
   base::buffers buffers_;
 
+  varint::decoder varint_;
   frame::decoder frame_;
 
   uint64_t id_;

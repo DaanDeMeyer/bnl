@@ -95,10 +95,10 @@ public:
   lookahead(const buffer &buffer) noexcept; // NOLINT
 
   lookahead(const lookahead &other) noexcept;
-  const lookahead &operator=(const lookahead &other) = delete;
+  const lookahead &operator=(const lookahead &) = delete;
 
-  lookahead(lookahead &&other) = delete;
-  lookahead &operator=(lookahead &&other) = delete;
+  lookahead(lookahead &&) = delete;
+  lookahead &operator=(lookahead &&) = delete;
 
   ~lookahead() = default;
 

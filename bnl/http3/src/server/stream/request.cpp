@@ -15,20 +15,22 @@ receiver::receiver(uint64_t id, const log::api *logger) noexcept
   , logger_(logger)
 {}
 
-base::result<event>
+result<event>
 receiver::process(frame frame) noexcept
 {
   switch (frame) {
     case frame::type::priority:
-      CHECK(!headers().started(), error::unexpected_frame);
+      if (headers().started()) {
+        THROW(http3::connection::error::unexpected_frame);
+      }
       // TODO: Implement PRIORITY
-      THROW(base::error::not_implemented);
+      THROW(error::not_implemented);
     case frame::type::headers:
     case frame::type::push_promise:
     case frame::type::duplicate_push:
-      THROW(error::unexpected_frame);
+      THROW(http3::connection::error::unexpected_frame);
     default:
-      THROW(error::internal_error);
+      THROW(http3::connection::error::internal);
   }
 }
 

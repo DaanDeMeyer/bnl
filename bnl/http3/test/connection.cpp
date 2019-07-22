@@ -44,20 +44,19 @@ template<typename Handle>
 static void
 start(Handle &handle, const message &message)
 {
-  std::error_code ec;
   for (const http3::header &header : message.headers) {
-    ec = handle.header(header);
-    REQUIRE(!ec);
+    result<void> r = handle.header(header);
+    REQUIRE(r);
   }
 
-  ec = handle.start();
-  REQUIRE(!ec);
+  result<void> r = handle.start();
+  REQUIRE(r);
 
-  ec = handle.body(message.body);
-  REQUIRE(!ec);
+  r = handle.body(message.body);
+  REQUIRE(r);
 
-  ec = handle.fin();
-  REQUIRE(!ec);
+  r = handle.fin();
+  REQUIRE(r);
 }
 
 template<typename Sender, typename Receiver>
@@ -67,36 +66,32 @@ transfer(Sender &sender, Receiver &receiver)
   message decoded;
 
   while (true) {
-    base::result<quic::event> event = sender.send();
-    if (event == base::error::idle) {
+    result<quic::event> r = sender.send();
+    if (!r) {
       break;
     }
 
-    REQUIRE(event);
-    REQUIRE(event.value() == quic::event::type::data);
+    REQUIRE(r);
+    REQUIRE(r.value() == quic::event::type::data);
 
-    auto handler = [&decoded](http3::event event) -> std::error_code {
+    auto handler = [&decoded](http3::event event) -> result<void> {
       switch (event) {
         case http3::event::type::settings:
           break;
 
         case http3::event::type::header:
-          decoded.headers.emplace_back(std::move(event.header));
+          decoded.headers.emplace_back(std::move(event.header.header));
           break;
 
         case http3::event::type::body:
-          decoded.body = base::buffer::concat(decoded.body, event.body);
+          decoded.body = base::buffer::concat(decoded.body, event.body.buffer);
           break;
-
-        case http3::event::type::error:
-          REQUIRE(false);
       }
 
-      return {};
+      return success();
     };
 
-    std::error_code ec = receiver.recv(std::move(event.value()), handler);
-    REQUIRE(!ec);
+    EXTRACT(receiver.recv(std::move(r.value()), handler));
   }
 
   return decoded;
@@ -115,7 +110,7 @@ TEST_CASE("endpoint")
                     { ":path", "index.html" } },
                   { "abcde" } };
 
-  http3::request::handle request = EXTRACT(client.request(0));
+  http3::request::handle request = EXTRACT(client.request());
   start(request, msg);
 
   message decoded = transfer(client, server);

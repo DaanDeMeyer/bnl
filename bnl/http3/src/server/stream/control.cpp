@@ -22,7 +22,7 @@ receiver::receiver(const log::api *logger) noexcept
   , logger_(logger)
 {}
 
-base::result<event>
+result<event>
 receiver::process(frame frame) noexcept
 {
   switch (frame) {
@@ -32,11 +32,11 @@ receiver::process(frame frame) noexcept
       // TODO: Implement CANCEL_PUSH
       // TODO: Implement MAX_PUSH_ID
       // TODO: Implement PRIORITY
-      THROW(base::error::not_implemented);
+      THROW(error::not_implemented);
     case frame::type::goaway:
-      THROW(error::unexpected_frame);
+      THROW(http3::connection::error::unexpected_frame);
     default:
-      THROW(error::internal_error);
+      THROW(http3::connection::error::internal);
   }
 }
 

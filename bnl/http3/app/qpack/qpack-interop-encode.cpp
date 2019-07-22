@@ -55,7 +55,7 @@ write(std::ostream &dest, const base::buffer &encoded)
              static_cast<int32_t>(encoded.size()));
 }
 
-static std::error_code
+static result<void>
 encode(uint64_t id,
        const std::vector<http3::header> &headers,
        std::ofstream &output)
@@ -65,29 +65,24 @@ encode(uint64_t id,
   std::queue<base::buffer> buffers;
 
   for (const http3::header &header : headers) {
-    base::result<base::buffer> result = TRY(qpack.encode(header));
-    buffers.emplace(std::move(result.value()));
+    result<base::buffer> r = TRY(qpack.encode(header));
+    buffers.emplace(std::move(r).value());
   }
 
   if (qpack.count() > UINT32_MAX) {
     LOG_E("Headers encoded size does not fit in an unsigned 32-bit integer");
   }
 
-  try {
-    write(output, id_encode(id));
-    write(output, size_encode(static_cast<uint32_t>(qpack.count())));
+  write(output, id_encode(id));
+  write(output, size_encode(static_cast<uint32_t>(qpack.count())));
 
-    while (!buffers.empty()) {
-      base::buffer encoded = std::move(buffers.front());
-      buffers.pop();
-      write(output, encoded);
-    }
-  } catch (const std::ios_base::failure &e) {
-    LOG_E("Error writing to output file: {}", e.what());
-    return e.code();
+  while (!buffers.empty()) {
+    base::buffer encoded = std::move(buffers.front());
+    buffers.pop();
+    write(output, encoded);
   }
 
-  return {};
+  return bnl::success();
 }
 
 int
@@ -130,16 +125,14 @@ main(int argc, char *argv[])
   uint64_t id = 1;
   std::vector<http3::header> headers;
 
-  std::error_code ec;
-
   while (std::getline(input, line)) {
     if (line.empty()) {
       if (headers.empty()) {
         continue;
       }
 
-      std::error_code ec = encode(id, headers, output);
-      if (ec) {
+      result<void> r = encode(id, headers, output);
+      if (!r) {
         LOG_E("Error encoding headers");
         return 1;
       }

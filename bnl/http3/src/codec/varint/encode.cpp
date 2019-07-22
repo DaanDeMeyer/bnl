@@ -12,7 +12,7 @@ encoder::encoder(const log::api *logger) noexcept
   : logger_(logger)
 {}
 
-base::result<size_t>
+result<size_t>
 encoder::encoded_size(uint64_t varint) const noexcept
 {
   if (varint < 0x40U) {
@@ -85,10 +85,10 @@ uint64_encode(uint8_t *dest, uint64_t number)
   dest[0] |= UINT64_HEADER;
 }
 
-base::result<size_t>
+result<size_t>
 encoder::encode(uint8_t *dest, uint64_t varint) const noexcept
 {
-  CHECK(dest != nullptr, base::error::invalid_argument);
+  assert(dest != nullptr);
 
   size_t varint_size = TRY(this->encoded_size(varint));
 
@@ -112,14 +112,13 @@ encoder::encode(uint8_t *dest, uint64_t varint) const noexcept
   return varint_size;
 }
 
-base::result<base::buffer>
+result<base::buffer>
 encoder::encode(uint64_t varint) const
 {
   size_t encoded_size = TRY(this->encoded_size(varint));
   base::buffer encoded(encoded_size);
 
-  size_t actual_encoded_size = TRY(encode(encoded.data(), varint));
-  ASSERT(encoded_size == actual_encoded_size);
+  TRY(encode(encoded.data(), varint));
 
   return encoded;
 }

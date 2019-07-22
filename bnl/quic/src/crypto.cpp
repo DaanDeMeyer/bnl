@@ -72,31 +72,31 @@ crypto::crypto(aead aead, hash hash, const log::api *logger)
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.2
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::initial_secret(base::buffer_view dcid, base::buffer_view salt)
 {
   return hkdf_extract(dcid, salt);
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::update_secret(base::buffer_view secret)
 {
   return hkdf_expand_label(secret, "traffic upd", secret.size());
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::client_initial_secret(base::buffer_view secret)
 {
   return hkdf_expand_label(secret, "client in", hash_size(hash_));
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::server_initial_secret(base::buffer_view secret)
 {
   return hkdf_expand_label(secret, "server in", hash_size(hash_));
 }
 
-base::result<crypto::key>
+result<crypto::key>
 crypto::packet_protection_key(base::buffer_view secret)
 {
   return crypto::key{ TRY(crypto::packet_protection_data(secret)),
@@ -122,13 +122,13 @@ crypto::aead_overhead() const noexcept
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.1
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::packet_protection_data(base::buffer_view secret)
 {
   return hkdf_expand_label(secret, "quic key", aead_key_size(aead_));
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::packet_protection_iv(base::buffer_view secret)
 {
   // https://tools.ietf.org/html/rfc8446#section-5.3
@@ -137,7 +137,7 @@ crypto::packet_protection_iv(base::buffer_view secret)
   return hkdf_expand_label(secret, "quic iv", iv_size);
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::packet_protection_hp(base::buffer_view secret)
 {
   return hkdf_expand_label(secret, "quic hp", aead_key_size(aead_));
@@ -145,7 +145,7 @@ crypto::packet_protection_hp(base::buffer_view secret)
 
 // See https://tools.ietf.org/html/rfc8446#section-7.1 for definition of
 // hkfd_expand_label.
-base::result<base::buffer>
+result<base::buffer>
 crypto::hkdf_expand_label(base::buffer_view secret,
                           base::buffer_view label,
                           size_t size)

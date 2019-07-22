@@ -2,6 +2,7 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/quic/client/ngtcp2/connection.hpp>
+#include <bnl/quic/client/ngtcp2/error.hpp>
 #include <bnl/util/enum.hpp>
 #include <bnl/util/error.hpp>
 
@@ -9,19 +10,28 @@ namespace bnl {
 namespace quic {
 namespace client {
 
-stream::stream(uint64_t id,
-               ngtcp2::connection *connection,
-               const log::api *logger)
+stream::stream(uint64_t id, ngtcp2::connection *ngtcp2, const log::api *logger)
   : id_(id)
-  , connection_(connection)
+  , ngtcp2_(ngtcp2)
   , logger_(logger)
 {}
 
-base::result<base::buffer>
+result<base::buffer>
 stream::send()
 {
   if (buffers_.empty()) {
-    THROW(base::error::idle);
+    return base::error::idle;
+  }
+
+  if (!opened()) {
+    result<void> r = ngtcp2_->open(id_);
+    if (!r) {
+      return r.error() == ngtcp2::error::stream_id_blocked
+               ? base::error::idle
+               : std::move(r).error();
+    }
+
+    opened_ = true;
   }
 
   base::buffer &first = buffers_.front();
@@ -30,8 +40,19 @@ stream::send()
   base::buffer packet;
   size_t stream_bytes_written = 0;
 
-  std::tie(packet, stream_bytes_written) =
-    TRY(connection_->write_stream(id_, first, fin));
+  result<std::pair<base::buffer, uint64_t>> r =
+    ngtcp2_->write_stream(id_, first, fin);
+
+  if (!r) {
+    if (r.error() == ngtcp2::error::stream_id_blocked ||
+        r.error() == ngtcp2::error::stream_data_blocked) {
+      return base::error::idle;
+    }
+
+    return std::move(r).error();
+  }
+
+  std::tie(packet, stream_bytes_written) = std::move(r).value();
 
   base::buffer sent = buffers_.slice(stream_bytes_written);
   keepalive_.push(std::move(sent));
@@ -39,46 +60,52 @@ stream::send()
   return packet;
 }
 
-std::error_code
+result<void>
 stream::add(base::buffer buffer)
 {
-  CHECK(!fin_, base::error::internal);
+  assert(!fin_);
 
   buffers_.push(std::move(buffer));
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 stream::fin()
 {
-  CHECK(!fin_, base::error::internal);
+  assert(!fin_);
 
   fin_ = true;
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 stream::ack(size_t size)
 {
-  if (size > buffers_.size()) {
+  if (size > keepalive_.size()) {
     LOG_E("ngtcp2's acked stream ({}) data ({}) exceeds remaining data ({})",
           id_,
           size,
-          buffers_.size());
-    THROW(base::error::internal);
+          keepalive_.size());
+    THROW(quic::connection::error::internal);
   }
 
-  buffers_.consume(size);
+  keepalive_.consume(size);
 
-  return {};
+  return bnl::success();
 }
 
 bool
 stream::finished() const noexcept
 {
   return fin_ && buffers_.empty() && keepalive_.empty();
+}
+
+bool
+stream::opened() const noexcept
+{
+  return opened_;
 }
 
 }

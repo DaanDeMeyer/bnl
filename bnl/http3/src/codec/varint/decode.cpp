@@ -73,12 +73,14 @@ uint64_decode(Lookahead &lookahead)
 }
 
 template<typename Sequence>
-base::result<uint64_t>
+result<uint64_t>
 decoder::decode(Sequence &encoded) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
-  CHECK(!lookahead.empty(), base::error::incomplete);
+  if (lookahead.empty()) {
+    return base::error::incomplete;
+  }
 
   size_t varint_size = 1;
   uint8_t header = static_cast<uint8_t>(*lookahead >> 6U);
@@ -86,7 +88,9 @@ decoder::decode(Sequence &encoded) const noexcept
   // varint size = 2^header
   varint_size <<= header; // shift left => x2
 
-  CHECK(lookahead.size() >= varint_size, base::error::incomplete);
+  if (lookahead.size() < varint_size) {
+    return base::error::incomplete;
+  }
 
   uint64_t varint = 0;
 

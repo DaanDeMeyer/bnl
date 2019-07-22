@@ -46,7 +46,7 @@ TEST_CASE("huffman")
 {
   log::api logger;
 
-  http3::qpack::huffman::encoder encoder(&logger);
+  http3::qpack::huffman::encoder encoder;
   http3::qpack::huffman::decoder decoder(&logger);
 
   SUBCASE("random")
@@ -64,10 +64,9 @@ TEST_CASE("huffman")
 
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    base::result<base::string> result =
-      decoder.decode(incomplete, encoded.size());
+    result<base::string> r = decoder.decode(incomplete, encoded.size());
 
-    REQUIRE(result == base::error::incomplete);
+    REQUIRE(r.error() == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
   }
 }

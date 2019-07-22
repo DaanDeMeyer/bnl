@@ -16,8 +16,8 @@ public:
 
   buffers() = default;
 
-  buffers(buffers &&other) = default;
-  buffers &operator=(buffers &&other) = default;
+  buffers(buffers &&) = default;
+  buffers &operator=(buffers &&) = default;
 
   size_t size() const noexcept;
   bool empty() const noexcept;
@@ -57,8 +57,8 @@ public:
   lookahead(const lookahead &other) noexcept;
   lookahead &operator=(const lookahead &) = delete;
 
-  lookahead(lookahead &&other) = delete;
-  lookahead &operator=(lookahead &&other) = delete;
+  lookahead(lookahead &&) = delete;
+  lookahead &operator=(lookahead &&) = delete;
 
   ~lookahead() = default;
 

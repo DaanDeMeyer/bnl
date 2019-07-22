@@ -11,11 +11,11 @@ public:
   host() = default;
   host(std::string name) noexcept; // NOLINT
 
-  host(const host &other) = default;
-  host &operator=(const host &other) = default;
+  host(const host &) = default;
+  host &operator=(const host &) = default;
 
-  host(host &&other) = default;
-  host &operator=(host &&other) = default;
+  host(host &&) = default;
+  host &operator=(host &&) = default;
 
   base::string_view name() const noexcept;
 

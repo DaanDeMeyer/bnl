@@ -27,14 +27,17 @@ class BNL_HTTP3_EXPORT connection {
 public:
   explicit connection(const log::api *logger);
 
-  connection(connection &&other) = default;
-  connection &operator=(connection &&other) = default;
+  connection(connection &&) = default;
+  connection &operator=(connection &&) = default;
 
-  base::result<quic::event> send() noexcept;
+  result<quic::event> send() noexcept;
 
-  std::error_code recv(quic::event event, event::handler handler);
+  result<void> recv(quic::event event, event::handler handler);
 
-  base::result<response::handle> response(uint64_t id);
+  result<response::handle> response(uint64_t id);
+
+private:
+  result<void> recv(quic::data data, event::handler handler);
 
 private:
   using control = std::pair<server::stream::control::sender,

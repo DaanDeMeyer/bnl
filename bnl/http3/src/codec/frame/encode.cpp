@@ -11,10 +11,9 @@ namespace http3 {
 
 frame::encoder::encoder(const log::api *logger) noexcept
   : varint_(logger)
-  , logger_(logger)
 {}
 
-base::result<uint64_t>
+result<uint64_t>
 frame::encoder::payload_size(const frame &frame) const noexcept
 {
   uint64_t payload_size = 0;
@@ -50,6 +49,10 @@ frame::encoder::payload_size(const frame &frame) const noexcept
 
     case frame::type::settings:
       for (auto setting : frame.settings.array()) {
+        if (setting.first == setting::num_placeholders && setting.second == 0) {
+          continue;
+        }
+
         payload_size += TRY(varint_.encoded_size(setting.first));
         payload_size += TRY(varint_.encoded_size(setting.second));
       }
@@ -82,7 +85,7 @@ frame::encoder::payload_size(const frame &frame) const noexcept
   return payload_size;
 }
 
-base::result<size_t>
+result<size_t>
 frame::encoder::encoded_size(const frame &frame) const noexcept
 {
   uint64_t payload_size = TRY(this->payload_size(frame));
@@ -122,12 +125,11 @@ frame::encoder::encoded_size(const frame &frame) const noexcept
   return encoded_size;
 }
 
-base::result<size_t>
+result<size_t>
 frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
 {
-  CHECK(dest != nullptr, base::error::invalid_argument);
+  assert(dest != nullptr);
 
-  size_t encoded_size = TRY(this->encoded_size(frame));
   uint8_t *begin = dest;
 
   uint64_t payload_size = TRY(this->payload_size(frame));
@@ -169,6 +171,10 @@ frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
       break;
     case frame::type::settings:
       for (auto setting : frame.settings.array()) {
+        if (setting.first == setting::num_placeholders && setting.second == 0) {
+          continue;
+        }
+
         dest += TRY(varint_.encode(dest, setting.first));
         dest += TRY(varint_.encode(dest, setting.second));
       }
@@ -187,18 +193,16 @@ frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
       break;
   }
 
-  ASSERT(encoded_size == static_cast<size_t>(dest - begin));
-
-  return encoded_size;
+  return static_cast<size_t>(dest - begin);
 }
 
-base::result<base::buffer>
+result<base::buffer>
 frame::encoder::encode(const frame &frame) const
 {
   size_t encoded_size = TRY(this->encoded_size(frame));
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(encoded.data(), frame)));
+  TRY(encode(encoded.data(), frame));
 
   return encoded;
 }

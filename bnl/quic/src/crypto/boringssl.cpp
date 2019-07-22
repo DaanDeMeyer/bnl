@@ -42,7 +42,7 @@ evp_md(crypto::hash hash)
   return nullptr;
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::hkdf_extract(base::buffer_view secret, base::buffer_view salt)
 {
   base::buffer prk(hash_size(hash_)); // Pseudo Random Key
@@ -56,13 +56,16 @@ crypto::hkdf_extract(base::buffer_view secret, base::buffer_view salt)
                         secret.size(),
                         salt.data(),
                         salt.size());
-  CHECK(rv == 1, error::crypto);
-  CHECK(prk.size() == prk_size, error::crypto);
+  if (rv == 0) {
+    THROW(error::crypto);
+  }
+
+  assert(prk.size() == prk_size);
 
   return prk;
 }
 
-base::result<base::buffer>
+result<base::buffer>
 crypto::hkdf_expand(base::buffer_view prk, base::buffer_view info, size_t size)
 {
   base::buffer okm(size); // Output Keying Material
@@ -74,12 +77,14 @@ crypto::hkdf_expand(base::buffer_view prk, base::buffer_view info, size_t size)
                        prk.size(),
                        info.data(),
                        info.size());
-  CHECK(rv == 1, error::crypto);
+  if (rv == 0) {
+    THROW(error::crypto);
+  }
 
   return okm;
 }
 
-std::error_code
+result<void>
 crypto::encrypt(base::buffer_view_mut dest,
                 base::buffer_view plaintext,
                 base::buffer_view key,
@@ -88,7 +93,9 @@ crypto::encrypt(base::buffer_view_mut dest,
 {
   auto context = EVP_AEAD_CTX_new(
     evp_aead(aead_), key.data(), key.size(), EVP_AEAD_DEFAULT_TAG_LENGTH);
-  CHECK(context != nullptr, error::crypto);
+  if (context == nullptr) {
+    THROW(error::crypto);
+  }
 
   size_t max_size = plaintext.size() + EVP_AEAD_max_overhead(evp_aead(aead_));
   size_t out_size = dest.size();
@@ -106,13 +113,16 @@ crypto::encrypt(base::buffer_view_mut dest,
 
   EVP_AEAD_CTX_free(context);
 
-  CHECK(rv == 1, error::crypto);
-  CHECK(out_size == max_size, error::crypto);
+  if (rv == 0) {
+    THROW(error::crypto);
+  }
 
-  return {};
+  assert(out_size == max_size);
+
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 crypto::decrypt(base::buffer_view_mut dest,
                 base::buffer_view ciphertext,
                 base::buffer_view key,
@@ -121,7 +131,9 @@ crypto::decrypt(base::buffer_view_mut dest,
 {
   auto context = EVP_AEAD_CTX_new(
     evp_aead(aead_), key.data(), key.size(), EVP_AEAD_DEFAULT_TAG_LENGTH);
-  CHECK(context != nullptr, error::crypto);
+  if (context == nullptr) {
+    THROW(error::crypto);
+  }
 
   size_t max_size = dest.size();
   size_t out_size = dest.size();
@@ -139,10 +151,11 @@ crypto::decrypt(base::buffer_view_mut dest,
 
   EVP_AEAD_CTX_free(context);
 
-  CHECK(rv == 1, error::crypto);
-  // CHECK(out_size + aead_overhead() == max_size, error::crypto);
+  if (rv == 0) {
+    THROW(error::crypto);
+  }
 
-  return {};
+  return bnl::success();
 }
 
 static uint32_t
@@ -155,12 +168,12 @@ uint32_LE(const uint8_t *data)
 }
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.4
-std::error_code
+result<void>
 crypto::hp_mask(base::buffer_view_mut dest,
                 base::buffer_view key,
                 base::buffer_view sample)
 {
-  CHECK(sample.size() == 16, error::crypto);
+  assert(sample.size() == 16);
 
   switch (aead_) {
     // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#hp-aes
@@ -169,7 +182,9 @@ crypto::hp_mask(base::buffer_view_mut dest,
       AES_KEY aes_key = {};
       int rv = AES_set_encrypt_key(
         key.data(), static_cast<unsigned int>(key.size() * 8), &aes_key);
-      CHECK(!rv, error::crypto);
+      if (rv < 0) {
+        THROW(error::crypto);
+      }
 
       AES_ecb_encrypt(sample.data(), dest.data(), &aes_key, AES_ENCRYPT);
 
@@ -195,7 +210,7 @@ crypto::hp_mask(base::buffer_view_mut dest,
     }
   }
 
-  return {};
+  return bnl::success();
 }
 }
 }

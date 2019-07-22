@@ -23,15 +23,15 @@ class BNL_HTTP3_EXPORT encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
 
-  encoder(encoder &&other) = default;
-  encoder &operator=(encoder &&other) = default;
+  encoder(encoder &&) = default;
+  encoder &operator=(encoder &&) = default;
 
-  std::error_code add(header_view header);
-  std::error_code fin() noexcept;
+  result<void> add(header_view header);
+  result<void> fin() noexcept;
 
   bool finished() const noexcept;
 
-  base::result<base::buffer> encode() noexcept;
+  result<base::buffer> encode() noexcept;
 
 private:
   enum class state : uint8_t { idle, frame, qpack, fin };
@@ -49,15 +49,15 @@ class BNL_HTTP3_EXPORT decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
 
-  decoder(decoder &&other) = default;
-  decoder &operator=(decoder &&other) = default;
+  decoder(decoder &&) = default;
+  decoder &operator=(decoder &&) = default;
 
   bool started() const noexcept;
 
   bool finished() const noexcept;
 
   template<typename Sequence>
-  base::result<header> decode(Sequence &encoded);
+  result<header> decode(Sequence &encoded);
 
 private:
   enum class state : uint8_t { frame, qpack, fin };
@@ -72,8 +72,7 @@ private:
 };
 
 #define BNL_HTTP3_HEADERS_DECODE_IMPL(T)                                       \
-  template BNL_HTTP3_EXPORT base::result<header> decoder::decode<T>(           \
-    T &) // NOLINT
+  template BNL_HTTP3_EXPORT result<header> decoder::decode<T>(T &) // NOLINT
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_HEADERS_DECODE_IMPL);
 

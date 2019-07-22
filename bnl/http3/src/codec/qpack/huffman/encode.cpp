@@ -35,10 +35,6 @@ namespace http3 {
 namespace qpack {
 namespace huffman {
 
-encoder::encoder(const log::api *logger) noexcept
-  : logger_(logger)
-{}
-
 size_t
 encoder::encoded_size(base::string_view string) const noexcept
 {
@@ -131,7 +127,7 @@ encoder::encode(base::string_view string) const
   size_t encoded_size = this->encoded_size(string);
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == encode(encoded.data(), string));
+  encode(encoded.data(), string);
 
   return encoded;
 }

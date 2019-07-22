@@ -1,11 +1,9 @@
 #pragma once
 
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/result.hpp>
 #include <bnl/quic/error.hpp>
 #include <bnl/quic/export.hpp>
-
-#include <system_error>
+#include <bnl/result.hpp>
 
 namespace bnl {
 
@@ -22,24 +20,26 @@ class connection;
 
 class BNL_QUIC_EXPORT stream {
 public:
-  stream(uint64_t id, ngtcp2::connection *connection, const log::api *logger);
+  stream(uint64_t id, ngtcp2::connection *ngtcp2, const log::api *logger);
 
-  base::result<base::buffer> send();
+  result<base::buffer> send();
 
-  std::error_code add(base::buffer buffer);
-  std::error_code fin();
+  result<void> add(base::buffer buffer);
+  result<void> fin();
 
-  std::error_code ack(size_t size);
+  result<void> ack(size_t size);
 
   bool finished() const noexcept;
+  bool opened() const noexcept;
 
 private:
   base::buffers buffers_;
   base::buffers keepalive_;
   bool fin_ = false;
+  bool opened_ = false;
 
   uint64_t id_;
-  ngtcp2::connection *connection_;
+  ngtcp2::connection *ngtcp2_;
   const log::api *logger_;
 };
 

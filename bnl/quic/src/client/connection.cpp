@@ -1,5 +1,6 @@
 #include <bnl/quic/client/connection.hpp>
 
+#include <bnl/base/error.hpp>
 #include <bnl/util/error.hpp>
 
 namespace bnl {
@@ -17,21 +18,25 @@ connection::connection(path path,
   , logger_(logger)
 {}
 
-std::error_code
+result<void>
 connection::client_initial()
 {
   LOG_T("handshake: client initial");
   return handshake_.send();
 }
 
-std::error_code
+result<void>
 connection::recv_crypto_data(crypto::level level, base::buffer_view data)
 {
   LOG_T("handshake: recv crypto data: {}", data.size());
 
-  std::error_code ec = handshake_.recv(level, data);
+  result<void> r = handshake_.recv(level, data);
 
-  return ec == base::error::incomplete ? base::error::success : ec;
+  if (r || r.error() == base::error::incomplete) {
+    return bnl::success();
+  }
+
+  return std::move(r).error();
 }
 
 void
@@ -46,33 +51,33 @@ connection::recv_stream_data(uint64_t id, bool fin, base::buffer_view data)
   base::buffer buffer(data.size());
   std::copy_n(data.data(), data.size(), buffer.data());
 
-  event_buffer_.emplace_back(id, fin, std::move(buffer));
+  event_buffer_.emplace_back(quic::data{ id, fin, std::move(buffer) });
 }
 
-std::error_code
+result<void>
 connection::acked_crypto_offset(crypto::level level, size_t size)
 {
   LOG_T("handshake: acked crypto offset: {}", size);
   return handshake_.ack(level, size);
 }
 
-std::error_code
+result<void>
 connection::acked_stream_data_offset(uint64_t id, size_t size)
 {
   auto match = streams_.find(id);
   if (match == streams_.end()) {
     LOG_E("ngtcp2 acked data for stream {} which does not exist", id);
-    THROW(base::error::internal);
+    THROW(quic::connection::error::internal);
   }
 
   stream &stream = match->second;
-  stream.ack(size);
+  TRY(stream.ack(size));
 
   if (stream.finished()) {
     streams_.erase(id);
   }
 
-  return {};
+  return bnl::success();
 }
 
 void
@@ -84,39 +89,41 @@ connection::stream_opened(uint64_t id)
 void
 connection::stream_closed(uint64_t id, uint64_t error)
 {
-  std::error_code ec = make_error_code(static_cast<quic::error>(error));
-  LOG_I("stream closed: {} (reason: {})", id, ec.message());
+  event_buffer_.emplace_back(
+    event::payload::error{ application::error::stop_sending, id, error });
+  LOG_I("stream closed: {} (reason: {})", id, error);
 }
 
 void
 connection::stream_reset(uint64_t id, uint64_t final_size, uint64_t error)
 {
-  (void)final_size;
+  (void) final_size;
 
-  std::error_code ec = make_error_code(static_cast<quic::error>(error));
-  LOG_I("Stream reset: {} (reason: {})", id, ec.message());
+  event_buffer_.emplace_back(
+    event::payload::error{ application::error::rst_stream, id, error });
+  LOG_I("Stream reset: {} (reason: {})", id, error);
 }
 
-std::error_code
+result<void>
 connection::recv_stateless_reset(base::buffer_view bytes,
                                  base::buffer_view token)
 {
-  (void)bytes;
-  (void)token;
+  (void) bytes;
+  (void) token;
 
   LOG_T("received stateless reset");
 
-  THROW(base::error::not_implemented);
+  THROW(error::not_implemented);
 }
 
-std::error_code
+result<void>
 connection::recv_retry(base::buffer_view dcid)
 {
-  (void)dcid;
+  (void) dcid;
 
   LOG_T("received retry");
 
-  THROW(base::error::not_implemented);
+  THROW(error::not_implemented);
 }
 
 void
@@ -175,35 +182,37 @@ connection::new_stateless_reset_token(base::buffer_view_mut dest)
 void
 connection::remove_connection_id(base::buffer_view cid)
 {
-  (void)cid;
+  (void) cid;
 }
 
-std::error_code
+result<void>
 connection::update_key()
 {
   return handshake_.update_keys();
 }
 
-std::error_code
+result<void>
 connection::path_validation(base::buffer_view local,
                             base::buffer_view peer,
                             bool succeeded)
 {
-  (void)local;
-  (void)peer;
+  (void) local;
+  (void) peer;
 
-  CHECK(succeeded, error::path_validation);
+  if (!succeeded) {
+    THROW(error::path_validation);
+  }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::select_preferred_address(base::buffer_view_mut dest,
                                      ip::endpoint ipv4,
                                      ip::endpoint ipv6,
                                      base::buffer_view token)
 {
-  (void)token;
+  (void) token;
 
   switch (path_.local().address()) {
     case ip::address::type::ipv4:
@@ -222,7 +231,7 @@ connection::select_preferred_address(base::buffer_view_mut dest,
       assert(false);
   }
 
-  return {};
+  return bnl::success();
 }
 
 void
@@ -231,67 +240,88 @@ connection::extend_max_stream_data(uint64_t id, uint64_t max_data)
   LOG_I("stream ({}) max data: {}", id, max_data);
 }
 
-base::result<base::buffer>
+result<base::buffer>
 connection::send()
 {
   TRY(handshake_.send());
 
   {
-    base::result<base::buffer> result = ngtcp2_.write_pkt();
-    if (result) {
-      return result;
+    result<base::buffer> r = ngtcp2_.write_pkt();
+    if (r) {
+      return r;
     }
 
-    CHECK(result == base::error::idle, result.error());
+    if (r.error() != base::error::idle) {
+      return std::move(r).error();
+    }
+  }
+
+  if (!handshake_.completed()) {
+    return base::error::idle;
   }
 
   {
     for (auto &entry : streams_) {
       stream &stream = entry.second;
 
-      base::result<base::buffer> result = stream.send();
-      if (result != base::error::idle) {
-        return result;
+      result<base::buffer> r = stream.send();
+      if (r) {
+        return r;
+      }
+
+      if (r.error() != base::error::idle) {
+        return std::move(r).error();
       }
     }
   }
 
-  THROW(base::error::idle);
+  return base::error::idle;
 }
 
-std::error_code
+result<void>
 connection::recv(base::buffer_view data, event::handler handler)
 {
   TRY(ngtcp2_.read_pkt(data));
 
-  std::error_code ec;
-
-  while (!ec && !event_buffer_.empty()) {
-    ec = handler(std::move(event_buffer_.front()));
+  while (!event_buffer_.empty()) {
+    event event = std::move(event_buffer_.front());
     event_buffer_.pop_front();
+
+    TRY(handler(std::move(event)));
   }
 
-  return ec;
+  return bnl::success();
 }
 
-std::error_code
-connection::add(quic::event event) // NOLINT
+result<void>
+connection::add(event event)
 {
-  uint64_t id = event.id;
-  if (streams_.find(id) == streams_.end()) {
-    stream stream(id, &ngtcp2_, logger_);
-    streams_.insert(std::make_pair(id, std::move(stream)));
+  switch (event) {
+    case event::type::data:
+      return add(std::move(event.data));
+    case event::type::error:
+      THROW(error::not_implemented);
+  }
+}
+
+result<void>
+connection::add(quic::data data) // NOLINT
+{
+  auto match = streams_.find(data.id);
+
+  if (match == streams_.end()) {
+    stream stream(data.id, &ngtcp2_, logger_);
+    streams_.insert(std::make_pair(data.id, std::move(stream)));
   }
 
-  stream &stream = streams_.at(id);
+  stream &stream = streams_.at(data.id);
+  TRY(stream.add(std::move(data.buffer)));
 
-  TRY(stream.add(std::move(event.data)));
-
-  if (event.fin) {
+  if (data.fin) {
     TRY(stream.fin());
   }
 
-  return {};
+  return bnl::success();
 }
 
 duration
@@ -306,13 +336,13 @@ connection::expiry() const noexcept
   return ngtcp2_.expiry();
 }
 
-std::error_code
+result<void>
 connection::expire()
 {
   return ngtcp2_.expire();
 }
 
-base::result<crypto>
+result<crypto>
 connection::crypto() const noexcept
 {
   return handshake_.negotiated_crypto();
@@ -324,18 +354,6 @@ connection::logger() const noexcept
   return logger_;
 }
 
-base::result<uint64_t>
-connection::open_bidi_stream()
-{
-  base::result<uint64_t> result = ngtcp2_.open_bidi_stream();
-
-  if (result) {
-    stream stream(result.value(), &ngtcp2_, logger_);
-    streams_.insert(std::make_pair(result.value(), std::move(stream)));
-  }
-
-  return result;
-}
 }
 }
 }

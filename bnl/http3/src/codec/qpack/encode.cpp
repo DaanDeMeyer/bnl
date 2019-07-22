@@ -16,8 +16,7 @@ namespace http3 {
 namespace qpack {
 
 encoder::encoder(const log::api *logger) noexcept
-  : prefix_int_(logger)
-  , literal_(logger)
+  : literal_()
   , logger_(logger)
 {}
 
@@ -27,7 +26,7 @@ encoder::count() const noexcept
   return count_;
 }
 
-base::result<size_t>
+result<size_t>
 encoder::encoded_size(header_view header) const noexcept
 {
   if (!util::is_lowercase(header.name())) {
@@ -82,12 +81,11 @@ static constexpr uint8_t LITERAL_WITH_NAME_REFERENCE_PREFIX = 0x50;
 static constexpr uint8_t LITERAL_WITHOUT_NAME_REFERENCE_PREFIX = 0x20;
 static constexpr uint8_t LITERAL_NO_PREFIX = 0x00;
 
-base::result<size_t>
+result<size_t>
 encoder::encode(uint8_t *dest, header_view header) noexcept
 {
-  CHECK(dest != nullptr, base::error::invalid_argument);
+  assert(dest != nullptr);
 
-  size_t encoded_size = TRY(this->encoded_size(header));
   uint8_t *begin = dest;
 
   if (state_ == state::prefix) {
@@ -127,20 +125,19 @@ encoder::encode(uint8_t *dest, header_view header) noexcept
       NOTREACHED();
   }
 
-  ASSERT(static_cast<size_t>(dest - begin) == encoded_size);
-
+  size_t encoded_size = static_cast<size_t>(dest - begin);
   count_ += encoded_size;
 
   return encoded_size;
 }
 
-base::result<base::buffer>
+result<base::buffer>
 encoder::encode(header_view header)
 {
   size_t encoded_size = TRY(this->encoded_size(header));
   base::buffer encoded(encoded_size);
 
-  ASSERT(encoded_size == TRY(encode(encoded.data(), header)));
+  TRY(encode(encoded.data(), header));
 
   return encoded;
 }

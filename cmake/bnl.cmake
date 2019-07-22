@@ -124,7 +124,7 @@ function(bnl_add_common TARGET OUTPUT_DIRECTORY)
       -Wall
       -Wextra
       -Wconversion
-      -Wsign-conversion
+      -Wno-sign-conversion
       -Wno-unknown-pragmas
       $<$<BOOL:${BNL_WARNINGS_AS_ERRORS}>:-Werror>
     )

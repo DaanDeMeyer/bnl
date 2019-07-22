@@ -1,56 +1,26 @@
 #pragma once
 
-#include <bnl/base/result.hpp>
+#include <bnl/result.hpp>
 #include <bnl/util/log.hpp>
 
 #include <cstdlib>
 
-#define ASSERT(expression)                                                     \
-  {                                                                            \
-    auto result = expression;                                                  \
-    if (!result) {                                                             \
-      LOG_E("Assertion failed: {}", #expression);                              \
-      std::abort();                                                            \
-    }                                                                          \
-  }                                                                            \
-  (void)0
-
 #define NOTREACHED()                                                           \
   LOG_E("Assertion failed: NOTREACHED()");                                     \
   std::abort();                                                                \
-  (void)0
+  (void) 0
 
 #define TRY BNL_TRY
 
-#define THROW(err)                                                             \
+#define THROW(...)                                                             \
   {                                                                            \
-    std::error_code err_ = err;                                                \
-                                                                               \
     if (logger_) {                                                             \
-      logger_->operator()(                                                     \
-        __FILE__, static_cast<const char *>(__func__), __LINE__, err_);        \
+      logger_->operator()(__FILE__,                                            \
+                          static_cast<const char *>(__func__),                 \
+                          __LINE__,                                            \
+                          make_status_code(__VA_ARGS__));                      \
     }                                                                          \
                                                                                \
-    return err_;                                                               \
+    return __VA_ARGS__;                                                        \
   }                                                                            \
-  (void)0
-
-// Throw `std::system_error` if given expression returns an error.
-#define RAISE(...)                                                             \
-  ({                                                                           \
-    auto &&res = (__VA_ARGS__);                                                \
-    if (bnl::base::BNL_TRY_IS_ERROR(res)) {                                    \
-      throw std::system_error(bnl::base::BNL_TRY_GET_ERROR(res));              \
-    }                                                                          \
-                                                                               \
-    std::move(res).value();                                                    \
-  })
-
-#define CHECK(expression, error)                                               \
-  {                                                                            \
-    auto result_ = expression;                                                 \
-    if (!result_) {                                                            \
-      THROW(error);                                                            \
-    }                                                                          \
-  }                                                                            \
-  (void)0
+  (void) 0

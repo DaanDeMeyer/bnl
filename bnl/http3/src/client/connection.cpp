@@ -14,15 +14,19 @@ connection::connection(const log::api *logger)
   , logger_(logger)
 {}
 
-base::result<quic::event>
+result<quic::event>
 connection::send() noexcept
 {
   client::stream::control::sender &control = control_.first;
 
   {
-    base::result<quic::event> event = control.send();
-    if (event != base::error::idle) {
-      return event;
+    result<quic::event> r = control.send();
+    if (r) {
+      return r;
+    }
+
+    if (r.error() != base::error::idle) {
+      return std::move(r).error();
     }
   }
 
@@ -33,29 +37,45 @@ connection::send() noexcept
       continue;
     }
 
-    base::result<quic::event> event = sender.send();
-    if (event != base::error::idle) {
-      if (event) {
-        client::stream::request::receiver &receiver = entry.second.second;
+    result<quic::event> r = sender.send();
+    if (r) {
+      client::stream::request::receiver &receiver = entry.second.second;
 
-        if (receiver.closed()) {
-          TRY(receiver.start());
-        }
+      if (receiver.closed()) {
+        TRY(receiver.start());
       }
 
-      return event;
+      return r;
+    }
+
+    if (r.error() != base::error::idle) {
+      return std::move(r).error();
     }
   }
 
-  THROW(base::error::idle);
+  return base::error::idle;
 }
 
-std::error_code
+result<void>
 connection::recv(quic::event event, event::handler handler)
 {
+  LOG_T("Received QUIC event: {}", event);
+
+  switch (event) {
+    case quic::event::type::data:
+      return recv(std::move(event.data), handler);
+    case quic::event::type::error:
+      THROW(error::not_implemented);
+  }
+}
+
+result<void>
+connection::recv(quic::data data, event::handler handler)
+{
+  uint64_t id = data.id;
   client::stream::control::receiver &control = control_.second;
 
-  if (event.id == control.id()) {
+  if (id == control.id()) {
     auto control_handler = [this, &handler](http3::event event) {
       switch (event) {
         case event::type::settings:
@@ -68,40 +88,43 @@ connection::recv(quic::event event, event::handler handler)
       return handler(std::move(event));
     };
 
-    control.recv(std::move(event), control_handler);
-
-    return {};
+    return control.recv(std::move(data), control_handler);
   }
 
-  auto match = requests_.find(event.id);
+  // TODO: Actually handle unidirectional streams.
+  if ((data.id & 0x2U) != 0) {
+    return bnl::success();
+  }
+
+  auto match = requests_.find(id);
   // TODO: Better error
-  CHECK(match != requests_.end(), error::internal_error);
+  if (match == requests_.end()) {
+    THROW(http3::connection::error::internal);
+  }
 
   client::stream::request::receiver &request = match->second.second;
 
-  uint64_t id = event.id;
-  TRY(request.recv(std::move(event), handler));
+  TRY(request.recv(std::move(data), handler));
 
   if (request.finished()) {
     requests_.erase(id);
   }
 
-  return {};
+  return bnl::success();
 }
 
-base::result<request::handle>
-connection::request(uint64_t id)
+result<request::handle>
+connection::request()
 {
-  auto match = requests_.find(id);
-  if (match != requests_.end()) {
-    THROW(error::stream_exists);
-  }
+  uint64_t id = next_stream_id_;
 
   client::stream::request::sender sender(id, logger_);
   client::stream::request::receiver receiver(id, logger_);
 
   request_t request = std::make_pair(std::move(sender), std::move(receiver));
   requests_.insert(std::make_pair(id, std::move(request)));
+
+  next_stream_id_ += 4;
 
   return request::handle(&requests_.at(id).first);
 }

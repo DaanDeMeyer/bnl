@@ -1,11 +1,10 @@
 #pragma once
 
 #include <bnl/base/buffer.hpp>
-#include <bnl/base/result.hpp>
 #include <bnl/quic/export.hpp>
+#include <bnl/result.hpp>
 
 #include <cstddef>
-#include <system_error>
 
 namespace bnl {
 
@@ -60,56 +59,56 @@ public:
   crypto() = default;
   crypto(aead aead, hash hash, const log::api *logger);
 
-  crypto(crypto &&other) = default;
-  crypto &operator=(crypto &&other) = default;
+  crypto(crypto &&) = default;
+  crypto &operator=(crypto &&) = default;
 
-  base::result<base::buffer> initial_secret(base::buffer_view dcid,
-                                            base::buffer_view salt);
-  base::result<base::buffer> update_secret(base::buffer_view secret);
+  result<base::buffer> initial_secret(base::buffer_view dcid,
+                                      base::buffer_view salt);
+  result<base::buffer> update_secret(base::buffer_view secret);
 
-  base::result<base::buffer> client_initial_secret(base::buffer_view secret);
-  base::result<base::buffer> server_initial_secret(base::buffer_view secret);
+  result<base::buffer> client_initial_secret(base::buffer_view secret);
+  result<base::buffer> server_initial_secret(base::buffer_view secret);
 
-  base::result<crypto::key> packet_protection_key(base::buffer_view secret);
+  result<crypto::key> packet_protection_key(base::buffer_view secret);
 
   size_t aead_overhead() const noexcept;
 
-  std::error_code encrypt(base::buffer_view_mut dest,
-                          base::buffer_view plaintext,
-                          base::buffer_view key,
-                          base::buffer_view nonce,
-                          base::buffer_view ad);
+  result<void> encrypt(base::buffer_view_mut dest,
+                       base::buffer_view plaintext,
+                       base::buffer_view key,
+                       base::buffer_view nonce,
+                       base::buffer_view ad);
 
-  std::error_code decrypt(base::buffer_view_mut dest,
-                          base::buffer_view ciphertext,
-                          base::buffer_view key,
-                          base::buffer_view nonce,
-                          base::buffer_view ad);
+  result<void> decrypt(base::buffer_view_mut dest,
+                       base::buffer_view ciphertext,
+                       base::buffer_view key,
+                       base::buffer_view nonce,
+                       base::buffer_view ad);
 
-  std::error_code hp_mask(base::buffer_view_mut dest,
-                          base::buffer_view key,
-                          base::buffer_view sample);
+  result<void> hp_mask(base::buffer_view_mut dest,
+                       base::buffer_view key,
+                       base::buffer_view sample);
 
 private:
-  base::result<base::buffer> packet_protection_data(base::buffer_view secret);
-  base::result<base::buffer> packet_protection_iv(base::buffer_view secret);
-  base::result<base::buffer> packet_protection_hp(base::buffer_view secret);
+  result<base::buffer> packet_protection_data(base::buffer_view secret);
+  result<base::buffer> packet_protection_iv(base::buffer_view secret);
+  result<base::buffer> packet_protection_hp(base::buffer_view secret);
 
   size_t aead_key_size(aead aead) const noexcept;
   size_t aead_nonce_min_size(aead aead) const noexcept;
 
   size_t hash_size(hash hash) const noexcept;
 
-  base::result<base::buffer> hkdf_expand_label(base::buffer_view secret,
-                                               base::buffer_view label,
-                                               size_t size);
-
-  base::result<base::buffer> hkdf_extract(base::buffer_view secret,
-                                          base::buffer_view salt);
-
-  base::result<base::buffer> hkdf_expand(base::buffer_view prk,
-                                         base::buffer_view info,
+  result<base::buffer> hkdf_expand_label(base::buffer_view secret,
+                                         base::buffer_view label,
                                          size_t size);
+
+  result<base::buffer> hkdf_extract(base::buffer_view secret,
+                                    base::buffer_view salt);
+
+  result<base::buffer> hkdf_expand(base::buffer_view prk,
+                                   base::buffer_view info,
+                                   size_t size);
 
   friend std::ostream &operator<<(std::ostream &os, const crypto &crypto);
 

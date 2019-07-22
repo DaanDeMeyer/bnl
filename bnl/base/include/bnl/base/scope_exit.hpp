@@ -1,7 +1,6 @@
 #pragma once
 
 #include <type_traits>
-#include <utility>
 
 // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4189.pdf
 
@@ -10,7 +9,7 @@ namespace bnl {
 template<typename EF>
 struct scope_exit {
   explicit scope_exit(EF &&f) noexcept
-    : exit_function_(std::move(f))
+    : exit_function_(static_cast<EF &&>(f))
     , execute_on_destruction_{ true }
   {}
 
@@ -18,7 +17,7 @@ struct scope_exit {
   void operator=(scope_exit const &) = delete;
 
   scope_exit(scope_exit &&rhs) noexcept
-    : exit_function_(std::move(rhs.exit_function_))
+    : exit_function_(static_cast<scope_exit &&>(rhs.exit_function_))
     , execute_on_destruction_{ rhs.execute_on_destruction_ }
   {
     rhs.release();
@@ -33,7 +32,10 @@ struct scope_exit {
     }
   }
 
-  void release() noexcept { this->execute_on_destruction_ = false; }
+  void release() noexcept
+  {
+    this->execute_on_destruction_ = false;
+  }
 
 private:
   EF exit_function_;
@@ -44,7 +46,7 @@ template<typename EF>
 scope_exit<typename std::remove_reference<EF>::type>
 make_scope_exit(EF &&exit_function) noexcept
 {
-  return scope_exit<EF>(std::forward<EF>(exit_function));
+  return scope_exit<EF>(static_cast<EF &&>(exit_function));
 }
 
 #define SCOPE_EXIT_IMPL_1(x, y) x##y

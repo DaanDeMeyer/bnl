@@ -1,10 +1,9 @@
 #pragma once
 
 #include <bnl/base/export.hpp>
+#include <bnl/result.hpp>
 
 #include <fmt/core.h>
-
-#include <system_error>
 
 namespace bnl {
 namespace log {
@@ -37,7 +36,7 @@ public:
   void operator()(const char *file,
                   const char *function,
                   int line,
-                  std::error_code ec) const;
+                  const status_code<void> &sc) const;
 
 protected:
   virtual void log(log::level level,
@@ -63,7 +62,7 @@ protected:
                          (format),                                             \
                          ##__VA_ARGS__);                                       \
   }                                                                            \
-  (void)0
+  (void) 0
 
 #define BNL_LOG_TRACE(logger, format, ...)                                     \
   BNL_LOG(logger, bnl::log::level::trace, (format), ##__VA_ARGS__)

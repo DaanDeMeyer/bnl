@@ -4,7 +4,7 @@
 
 template<typename E>
 auto
-extract(E expression) -> typename decltype(expression())::value_type
+extract(E expression)
 {
   auto result = expression();
   REQUIRE(result);

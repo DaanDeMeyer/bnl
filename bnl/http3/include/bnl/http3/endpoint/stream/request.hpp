@@ -32,13 +32,13 @@ public:
 
   bool finished() const noexcept;
 
-  base::result<quic::event> send() noexcept;
+  result<quic::event> send() noexcept;
 
-  std::error_code header(header_view header);
-  std::error_code body(base::buffer body);
+  result<void> header(header_view header);
+  result<void> body(base::buffer body);
 
-  std::error_code start() noexcept;
-  std::error_code fin() noexcept;
+  result<void> start() noexcept;
+  result<void> fin() noexcept;
 
   class handle {
   public:
@@ -52,11 +52,11 @@ public:
 
     uint64_t id() const noexcept;
 
-    std::error_code header(header_view header);
-    std::error_code body(base::buffer body);
+    result<void> header(header_view header);
+    result<void> body(base::buffer body);
 
-    std::error_code start() noexcept;
-    std::error_code fin() noexcept;
+    result<void> start() noexcept;
+    result<void> fin() noexcept;
 
   private:
     friend class sender;
@@ -83,8 +83,8 @@ class BNL_HTTP3_EXPORT receiver {
 public:
   receiver(uint64_t id, const log::api *logger) noexcept;
 
-  receiver(receiver &&other) = default;
-  receiver &operator=(receiver &&other) = default;
+  receiver(receiver &&) = default;
+  receiver &operator=(receiver &&) = default;
 
   virtual ~receiver() noexcept;
 
@@ -92,17 +92,17 @@ public:
 
   bool finished() const noexcept;
 
-  std::error_code start() noexcept;
+  result<void> start() noexcept;
 
-  std::error_code recv(quic::event event, event::handler handler);
+  result<void> recv(quic::data data, event::handler handler);
 
 protected:
-  virtual base::result<event> process(frame frame) noexcept = 0;
+  virtual result<event> process(frame frame) noexcept = 0;
 
   const headers::decoder &headers() const noexcept;
 
 private:
-  base::result<event> process() noexcept;
+  result<event> process() noexcept;
 
 private:
   enum class state : uint8_t { closed, headers, body, fin };

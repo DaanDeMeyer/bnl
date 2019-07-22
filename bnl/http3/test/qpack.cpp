@@ -57,8 +57,8 @@ TEST_CASE("qpack")
   SUBCASE("encode: malformed header")
   {
     http3::header via = { "Via", "1.0.fred" };
-    base::result<base::buffer> result = encoder.encode(via);
-    REQUIRE(result == http3::error::malformed_header);
+    result<base::buffer> r = encoder.encode(via);
+    REQUIRE(r.error() == http3::error::malformed_header);
   }
 
   SUBCASE("decode: incomplete")
@@ -68,9 +68,9 @@ TEST_CASE("qpack")
 
     encoded = encoded.slice(10);
 
-    base::result<http3::header> result = decoder.decode(encoded);
+    result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(result == base::error::incomplete);
+    REQUIRE(r.error() == base::error::incomplete);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 8);
   }
@@ -83,9 +83,10 @@ TEST_CASE("qpack")
     encoded[2] = 0xff; // 0xff = indexed header field
     encoded[3] = 100;  // 100 = unassigned index
 
-    base::result<http3::header> result = decoder.decode(encoded);
+    result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(result == http3::error::qpack_decompression_failed);
+    REQUIRE(r.error() ==
+            http3::connection::error::qpack_decompression_failed);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }
@@ -98,9 +99,10 @@ TEST_CASE("qpack")
     encoded[2] = 0x5f; // 0x5f = literal with name reference
     encoded[3] = 100;  // 100 = unassigned index
 
-    base::result<http3::header> result = decoder.decode(encoded);
+    result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(result == http3::error::qpack_decompression_failed);
+    REQUIRE(r.error() ==
+            http3::connection::error::qpack_decompression_failed);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }

@@ -17,8 +17,8 @@ public:
   string_view(const char *data, size_t size) noexcept;
   string_view(const string &string) noexcept; // NOLINT
 
-  string_view(const string_view &other) = default;
-  string_view &operator=(const string_view &other) = default;
+  string_view(const string_view &) = default;
+  string_view &operator=(const string_view &) = default;
 
   const char *data() const noexcept;
 

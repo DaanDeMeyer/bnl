@@ -8,7 +8,7 @@ namespace log {
 
 class BNL_LOG_EXPORT console : public log::api {
 public:
-  console(bool log_source = true);
+  explicit console(bool log_source = true);
 
   void log(log::level level,
            const char *file,

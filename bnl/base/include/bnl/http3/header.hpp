@@ -14,8 +14,8 @@ public:
   header_view() = default;
   header_view(base::string_view name, base::string_view value) noexcept;
 
-  header_view(const header_view &other) = default;
-  header_view &operator=(const header_view &other) = default;
+  header_view(const header_view &) = default;
+  header_view &operator=(const header_view &) = default;
 
   base::string_view name() const noexcept;
   base::string_view value() const noexcept;
@@ -38,11 +38,11 @@ public:
   header() = default;
   header(base::string name, base::string value) noexcept;
 
-  header(const header &other) = default;
-  header &operator=(const header &other) = default;
+  header(const header &) = default;
+  header &operator=(const header &) = default;
 
-  header(header &&other) = default;
-  header &operator=(header &&other) = default;
+  header(header &&) = default;
+  header &operator=(header &&) = default;
 
   base::string_view name() const noexcept;
   base::string_view value() const noexcept;

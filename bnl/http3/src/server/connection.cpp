@@ -14,15 +14,19 @@ connection::connection(const log::api *logger)
   , logger_(logger)
 {}
 
-base::result<quic::event>
+result<quic::event>
 connection::send() noexcept
 {
   server::stream::control::sender &control = control_.first;
 
   {
-    base::result<quic::event> event = control.send();
-    if (event != base::error::idle) {
-      return event;
+    result<quic::event> r = control.send();
+    if (r) {
+      return r;
+    }
+
+    if (r.error() != base::error::idle) {
+      return std::move(r).error();
     }
   }
 
@@ -34,26 +38,39 @@ connection::send() noexcept
       continue;
     }
 
-    base::result<quic::event> event = request.send();
+    result<quic::event> r = request.send();
+    if (r) {
+      if (request.finished()) {
+        requests_.erase(id);
+      }
 
-    if (request.finished()) {
-      requests_.erase(id);
+      return r;
     }
 
-    if (event != base::error::idle) {
-      return event;
+    if (r.error() != base::error::idle) {
+      return std::move(r).error();
     }
   }
 
-  THROW(base::error::idle);
+  return base::error::idle;
 }
 
-std::error_code
-connection::recv(quic::event event, event::handler handler)
+result<void> connection::recv(quic::event event, event::handler handler)
+{
+  switch (event) {
+    case quic::event::type::data:
+      return recv(std::move(event.data), handler);
+    case quic::event::type::error:
+      THROW(error::not_implemented);
+  }
+}
+
+result<void>
+connection::recv(quic::data data, event::handler handler)
 {
   server::stream::control::receiver &control = control_.second;
 
-  if (event.id == control.id()) {
+  if (data.id == control.id()) {
     auto control_handler = [this, &handler](http3::event event) {
       switch (event) {
         case event::type::settings:
@@ -66,30 +83,26 @@ connection::recv(quic::event event, event::handler handler)
       return handler(std::move(event));
     };
 
-    control.recv(std::move(event), control_handler);
-
-    return {};
+    return control.recv(std::move(data), control_handler);
   }
 
-  auto match = requests_.find(event.id);
+  auto match = requests_.find(data.id);
   if (match == requests_.end()) {
-    server::stream::request::sender sender(event.id, logger_);
-    server::stream::request::receiver receiver(event.id, logger_);
+    server::stream::request::sender sender(data.id, logger_);
+    server::stream::request::receiver receiver(data.id, logger_);
 
     TRY(receiver.start());
 
     request request = std::make_pair(std::move(sender), std::move(receiver));
-    requests_.insert(std::make_pair(event.id, std::move(request)));
+    requests_.insert(std::make_pair(data.id, std::move(request)));
   }
 
-  server::stream::request::receiver &request = requests_.at(event.id).second;
+  server::stream::request::receiver &request = requests_.at(data.id).second;
 
-  request.recv(std::move(event), handler);
-
-  return {};
+  return request.recv(std::move(data), handler);
 }
 
-base::result<response::handle>
+result<response::handle>
 connection::response(uint64_t id)
 {
   auto match = requests_.find(id);

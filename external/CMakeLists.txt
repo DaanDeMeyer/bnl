@@ -1,5 +1,19 @@
 include(FetchContent)
 
+FetchContent_Declare(
+  outcome
+  URL https://github.com/ned14/outcome/releases/download/v2.1/outcome-v2.0-source-201904030000.tar.xz
+)
+
+FetchContent_GetProperties(outcome)
+if(NOT outcome_POPULATED)
+  FetchContent_Populate(outcome)
+endif()
+
+add_library(outcome INTERFACE IMPORTED GLOBAL)
+target_include_directories(outcome INTERFACE ${outcome_SOURCE_DIR}/include)
+target_compile_features(outcome INTERFACE cxx_std_14)
+
 ## doctest ##
 
 FetchContent_Declare(
@@ -20,7 +34,6 @@ endif()
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
-  # https://github.com/fmtlib/fmt/pull/1134
   GIT_TAG e9b9b0aefaf3dacf8554ba93bd404248574945ed
 )
 
@@ -45,7 +58,7 @@ target_include_directories(xxhash INTERFACE ${xxhash_SOURCE_DIR})
 
 FetchContent_Declare(
   ngtcp2
-  GIT_REPOSITORY https://github.com/DaanDeMeyer/ngtcp2.git
+  GIT_REPOSITORY https://github.com/ngtcp2/ngtcp2.git
   GIT_TAG draft-22
 )
 

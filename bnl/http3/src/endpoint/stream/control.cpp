@@ -11,30 +11,38 @@ namespace stream {
 namespace control {
 
 sender::sender(uint64_t id, const log::api *logger) noexcept
-  : frame_(logger)
+  : varint_(logger)
+  , frame_(logger)
   , id_(id)
   , logger_(logger)
 {}
 
-base::result<quic::event>
+result<quic::event>
 sender::send() noexcept
 {
   switch (state_) {
+    case state::type: {
+      base::buffer encoded = TRY(varint_.encode(type));
+      state_ = state::settings;
+      return quic::data{ id_, false, std::move(encoded) };
+    }
+
     case state::settings: {
       base::buffer encoded = TRY(frame_.encode(settings_));
       state_ = state::idle;
-      return quic::event(id_, false, std::move(encoded));
+      return quic::data{ id_, false, std::move(encoded) };
     }
 
     case state::idle:
-      THROW(base::error::idle);
+      return base::error::idle;
   }
 
   NOTREACHED();
 }
 
 receiver::receiver(uint64_t id, const log::api *logger) noexcept
-  : frame_(logger)
+  : varint_(logger)
+  , frame_(logger)
   , id_(id)
   , logger_(logger)
 {}
@@ -47,45 +55,58 @@ receiver::id() const noexcept
   return id_;
 }
 
-std::error_code
-receiver::recv(quic::event event, event::handler handler)
+result<void>
+receiver::recv(quic::data data, event::handler handler)
 {
-  CHECK(event == quic::event::type::data, base::error::not_implemented);
-  CHECK(!event.fin, error::closed_critical_stream);
-
-  buffers_.push(std::move(event.data));
-
-  while (true) {
-    base::result<http3::event> result = process();
-    if (!result) {
-      if (result == base::error::incomplete) {
-        return {};
-      }
-
-      return result.error();
-    }
-
-    TRY(handler(std::move(result.value())));
+  if (data.fin) {
+    THROW(connection::error::closed_critical_stream);
   }
 
-  return {};
+  buffers_.push(std::move(data.buffer));
+
+  while (true) {
+    result<http3::event> r = process();
+    if (!r) {
+      if (r.error() == base::error::incomplete) {
+        return bnl::success();
+      }
+
+      return std::move(r).error();
+    }
+
+    TRY(handler(std::move(r.value())));
+  }
+
+  return bnl::success();
 }
 
-base::result<event>
+result<event>
 receiver::process() noexcept
 {
   switch (state_) {
+
+    // TODO: Move this out of control stream since we technically won't know its
+    // the control stream until we've decoded the type.
+    case state::type: {
+      uint64_t type = TRY(varint_.decode(buffers_));
+      assert(type == control::type);
+      state_ = state::settings;
+    }
 
     case state::settings: {
       frame frame = TRY(frame_.decode(buffers_));
 
       // First frame on the control stream has to be a SETTINGS frame.
       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-settings
-      CHECK(frame == frame::type::settings, error::missing_settings);
+      if (frame != frame::type::settings) {
+        LOG_E("First frame on the control stream ({}) is not a SETTINGS frame",
+              frame);
+        THROW(connection::error::missing_settings);
+      };
 
       state_ = state::active;
 
-      return event{ id_, false, frame.settings };
+      return event::payload::settings{ frame.settings };
     }
 
     case state::active: {
@@ -96,9 +117,9 @@ receiver::process() noexcept
         case frame::type::data:
         case frame::type::push_promise:
         case frame::type::duplicate_push:
-          THROW(error::wrong_stream);
+          THROW(connection::error::wrong_stream);
         case frame::type::settings:
-          THROW(error::unexpected_frame);
+          THROW(connection::error::unexpected_frame);
         default:
           break;
       }

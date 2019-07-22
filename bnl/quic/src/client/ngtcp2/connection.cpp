@@ -1,9 +1,8 @@
 #include <bnl/quic/client/ngtcp2/connection.hpp>
 
+#include <bnl/base/error.hpp>
 #include <bnl/quic/client/connection.hpp>
 #include <bnl/quic/client/ngtcp2/error.hpp>
-
-#include <bnl/base/error.hpp>
 #include <bnl/quic/error.hpp>
 #include <bnl/quic/path.hpp>
 #include <bnl/util/error.hpp>
@@ -13,20 +12,20 @@
 #include <algorithm>
 #include <cassert>
 
-#define THROW_NGTCP2(function, err)                                            \
-  {                                                                            \
-    std::error_code ec = { static_cast<int>(err), std::system_category() };    \
-                                                                               \
-    LOG_E("{}: {}", #function, ec.message());                                  \
-                                                                               \
-    return ec;                                                                 \
-  }                                                                            \
-  (void)0
-
 namespace bnl {
 namespace quic {
 namespace client {
 namespace ngtcp2 {
+
+#define THROW_NGTCP2(function, rv)                                             \
+  {                                                                            \
+    code code_ = make_status_code(static_cast<error>(rv));                     \
+    fmt::string_view view = { code_.message().data(),                          \
+                              code_.message().size() };                        \
+    LOG_E("{}: {}", #function, view);                                          \
+    return code_;                                                              \
+  }                                                                            \
+  (void) 0
 
 static crypto::level
 make_crypto_level(ngtcp2_crypto_level level)
@@ -97,12 +96,12 @@ make_timestamp(ngtcp2_tstamp timestamp)
 int
 connection::client_initial(ngtcp2_conn *connection, void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
-  std::error_code ec = client->client_initial();
+  result<void> r = client->client_initial();
 
-  return ec && ec != base::error::idle ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -113,28 +112,29 @@ connection::recv_crypto_data(ngtcp2_conn *connection,
                              size_t size,
                              void *context)
 {
-  (void)connection;
-  (void)offset;
+  (void) connection;
+  (void) offset;
   auto client = static_cast<client::connection *>(context);
 
-  std::error_code ec = client->recv_crypto_data(make_crypto_level(level),
-                                                base::buffer_view(data, size));
+  result<void> r = client->recv_crypto_data(make_crypto_level(level),
+                                            base::buffer_view(data, size));
 
-  int rv = NGTCP2_ERR_CALLBACK_FAILURE;
-
-  if (!ec) {
-    rv = 0;
-  } else if (ec == quic::error::handshake || ec == quic::error::crypto) {
-    rv = NGTCP2_ERR_CRYPTO;
+  if (!r && (r.error() == quic::error::handshake ||
+             r.error() == quic::error::crypto)) {
+    return NGTCP2_ERR_CRYPTO;
   }
 
-  return rv;
+  if (!r) {
+    return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+
+  return 0;
 }
 
 int
 connection::handshake_completed(ngtcp2_conn *connection, void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->handshake_completed();
@@ -156,22 +156,21 @@ connection::in_encrypt(ngtcp2_conn *connection,
                        size_t ad_size,
                        void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   crypto crypto(
     crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
 
-  std::error_code ec =
-    crypto.encrypt(base::buffer_view_mut(dest, dest_size),
-                   base::buffer_view(plaintext, plaintext_size),
-                   base::buffer_view(key, key_size),
-                   base::buffer_view(nonce, nonce_size),
-                   base::buffer_view(ad, ad_size));
+  result<void> r = crypto.encrypt(base::buffer_view_mut(dest, dest_size),
+                                  base::buffer_view(plaintext, plaintext_size),
+                                  base::buffer_view(key, key_size),
+                                  base::buffer_view(nonce, nonce_size),
+                                  base::buffer_view(ad, ad_size));
 
   // TODO: Fix after https://github.com/ngtcp2/ngtcp2/pull/128
-  return ec ? static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE)
-            : static_cast<ssize_t>(plaintext_size + crypto.aead_overhead());
+  return r ? static_cast<ssize_t>(plaintext_size + crypto.aead_overhead())
+           : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 ssize_t
@@ -188,13 +187,13 @@ connection::in_decrypt(ngtcp2_conn *connection,
                        size_t ad_size,
                        void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   crypto crypto(
     crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
 
-  std::error_code ec =
+  result<void> r =
     crypto.decrypt(base::buffer_view_mut(dest, dest_size),
                    base::buffer_view(ciphertext, ciphertext_size),
                    base::buffer_view(key, key_size),
@@ -202,8 +201,8 @@ connection::in_decrypt(ngtcp2_conn *connection,
                    base::buffer_view(ad, ad_size));
 
   // TODO: Fix after https://github.com/ngtcp2/ngtcp2/pull/128
-  return ec ? static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE)
-            : static_cast<ssize_t>(ciphertext_size - crypto.aead_overhead());
+  return r ? static_cast<ssize_t>(ciphertext_size - crypto.aead_overhead())
+           : static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE);
 }
 
 ssize_t
@@ -220,26 +219,27 @@ connection::encrypt(ngtcp2_conn *connection,
                     size_t ad_size,
                     void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
-  base::result<crypto> result = client->crypto();
-  if (!result) {
-    return NGTCP2_ERR_CALLBACK_FAILURE;
-  }
+  crypto crypto = ({
+    result<quic::crypto> r = client->crypto();
+    if (!r) {
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
 
-  crypto crypto = std::move(result).value();
+    std::move(r).value();
+  });
 
-  std::error_code ec =
-    crypto.encrypt(base::buffer_view_mut(dest, dest_size),
-                   base::buffer_view(plaintext, plaintext_size),
-                   base::buffer_view(key, key_size),
-                   base::buffer_view(nonce, nonce_size),
-                   base::buffer_view(ad, ad_size));
+  result<void> r = crypto.encrypt(base::buffer_view_mut(dest, dest_size),
+                                  base::buffer_view(plaintext, plaintext_size),
+                                  base::buffer_view(key, key_size),
+                                  base::buffer_view(nonce, nonce_size),
+                                  base::buffer_view(ad, ad_size));
 
   // TODO: Fix after https://github.com/ngtcp2/ngtcp2/pull/128
-  return ec ? static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE)
-            : static_cast<ssize_t>(plaintext_size + crypto.aead_overhead());
+  return r ? static_cast<ssize_t>(plaintext_size + crypto.aead_overhead())
+           : static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE);
 }
 
 ssize_t
@@ -256,17 +256,19 @@ connection::decrypt(ngtcp2_conn *connection,
                     size_t ad_size,
                     void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
-  base::result<crypto> result = client->crypto();
-  if (!result) {
-    return NGTCP2_ERR_CALLBACK_FAILURE;
-  }
+  crypto crypto = ({
+    result<quic::crypto> r = client->crypto();
+    if (!r) {
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
 
-  crypto crypto = std::move(result).value();
+    std::move(r).value();
+  });
 
-  std::error_code ec =
+  result<void> r =
     crypto.decrypt(base::buffer_view_mut(dest, dest_size),
                    base::buffer_view(ciphertext, ciphertext_size),
                    base::buffer_view(key, key_size),
@@ -274,8 +276,8 @@ connection::decrypt(ngtcp2_conn *connection,
                    base::buffer_view(ad, ad_size));
 
   // TODO: Fix after https://github.com/ngtcp2/ngtcp2/pull/128
-  return ec ? static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE)
-            : static_cast<ssize_t>(ciphertext_size - crypto.aead_overhead());
+  return r ? static_cast<ssize_t>(ciphertext_size - crypto.aead_overhead())
+           : static_cast<ssize_t>(NGTCP2_ERR_CALLBACK_FAILURE);
 }
 
 ssize_t
@@ -288,17 +290,17 @@ connection::in_hp_mask(ngtcp2_conn *connection,
                        size_t sample_size,
                        void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   crypto crypto(
     crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
 
-  std::error_code ec = crypto.hp_mask(base::buffer_view_mut(dest, dest_size),
-                                      base::buffer_view(key, key_size),
-                                      base::buffer_view(sample, sample_size));
+  result<void> r = crypto.hp_mask(base::buffer_view_mut(dest, dest_size),
+                                  base::buffer_view(key, key_size),
+                                  base::buffer_view(sample, sample_size));
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : NGTCP2_HP_MASKLEN;
+  return r ? NGTCP2_HP_MASKLEN : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 ssize_t
@@ -311,21 +313,23 @@ connection::hp_mask(ngtcp2_conn *connection,
                     size_t sample_size,
                     void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
-  base::result<crypto> result = client->crypto();
-  if (!result) {
-    return NGTCP2_ERR_CALLBACK_FAILURE;
-  }
+  crypto crypto = ({
+    result<quic::crypto> r = client->crypto();
+    if (!r) {
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
 
-  crypto crypto = std::move(result).value();
+    std::move(r).value();
+  });
 
-  std::error_code ec = crypto.hp_mask(base::buffer_view_mut(dest, dest_size),
-                                      base::buffer_view(key, key_size),
-                                      base::buffer_view(sample, sample_size));
+  result<void> r = crypto.hp_mask(base::buffer_view_mut(dest, dest_size),
+                                  base::buffer_view(key, key_size),
+                                  base::buffer_view(sample, sample_size));
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : NGTCP2_HP_MASKLEN;
+  return r ? NGTCP2_HP_MASKLEN : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -338,9 +342,9 @@ connection::recv_stream_data(ngtcp2_conn *connection,
                              void *context,
                              void *stream_context)
 {
-  (void)connection;
-  (void)offset;
-  (void)stream_context;
+  (void) connection;
+  (void) offset;
+  (void) stream_context;
   auto client = static_cast<client::connection *>(context);
 
   client->recv_stream_data(
@@ -356,14 +360,13 @@ connection::acked_crypto_offset(ngtcp2_conn *connection,
                                 size_t size,
                                 void *context)
 {
-  (void)connection;
-  (void)offset;
+  (void) connection;
+  (void) offset;
   auto client = static_cast<client::connection *>(context);
 
-  std::error_code ec =
-    client->acked_crypto_offset(make_crypto_level(level), size);
+  result<void> r = client->acked_crypto_offset(make_crypto_level(level), size);
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -374,21 +377,21 @@ connection::acked_stream_data_offset(ngtcp2_conn *connection,
                                      void *context,
                                      void *stream_context)
 {
-  (void)connection;
-  (void)offset;
-  (void)stream_context;
+  (void) connection;
+  (void) offset;
+  (void) stream_context;
   auto client = static_cast<client::connection *>(context);
 
-  std::error_code ec =
+  result<void> r =
     client->acked_stream_data_offset(static_cast<uint64_t>(id), size);
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
 connection::stream_open(ngtcp2_conn *connection, int64_t id, void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->stream_opened(static_cast<uint64_t>(id));
@@ -403,8 +406,9 @@ connection::stream_close(ngtcp2_conn *connection,
                          void *context,
                          void *stream_context)
 {
-  (void)connection;
-  (void)stream_context;
+  (void) connection;
+  (void) id;
+  (void) stream_context;
   auto client = static_cast<client::connection *>(context);
 
   client->stream_closed(static_cast<uint64_t>(id), error);
@@ -417,15 +421,15 @@ connection::recv_stateless_reset(ngtcp2_conn *connection,
                                  const ngtcp2_pkt_stateless_reset *reset,
                                  void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
-  std::error_code ec = client->recv_stateless_reset(
+  result<void> r = client->recv_stateless_reset(
     base::buffer_view(reset->rand, reset->randlen),
     base::buffer_view(reset->stateless_reset_token,
                       NGTCP2_STATELESS_RESET_TOKENLEN));
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -434,16 +438,16 @@ connection::recv_retry(ngtcp2_conn *connection,
                        const ngtcp2_pkt_retry *retry,
                        void *context)
 {
-  (void)packet_header;
-  (void)retry;
+  (void) packet_header;
+  (void) retry;
   auto client = static_cast<client::connection *>(context);
 
   const ngtcp2_cid *dcid = ngtcp2_conn_get_dcid(connection);
 
-  std::error_code ec =
+  result<void> r =
     client->recv_retry(base::buffer_view(dcid->data, dcid->datalen));
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -451,7 +455,7 @@ connection::extend_max_local_streams_bidi(ngtcp2_conn *connection,
                                           uint64_t max_streams,
                                           void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->extend_max_local_streams_bidi(max_streams);
@@ -464,7 +468,7 @@ connection::extend_max_local_streams_uni(ngtcp2_conn *connection,
                                          uint64_t max_streams,
                                          void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->extend_max_local_streams_bidi(max_streams);
@@ -479,8 +483,8 @@ connection::rand(ngtcp2_conn *connection,
                  ngtcp2_rand_ctx usage,
                  void *context)
 {
-  (void)connection;
-  (void)usage;
+  (void) connection;
+  (void) usage;
   auto client = static_cast<client::connection *>(context);
 
   client->random(base::buffer_view_mut(dest, size));
@@ -495,7 +499,7 @@ connection::get_new_connection_id(ngtcp2_conn *connection,
                                   size_t cid_size,
                                   void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->new_connection_id(base::buffer_view_mut(cid->data, cid_size));
@@ -511,7 +515,7 @@ connection::remove_connection_id(ngtcp2_conn *connection,
                                  const ngtcp2_cid *cid,
                                  void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->remove_connection_id(base::buffer_view(cid->data, cid->datalen));
@@ -522,30 +526,30 @@ connection::remove_connection_id(ngtcp2_conn *connection,
 int
 connection::update_key(ngtcp2_conn *connection, void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
-  std::error_code ec = client->update_key();
+  result<void> r = client->update_key();
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
 connection::path_validation(ngtcp2_conn *connection,
                             const ngtcp2_path *path,
-                            ngtcp2_path_validation_result result,
+                            ngtcp2_path_validation_result pv_result,
                             void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   base::buffer_view local(path->local.addr, path->local.addrlen);
   base::buffer_view peer(path->local.addr, path->local.addrlen);
-  bool succeeded = result == NGTCP2_PATH_VALIDATION_RESULT_SUCCESS;
+  bool succeeded = pv_result == NGTCP2_PATH_VALIDATION_RESULT_SUCCESS;
 
-  std::error_code ec = client->path_validation(local, peer, succeeded);
+  result<void> r = client->path_validation(local, peer, succeeded);
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -554,20 +558,20 @@ connection::select_preferred_addr(ngtcp2_conn *connection,
                                   const ngtcp2_preferred_addr *preferred,
                                   void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   ip::endpoint ipv4(ipv4::address(preferred->ipv4_addr), preferred->ipv4_port);
   ip::endpoint ipv6(ipv6::address(preferred->ipv6_addr), preferred->ipv6_port);
 
-  std::error_code ec = client->select_preferred_address(
+  result<void> r = client->select_preferred_address(
     base::buffer_view_mut(dest->addr, dest->addrlen),
     ipv4,
     ipv6,
     base::buffer_view(preferred->stateless_reset_token,
                       NGTCP2_STATELESS_RESET_TOKENLEN));
 
-  return ec ? NGTCP2_ERR_CALLBACK_FAILURE : 0;
+  return r ? 0 : NGTCP2_ERR_CALLBACK_FAILURE;
 }
 
 int
@@ -578,8 +582,8 @@ connection::stream_reset(ngtcp2_conn *connection,
                          void *context,
                          void *stream_context)
 {
-  (void)connection;
-  (void)stream_context;
+  (void) connection;
+  (void) stream_context;
   auto client = static_cast<client::connection *>(context);
 
   client->stream_reset(static_cast<uint64_t>(id), final_size, error);
@@ -592,7 +596,7 @@ connection::extend_max_remote_streams_bidi(ngtcp2_conn *connection,
                                            uint64_t max_streams,
                                            void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->extend_max_remote_streams_bidi(max_streams);
@@ -605,7 +609,7 @@ connection::extend_max_remote_streams_uni(ngtcp2_conn *connection,
                                           uint64_t max_streams,
                                           void *context)
 {
-  (void)connection;
+  (void) connection;
   auto client = static_cast<client::connection *>(context);
 
   client->extend_max_remote_streams_uni(max_streams);
@@ -620,8 +624,8 @@ connection::extend_max_stream_data(ngtcp2_conn *connection,
                                    void *context,
                                    void *stream_context)
 {
-  (void)connection;
-  (void)stream_context;
+  (void) connection;
+  (void) stream_context;
   auto client = static_cast<client::connection *>(context);
 
   client->extend_max_stream_data(static_cast<uint64_t>(id), max_data);
@@ -736,8 +740,7 @@ connection::connection(path path,
 
   ngtcp2_settings settings = make_settings(params);
 
-  std::error_code ec;
-  duration initial_ts = clock_().value(); // TODO: Handle error
+  duration initial_ts = clock_().assume_value(); // TODO: Handle error
 
   settings.initial_ts = make_timestamp(initial_ts);
   settings.log_printf = log;
@@ -756,7 +759,7 @@ connection::connection(path path,
                                   nullptr,
                                   context);
   // TODO: re-enable exceptions
-  (void)rv;
+  (void) rv;
   assert(rv == 0);
 
   connection_ = decltype(connection_)(connection, ngtcp2_conn_del);
@@ -783,7 +786,7 @@ connection::handshake_completed() noexcept
   ngtcp2_conn_handshake_completed(connection_.get());
 }
 
-base::result<base::buffer>
+result<base::buffer>
 connection::get_local_transport_parameters() noexcept
 {
   ngtcp2_transport_params params;
@@ -801,7 +804,7 @@ connection::get_local_transport_parameters() noexcept
   return base::buffer(tp.data(), static_cast<size_t>(nwrite));
 }
 
-std::error_code
+result<void>
 connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
 {
   ngtcp2_transport_params params;
@@ -820,10 +823,10 @@ connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
     THROW_NGTCP2(ngtcp2_set_remote_transport_params, static_cast<error>(rv));
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_initial_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_initial_tx_keys(connection_.get(),
@@ -837,10 +840,10 @@ connection::install_initial_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_initial_tx_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_initial_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_initial_rx_keys(connection_.get(),
@@ -854,10 +857,10 @@ connection::install_initial_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_initial_rx_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_early_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_early_keys(connection_.get(),
@@ -871,10 +874,10 @@ connection::install_early_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_early_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_handshake_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_handshake_tx_keys(connection_.get(),
@@ -888,10 +891,10 @@ connection::install_handshake_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_handshake_tx_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_handshake_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_handshake_rx_keys(connection_.get(),
@@ -905,10 +908,10 @@ connection::install_handshake_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_handshake_rx_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_tx_keys(connection_.get(),
@@ -922,10 +925,10 @@ connection::install_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_tx_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::install_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_install_rx_keys(connection_.get(),
@@ -939,10 +942,10 @@ connection::install_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_rx_keys, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::update_tx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_update_tx_key(connection_.get(),
@@ -954,10 +957,10 @@ connection::update_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_update_tx_key, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::update_rx_keys(crypto::key_view key)
 {
   int rv = ngtcp2_conn_update_rx_key(connection_.get(),
@@ -969,10 +972,10 @@ connection::update_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_update_rx_key, rv);
   }
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 connection::submit_crypto_data(crypto::level level, base::buffer_view data)
 {
   int rv = ngtcp2_conn_submit_crypto_data(
@@ -981,12 +984,13 @@ connection::submit_crypto_data(crypto::level level, base::buffer_view data)
     THROW_NGTCP2(ngtcp2_submit_crypto_data, static_cast<error>(rv));
   }
 
-  return {};
+  return bnl::success();
 }
 
-base::result<base::buffer>
+result<base::buffer>
 connection::write_pkt()
 {
+  LOG_D("write_pkt");
   ngtcp2_path_storage path = make_path(path_);
 
   // TODO: Handle IPV6
@@ -999,7 +1003,7 @@ connection::write_pkt()
                                      storage.size(),
                                      make_timestamp(ts));
   if (rv == 0) {
-    THROW(base::error::idle);
+    return base::error::idle;
   }
 
   if (rv < 0) {
@@ -1010,9 +1014,10 @@ connection::write_pkt()
   ;
 }
 
-base::result<std::pair<base::buffer, size_t>>
+result<std::pair<base::buffer, size_t>>
 connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
 {
+  LOG_D("write_stream");
   std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage = {};
 
   ssize_t stream_data_written = 0;
@@ -1041,7 +1046,7 @@ connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
                         static_cast<size_t>(stream_data_written));
 }
 
-std::error_code
+result<void>
 connection::read_pkt(base::buffer_view packet)
 {
   ngtcp2_path_storage path = make_path(path_);
@@ -1056,7 +1061,7 @@ connection::read_pkt(base::buffer_view packet)
     THROW_NGTCP2(ngtcp2_conn_read_pkt, static_cast<error>(rv));
   }
 
-  return {};
+  return bnl::success();
 }
 
 base::buffer_view
@@ -1080,7 +1085,7 @@ connection::expiry() const noexcept
   return make_timestamp(expiry);
 }
 
-std::error_code
+result<void>
 connection::expire()
 {
   duration now = TRY(clock_());
@@ -1097,20 +1102,29 @@ connection::expire()
     ngtcp2_conn_cancel_expired_ack_delay_timer(connection_.get(), ts);
   }
 
-  return {};
+  return bnl::success();
 }
 
-base::result<uint64_t>
-connection::open_bidi_stream()
+result<void>
+connection::open(uint64_t id)
 {
-  int64_t id = 0;
+  int64_t quic_id = 0;
+  int rv = 0;
 
-  int rv = ngtcp2_conn_open_bidi_stream(connection_.get(), &id, nullptr);
-  if (rv != 0) {
-    THROW_NGTCP2(ngtcp2_conn_open_bidi_stream, rv);
+  if ((id & 0x2U) == 0) {
+    rv = ngtcp2_conn_open_bidi_stream(connection_.get(), &quic_id, nullptr);
+  } else {
+    rv = ngtcp2_conn_open_uni_stream(connection_.get(), &quic_id, nullptr);
   }
 
-  return static_cast<uint64_t>(id);
+  if (rv != 0) {
+    THROW_NGTCP2(ngtcp2_conn_open_uni_stream, rv);
+  }
+
+  // Users are required to open streams in ascending order.
+  assert(static_cast<uint64_t>(quic_id) == id);
+
+  return bnl::success();
 }
 
 }

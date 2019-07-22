@@ -11,8 +11,8 @@ public:
   endpoint() = default;
   endpoint(ip::address address, ip::port port) noexcept;
 
-  endpoint(const endpoint &other) = default;
-  endpoint &operator=(const endpoint &other) = default;
+  endpoint(const endpoint &) = default;
+  endpoint &operator=(const endpoint &) = default;
 
   const ip::address &address() const noexcept;
   ip::port port() const noexcept;

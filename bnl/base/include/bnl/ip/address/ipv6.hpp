@@ -17,8 +17,8 @@ public:
   explicit address(base::buffer_view bytes) noexcept;
   explicit address(const uint8_t *bytes) noexcept;
 
-  address(const address &other) = default;
-  address &operator=(const address &other) = default;
+  address(const address &) = default;
+  address &operator=(const address &) = default;
 
   base::buffer_view bytes() const noexcept;
 

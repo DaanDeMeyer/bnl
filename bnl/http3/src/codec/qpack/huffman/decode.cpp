@@ -43,7 +43,7 @@ decoder::decoder(const log::api *logger) noexcept
 {}
 
 template<typename Sequence>
-base::result<base::string>
+result<base::string>
 decoder::decode(Sequence &encoded, size_t encoded_size) const
 {
   size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size));
@@ -75,11 +75,13 @@ decoder::decode(Sequence &encoded, size_t encoded_size) const
 }
 
 template<typename Lookahead>
-base::result<size_t>
+result<size_t>
 decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
   noexcept
 {
-  CHECK(encoded.size() >= encoded_size, base::error::incomplete);
+  if (encoded.size() < encoded_size) {
+    return base::error::incomplete;
+  }
 
   size_t decoded_size = 0;
   uint8_t state = 0;
@@ -89,7 +91,9 @@ decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
     const decode::node &first = decode::table[state][encoded[i] >> 4U];
 
     bool failed = (first.flags & decode::flag::failed) != 0;
-    CHECK(!failed, error::qpack_decompression_failed);
+    if (failed) {
+      THROW(connection::error::qpack_decompression_failed);
+    }
 
     if ((first.flags & decode::flag::symbol) != 0) {
       decoded_size++;
@@ -98,7 +102,9 @@ decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
     const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
 
     failed = (second.flags & decode::flag::failed) != 0;
-    CHECK(!failed, error::qpack_decompression_failed);
+    if (failed) {
+      THROW(connection::error::qpack_decompression_failed);
+    }
 
     if ((second.flags & decode::flag::symbol) != 0) {
       decoded_size++;
@@ -108,7 +114,9 @@ decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
     accept = (second.flags & decode::flag::accepted) != 0;
   }
 
-  CHECK(accept, error::qpack_decompression_failed);
+  if (!accept) {
+    THROW(connection::error::qpack_decompression_failed);
+  }
 
   return decoded_size;
 }

@@ -2,15 +2,15 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
-#include <bnl/base/result.hpp>
 #include <bnl/base/template.hpp>
 #include <bnl/http3/codec/varint.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/settings.hpp>
+#include <bnl/result.hpp>
 
 #include <cstddef>
 #include <cstdint>
-#include <system_error>
+#include <iosfwd>
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#rfc.section.4
 
@@ -103,7 +103,7 @@ public:
   frame(frame::payload::max_push_id max_push_id) noexcept;       // NOLINT
   frame(frame::payload::duplicate_push duplicate_push) noexcept; // NOLINT
 
-  frame(const frame &other) = default;
+  frame(const frame &) = default;
   frame &operator=(const frame &other) = delete;
 
   operator type() const noexcept; // NOLINT
@@ -132,47 +132,49 @@ operator==(const frame &lhs, const frame &rhs);
 BNL_HTTP3_EXPORT bool
 operator!=(const frame &lhs, const frame &rhs);
 
+BNL_HTTP3_EXPORT
+std::ostream &
+operator<<(std::ostream &os, const frame &frame);
+
 class BNL_HTTP3_EXPORT frame::encoder {
 public:
   explicit encoder(const log::api *logger) noexcept;
 
-  encoder(encoder &&other) = default;
-  encoder &operator=(encoder &&other) = default;
+  encoder(encoder &&) = default;
+  encoder &operator=(encoder &&) = default;
 
-  base::result<size_t> encoded_size(const frame &frame) const noexcept;
+  result<size_t> encoded_size(const frame &frame) const noexcept;
 
-  base::result<size_t> encode(uint8_t *dest, const frame &frame) const noexcept;
+  result<size_t> encode(uint8_t *dest, const frame &frame) const noexcept;
 
-  base::result<base::buffer> encode(const frame &frame) const;
+  result<base::buffer> encode(const frame &frame) const;
 
 private:
-  base::result<uint64_t> payload_size(const frame &frame) const noexcept;
+  result<uint64_t> payload_size(const frame &frame) const noexcept;
 
 private:
   varint::encoder varint_;
-
-  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT frame::decoder {
 public:
   explicit decoder(const log::api *logger) noexcept;
 
-  decoder(decoder &&other) = default;
-  decoder &operator=(decoder &&other) = default;
+  decoder(decoder &&) = default;
+  decoder &operator=(decoder &&) = default;
 
   template<typename Sequence>
-  base::result<frame::type> peek(const Sequence &encoded) const noexcept;
+  result<frame::type> peek(const Sequence &encoded) const noexcept;
 
   template<typename Sequence>
-  base::result<frame> decode(Sequence &encoded) const noexcept;
+  result<frame> decode(Sequence &encoded) const noexcept;
 
 private:
   template<typename Lookahead>
-  base::result<frame> decode_single(Lookahead &lookahead) const noexcept;
+  result<frame> decode_single(Lookahead &lookahead) const noexcept;
 
   template<typename Lookahead>
-  base::result<uint8_t> uint8_decode(Lookahead &lookahead) const noexcept;
+  result<uint8_t> uint8_decode(Lookahead &lookahead) const noexcept;
 
 private:
   varint::decoder varint_;
@@ -181,11 +183,11 @@ private:
 };
 
 #define BNL_HTTP3_FRAME_PEEK_IMPL(T)                                           \
-  template BNL_HTTP3_EXPORT base::result<frame::type> frame::decoder::peek<T>( \
+  template BNL_HTTP3_EXPORT result<frame::type> frame::decoder::peek<T>(       \
     const T &) const noexcept // NOLINT
 
 #define BNL_HTTP3_FRAME_DECODE_IMPL(T)                                         \
-  template BNL_HTTP3_EXPORT base::result<frame> frame::decoder::decode<T>(     \
+  template BNL_HTTP3_EXPORT result<frame> frame::decoder::decode<T>(           \
     T &) /* NOLINT */ const noexcept
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);

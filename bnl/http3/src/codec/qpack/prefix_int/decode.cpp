@@ -9,12 +9,8 @@ namespace http3 {
 namespace qpack {
 namespace prefix_int {
 
-decoder::decoder(const log::api *logger)
-  : logger_(logger)
-{}
-
 template<typename Sequence>
-base::result<uint64_t>
+result<uint64_t>
 decoder::decode(Sequence &encoded, uint8_t prefix) const noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
@@ -40,10 +36,12 @@ decoder::decode(Sequence &encoded, uint8_t prefix) const noexcept
 }
 
 template<typename Lookahead>
-base::result<uint8_t>
+result<uint8_t>
 decoder::uint8_decode(Lookahead &encoded) const noexcept
 {
-  CHECK(!encoded.empty(), base::error::incomplete);
+  if (encoded.empty()) {
+    return base::error::incomplete;
+  }
 
   uint8_t result = *encoded;
 

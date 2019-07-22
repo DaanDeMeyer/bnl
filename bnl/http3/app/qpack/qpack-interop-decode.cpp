@@ -16,10 +16,12 @@ using namespace bnl;
 // pointer.
 static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
 
-static base::result<uint64_t>
+static result<uint64_t>
 id_decode(base::buffer &encoded)
 {
-  CHECK(encoded.size() >= sizeof(uint64_t), base::error::incomplete);
+  if (encoded.size() < sizeof(uint64_t)) {
+    return base::error::incomplete;
+  };
 
   uint64_t id = static_cast<uint64_t>(encoded[0]) << 56U |
                 static_cast<uint64_t>(encoded[1]) << 48U |
@@ -35,10 +37,12 @@ id_decode(base::buffer &encoded)
   return id;
 }
 
-static base::result<size_t>
+static result<size_t>
 size_decode(base::buffer &encoded)
 {
-  CHECK(encoded.size() >= sizeof(uint32_t), base::error::incomplete);
+  if (encoded.size() < sizeof(uint32_t)) {
+    return base::error::incomplete;
+  }
 
   size_t encoded_size = static_cast<uint32_t>(encoded[0]) << 24U |
                         static_cast<uint32_t>(encoded[1]) << 16U |
@@ -60,7 +64,7 @@ write(std::ostream &dest, const std::vector<http3::header> &headers)
   dest << '\n';
 }
 
-static std::error_code
+static result<void>
 decode(base::buffer &encoded, std::ofstream &output)
 {
   TRY(id_decode(encoded));
@@ -74,16 +78,9 @@ decode(base::buffer &encoded, std::ofstream &output)
     headers.emplace_back(std::move(header));
   }
 
-  // Write output
+  write(output, headers);
 
-  try {
-    write(output, headers);
-  } catch (std::ios_base::failure &e) {
-    LOG_E("Error writing output: {}", e.what());
-    return e.code();
-  }
-
-  return {};
+  return bnl::success();
 }
 
 int
@@ -136,8 +133,8 @@ main(int argc, char *argv[])
   // Decode input
 
   while (!encoded.empty()) {
-    std::error_code ec = decode(encoded, output);
-    if (ec) {
+    result<void> r = decode(encoded, output);
+    if (!r) {
       LOG_E("Error decoding headers");
       return 1;
     }

@@ -13,20 +13,24 @@ encoder::encoder(const log::api *logger) noexcept
   , logger_(logger)
 {}
 
-std::error_code
+result<void>
 encoder::add(base::buffer body)
 {
-  CHECK(!fin_, error::internal_error);
+  if (fin_) {
+    THROW(connection::error::internal);
+  }
 
   buffers_.emplace(std::move(body));
 
-  return {};
+  return bnl::success();
 }
 
-std::error_code
+result<void>
 encoder::fin() noexcept
 {
-  CHECK(state_ != state::fin, error::internal_error);
+  if (state_ == state::fin) {
+    THROW(connection::error::internal);
+  }
 
   fin_ = true;
 
@@ -34,7 +38,7 @@ encoder::fin() noexcept
     state_ = state::fin;
   }
 
-  return {};
+  return bnl::success();
 }
 
 bool
@@ -43,7 +47,7 @@ encoder::finished() const noexcept
   return state_ == state::fin;
 }
 
-base::result<base::buffer>
+result<base::buffer>
 encoder::encode() noexcept
 {
   // TODO: Implement PRIORITY
@@ -51,7 +55,9 @@ encoder::encode() noexcept
   switch (state_) {
 
     case state::frame: {
-      CHECK(!buffers_.empty(), base::error::idle);
+      if (buffers_.empty()) {
+        return base::error::idle;
+      }
 
       frame frame = frame::payload::data{ buffers_.front().size() };
       base::buffer encoded = TRY(frame_.encode(frame));
@@ -71,7 +77,7 @@ encoder::encode() noexcept
     }
 
     case state::fin:
-      THROW(error::internal_error);
+      THROW(connection::error::internal);
   }
 
   NOTREACHED();
@@ -89,7 +95,7 @@ decoder::in_progress() const noexcept
 }
 
 template<typename Sequence>
-base::result<base::buffer>
+result<base::buffer>
 decoder::decode(Sequence &encoded)
 {
   switch (state_) {
@@ -97,7 +103,9 @@ decoder::decode(Sequence &encoded)
     case state::frame: {
       frame::type type = TRY(frame_.peek(encoded));
 
-      CHECK(type == frame::type::data, base::error::unknown);
+      if (type != frame::type::data) {
+        return base::error::delegate;
+      }
 
       frame frame = TRY(frame_.decode(encoded));
 
@@ -106,7 +114,9 @@ decoder::decode(Sequence &encoded)
     }
     /* FALLTHRU */
     case state::data: {
-      CHECK(!encoded.empty(), base::error::incomplete);
+      if (encoded.empty()) {
+        return base::error::incomplete;
+      }
 
       size_t body_part_size = encoded.size() < remaining_
                                 ? encoded.size()
@@ -115,7 +125,7 @@ decoder::decode(Sequence &encoded)
 
       remaining_ -= body_part_size;
 
-      ASSERT(encoded.empty() || remaining_ == 0);
+      assert(encoded.empty() || remaining_ == 0);
 
       state_ = remaining_ == 0 ? state::frame : state_;
 

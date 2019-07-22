@@ -15,8 +15,7 @@ namespace qpack {
 
 // TODO: Find out what is best for max header and max value size.
 decoder::decoder(const log::api *logger)
-  : prefix_int_(logger)
-  , literal_(logger)
+  : literal_(logger)
   , logger_(logger)
 {}
 
@@ -29,11 +28,13 @@ decoder::count() const noexcept
 static constexpr size_t QPACK_PREFIX_ENCODED_SIZE = 2;
 
 template<typename Sequence>
-base::result<header>
+result<header>
 decoder::decode(Sequence &encoded)
 {
   if (state_ == state::prefix) {
-    CHECK(encoded.size() >= QPACK_PREFIX_ENCODED_SIZE, base::error::incomplete);
+    if (encoded.size() < QPACK_PREFIX_ENCODED_SIZE) {
+      return base::error::incomplete;
+    }
 
     encoded.consume(QPACK_PREFIX_ENCODED_SIZE);
     count_ += QPACK_PREFIX_ENCODED_SIZE;
@@ -43,14 +44,16 @@ decoder::decode(Sequence &encoded)
   header header;
   typename Sequence::lookahead_type lookahead(encoded);
 
-  CHECK(!lookahead.empty(), base::error::incomplete);
+  if (lookahead.empty()) {
+    return base::error::incomplete;
+  }
 
   switch (table::fixed::find_type(*lookahead)) {
 
     case table::fixed::type::header_value: {
       if ((*lookahead & 0x40U) == 0) {
         LOG_E("'S' (static table) bit not set in indexed header field");
-        THROW(error::qpack_decompression_failed);
+        THROW(connection::error::qpack_decompression_failed);
       }
 
       uint8_t index =
@@ -61,7 +64,7 @@ decoder::decode(Sequence &encoded)
 
       if (!found) {
         LOG_E("Indexed header field ({}) not found in static table", index);
-        THROW(error::qpack_decompression_failed);
+        THROW(connection::error::qpack_decompression_failed);
       }
 
       break;
@@ -70,7 +73,7 @@ decoder::decode(Sequence &encoded)
     case table::fixed::type::header_only: {
       if ((*lookahead & 0x10U) == 0) {
         LOG_E("'S' (static table) bit not set in literal with name reference");
-        THROW(error::qpack_decompression_failed);
+        THROW(connection::error::qpack_decompression_failed);
       }
 
       uint8_t index =
@@ -82,7 +85,7 @@ decoder::decode(Sequence &encoded)
 
       if (!found) {
         LOG_E("Header name reference ({}) not found in static table", index);
-        THROW(error::qpack_decompression_failed);
+        THROW(connection::error::qpack_decompression_failed);
       }
 
       base::string value = TRY(literal_.decode(lookahead, 7));
@@ -107,7 +110,7 @@ decoder::decode(Sequence &encoded)
 
     case table::fixed::type::unknown:
       LOG_E("Unexpected header block instruction prefix ({})", *lookahead);
-      THROW(error::qpack_decompression_failed);
+      THROW(connection::error::qpack_decompression_failed);
   }
 
   count_ += lookahead.consumed();

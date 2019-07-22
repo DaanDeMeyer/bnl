@@ -66,7 +66,7 @@ sender::finished() const noexcept
   return state_ == state::fin;
 }
 
-base::result<quic::event>
+result<quic::event>
 sender::send() noexcept
 {
   switch (state_) {
@@ -75,10 +75,10 @@ sender::send() noexcept
       base::buffer encoded = TRY(headers_.encode());
 
       if (headers_.finished()) {
-        state_ = state::body;
+        state_ = body_.finished() ? state::fin : state::body;
       }
 
-      return quic::event(id_, false, std::move(encoded));
+      return quic::data{ id_, false, std::move(encoded) };
     }
 
     case state::body: {
@@ -88,35 +88,35 @@ sender::send() noexcept
         state_ = state::fin;
       }
 
-      return quic::event(id_, body_.finished(), std::move(encoded));
+      return quic::data{ id_, body_.finished(), std::move(encoded) };
     }
 
     case state::fin:
-      THROW(error::internal_error);
+      THROW(connection::error::internal);
   }
 
   NOTREACHED();
 }
 
-std::error_code
+result<void>
 sender::header(header_view header)
 {
   return headers_.add(header);
 }
 
-std::error_code
+result<void>
 sender::body(base::buffer body)
 {
   return body_.add(std::move(body));
 }
 
-std::error_code
+result<void>
 sender::start() noexcept
 {
   return headers_.fin();
 }
 
-std::error_code
+result<void>
 sender::fin() noexcept
 {
   return body_.fin();
@@ -159,12 +159,13 @@ sender::handle::~handle()
   }
 }
 
-uint64_t sender::handle::id() const noexcept
+uint64_t
+sender::handle::id() const noexcept
 {
   return id_;
 }
 
-std::error_code
+result<void>
 sender::handle::header(header_view header)
 {
   if (sender_ == nullptr) {
@@ -174,7 +175,7 @@ sender::handle::header(header_view header)
   return sender_->header(header);
 }
 
-std::error_code
+result<void>
 sender::handle::body(base::buffer body)
 {
   if (sender_ == nullptr) {
@@ -184,7 +185,7 @@ sender::handle::body(base::buffer body)
   return sender_->body(std::move(body));
 }
 
-std::error_code
+result<void>
 sender::handle::start() noexcept
 {
   if (sender_ == nullptr) {
@@ -194,7 +195,7 @@ sender::handle::start() noexcept
   return sender_->start();
 }
 
-std::error_code
+result<void>
 sender::handle::fin() noexcept
 {
   if (sender_ == nullptr) {
@@ -226,14 +227,14 @@ receiver::finished() const noexcept
   return state_ == state::fin;
 }
 
-std::error_code
+result<void>
 receiver::start() noexcept
 {
-  CHECK(state_ == state::closed, error::internal_error);
+  assert(state_ == state::closed);
 
   state_ = state::headers;
 
-  return {};
+  return bnl::success();
 }
 
 const headers::decoder &
@@ -242,53 +243,51 @@ receiver::headers() const noexcept
   return headers_;
 }
 
-std::error_code
-receiver::recv(quic::event event, event::handler handler)
+result<void>
+receiver::recv(quic::data data, event::handler handler)
 {
-  // TODO: Handle `quic::event::type::error`.
-
-  CHECK(!fin_received_, error::internal_error);
-
-  CHECK(event == quic::event::type::data, base::error::not_implemented);
-
-  buffers_.push(std::move(event.data));
-  fin_received_ = event.fin;
-
-  while (!finished()) {
-    base::result<http3::event> result = process();
-
-    if (!result) {
-      if (result == base::error::incomplete && fin_received_) {
-        return error::malformed_frame;
-      }
-
-      if (result == base::error::incomplete) {
-        return {};
-      }
-
-      return result.error();
-    }
-
-    TRY(handler(std::move(result.value())));
+  if (fin_received_) {
+    THROW(connection::error::internal);
   }
 
-  return {};
+  fin_received_ = data.fin;
+  buffers_.push(std::move(data.buffer));
+
+  while (!finished()) {
+    result<http3::event> r = process();
+
+    if (!r) {
+      if (r.error() == base::error::incomplete && fin_received_) {
+        return connection::error::malformed_frame;
+      }
+
+      if (r.error() == base::error::incomplete) {
+        return bnl::success();
+      }
+
+      return std::move(r).error();
+    }
+
+    TRY(handler(std::move(r.value())));
+  }
+
+  return bnl::success();
 }
 
-base::result<event>
+result<event>
 receiver::process() noexcept
 {
-  std::error_code ec;
+  result<void>::error_type sc;
 
   switch (state_) {
 
     case state::closed:
-      THROW(error::internal_error);
+      THROW(connection::error::internal);
 
     case state::headers: {
-      base::result<header> result = headers_.decode(buffers_);
-      if (!result) {
-        ec = result.error();
+      result<header> r = headers_.decode(buffers_);
+      if (!r) {
+        sc = std::move(r).error();
         break;
       }
 
@@ -300,13 +299,15 @@ receiver::process() noexcept
         state_ = state::body;
       }
 
-      return event(id_, headers_.finished(), std::move(result.value()));
+      return event::payload::header{ id_,
+                                     headers_.finished(),
+                                     std::move(r).value() };
     }
 
     case state::body: {
-      base::result<base::buffer> result = body_.decode(buffers_);
-      if (!result) {
-        ec = result.error();
+      result<base::buffer> r = body_.decode(buffers_);
+      if (!r) {
+        sc = std::move(r).error();
         break;
       }
 
@@ -315,38 +316,46 @@ receiver::process() noexcept
       if (fin) {
         // We've processed all stream data but there still frame data left to be
         // received.
-        CHECK(!body_.in_progress(), error::malformed_frame);
+        if (body_.in_progress()) {
+          THROW(connection::error::malformed_frame);
+        }
+
         state_ = state::fin;
       }
 
-      return event(id_, fin, std::move(result.value()));
+      return event::payload::body{ id_, fin, std::move(r.value()) };
     }
 
     case state::fin:
-      THROW(error::internal_error);
+      THROW(connection::error::internal);
   };
 
-  if (ec == base::error::unknown) {
+  if (sc == base::error::delegate) {
     frame frame = TRY(frame_.decode(buffers_));
 
     switch (frame) {
       case frame::type::headers:
         // TODO: Implement trailing HEADERS
-        CHECK(state_ != receiver::state::body, base::error::not_implemented);
+        if (state_ == receiver::state::body) {
+          LOG_W("Ignoring trailing headers");
+          buffers_.consume(buffers_.size());
+          state_ = state::fin;
+          return event::payload::body{ id_, true, base::buffer() };
+        }
         break;
       case frame::type::data:
-        THROW(error::unexpected_frame);
+        THROW(connection::error::unexpected_frame);
       case frame::type::settings:
       case frame::type::max_push_id:
       case frame::type::cancel_push:
       case frame::type::goaway:
-        THROW(error::wrong_stream);
+        THROW(connection::error::wrong_stream);
       default:
         return process(frame);
     }
   }
 
-  return ec;
+  return sc;
 }
 
 }

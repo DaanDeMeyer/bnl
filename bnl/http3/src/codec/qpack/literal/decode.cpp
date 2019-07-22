@@ -12,25 +12,25 @@ namespace qpack {
 namespace literal {
 
 decoder::decoder(const log::api *logger) noexcept
-  : prefix_int_(logger)
-  , huffman_(logger)
-  , logger_(logger)
+  : huffman_(logger)
 {}
 
 template<typename Sequence>
-base::result<base::string>
+result<base::string>
 decoder::decode(Sequence &encoded, uint8_t prefix) const
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
-  CHECK(!lookahead.empty(), base::error::incomplete);
+  if (lookahead.empty()) {
+    return base::error::incomplete;
+  }
 
   bool is_huffman = static_cast<uint8_t>(*lookahead >> prefix) & 0x01; // NOLINT
 
   uint64_t literal_encoded_size = TRY(prefix_int_.decode(lookahead, prefix));
 
   if (literal_encoded_size > lookahead.size()) {
-    THROW(base::error::incomplete);
+    return base::error::incomplete;
   }
 
   size_t bounded_encoded_size = static_cast<size_t>(literal_encoded_size);

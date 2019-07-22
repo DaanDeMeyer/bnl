@@ -151,13 +151,13 @@ TEST_CASE("varint")
     uint64_t varint = http3::varint::max + 1;
 
     {
-      base::result<size_t> result = encoder.encoded_size(varint);
-      REQUIRE(result == http3::error::varint_overflow);
+      result<size_t> r = encoder.encoded_size(varint);
+      REQUIRE(r.error() == http3::error::varint_overflow);
     }
 
     {
-      base::result<base::buffer> result = encoder.encode(varint);
-      REQUIRE(result == http3::error::varint_overflow);
+      result<base::buffer> r = encoder.encode(varint);
+      REQUIRE(r.error() == http3::error::varint_overflow);
     }
   }
 
@@ -170,9 +170,9 @@ TEST_CASE("varint")
 
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    base::result<uint64_t> result = decoder.decode(incomplete);
+    result<uint64_t> r = decoder.decode(incomplete);
 
-    REQUIRE(result == base::error::incomplete);
+    REQUIRE(r.error() == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
     uint64_t decoded = EXTRACT(decoder.decode(encoded));
