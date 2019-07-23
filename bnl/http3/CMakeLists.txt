@@ -67,7 +67,7 @@ foreach(ACTION encode decode)
   )
 endforeach()
 
-if(TARGET systemd)
+if(systemd_FOUND)
   add_executable(bnl-http3-client)
 
   bnl_add_common(bnl-http3-client bin)
