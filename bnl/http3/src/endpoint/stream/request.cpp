@@ -78,7 +78,9 @@ sender::send() noexcept
         state_ = body_.finished() ? state::fin : state::body;
       }
 
-      return quic::data{ id_, false, std::move(encoded) };
+      bool fin = headers_.finished() && body_.finished();
+
+      return quic::data{ id_, fin, std::move(encoded) };
     }
 
     case state::body: {
