@@ -158,7 +158,7 @@ client::send_once()
   {
     result<base::buffer> r = quic_.send();
     if (r) {
-      socket_.add(std::move(r.value()));
+      socket_.add(std::move(r).value());
       return success();
     }
 
