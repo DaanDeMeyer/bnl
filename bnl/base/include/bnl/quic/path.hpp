@@ -16,8 +16,8 @@ public:
   path(const path &) = default;
   path &operator=(const path &) = default;
 
-  ip::endpoint local() const noexcept;
-  ip::endpoint peer() const noexcept;
+  const ip::endpoint &local() const noexcept;
+  const ip::endpoint &peer() const noexcept;
 
 private:
   ip::endpoint local_;

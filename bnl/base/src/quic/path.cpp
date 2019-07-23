@@ -8,13 +8,13 @@ path::path(ip::endpoint local, ip::endpoint peer) noexcept
   , peer_(peer)
 {}
 
-ip::endpoint
+const ip::endpoint &
 path::local() const noexcept
 {
   return local_;
 }
 
-ip::endpoint
+const ip::endpoint &
 path::peer() const noexcept
 {
   return peer_;
