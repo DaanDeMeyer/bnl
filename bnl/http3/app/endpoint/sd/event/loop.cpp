@@ -55,9 +55,7 @@ loop::io(const os::fd &fd)
     THROW_SYSTEM(sd_event_add_io, -rv);
   }
 
-  event::io io(source);
-
-  return io;
+  return event::io(source);
 }
 
 result<timer>
@@ -76,9 +74,7 @@ loop::timer()
     THROW_SYSTEM(sd_event_add_time, -rv);
   }
 
-  event::timer timer(source);
-
-  return timer;
+  return event::timer(source);
 }
 
 result<void>

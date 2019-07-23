@@ -247,6 +247,9 @@ client::timeout(sd::event::duration usec)
   return sd_.exit(errc::timed_out);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
+
 static result<void>
 run(int argc, char *argv[])
 {
@@ -326,6 +329,8 @@ run(int argc, char *argv[])
 
   return success();
 }
+
+#pragma GCC diagnostic pop
 
 int
 main(int argc, char *argv[])

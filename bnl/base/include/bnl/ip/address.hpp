@@ -12,8 +12,8 @@ namespace ip {
 class BNL_BASE_EXPORT address {
 public:
   address();
-  address(ipv4::address address) noexcept; // NOLINT
-  address(ipv6::address address) noexcept; // NOLINT
+  address(ipv4::address address) noexcept;   // NOLINT
+  address(ipv6::address address) noexcept;   // NOLINT
   address(base::buffer_view bytes) noexcept; // NOLINT
 
   address(const address &) = default;
@@ -25,8 +25,11 @@ public:
 
   base::buffer_view bytes() const noexcept;
 
-  friend std::ostream &operator<<(std::ostream &os, const address &address);
-  friend bool operator==(const address &lhs, const address &rhs);
+  BNL_BASE_EXPORT friend std::ostream &operator<<(std::ostream &os,
+                                                  const address &address);
+
+  BNL_BASE_EXPORT friend bool operator==(const address &lhs,
+                                         const address &rhs);
 
 private:
   type type_;
