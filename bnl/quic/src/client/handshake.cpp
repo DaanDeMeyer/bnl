@@ -12,24 +12,18 @@ namespace bnl {
 namespace quic {
 namespace client {
 
-static SSL_CTX *
-ssl_ctx_new()
+static SSL *
+ssl_new(handshake *handshake)
 {
   SSL_CTX *ssl_ctx = SSL_CTX_new(TLS_method());
   assert(ssl_ctx != nullptr);
 
   SSL_CTX_set_default_verify_paths(ssl_ctx);
 
-  return ssl_ctx;
-}
-
-static SSL_CTX *SSL_CONTEXT = ssl_ctx_new(); // NOLINT
-
-static SSL *
-ssl_new(handshake *handshake)
-{
-  SSL *ssl = SSL_new(SSL_CONTEXT);
+  SSL *ssl = SSL_new(ssl_ctx);
   assert(ssl != nullptr);
+
+  SSL_CTX_free(ssl_ctx);
 
   int rv = SSL_set_ex_data(ssl, 0, handshake);
   // TODO: re-enable exceptions
@@ -38,7 +32,7 @@ ssl_new(handshake *handshake)
 
   return ssl;
 }
-
+  
 static ssl_encryption_level_t
 make_crypto_level(crypto::level level)
 {
