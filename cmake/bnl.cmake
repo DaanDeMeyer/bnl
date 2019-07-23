@@ -133,6 +133,7 @@ function(bnl_add_common TARGET OUTPUT_DIRECTORY)
   if(BNL_SANITIZERS)
     target_compile_options(${TARGET} PRIVATE
       -fsanitize=address,undefined
+      -fno-omit-frame-pointer
     )
     target_link_options(${TARGET} PRIVATE
       -fsanitize=address,undefined
