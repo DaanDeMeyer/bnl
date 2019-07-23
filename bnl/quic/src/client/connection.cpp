@@ -90,8 +90,6 @@ connection::stream_opened(uint64_t id)
 void
 connection::stream_closed(uint64_t id, uint64_t error)
 {
-  event_buffer_.emplace_back(
-    event::payload::error{ application::error::stop_sending, id, error });
   LOG_I("stream closed: {} (reason: {})", id, error);
 }
 
