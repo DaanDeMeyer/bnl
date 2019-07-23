@@ -11,6 +11,11 @@ notifications:
 
 env: BNL_TIDY=ON
 
+addons:
+  apt:
+    packages:
+      - libsystemd-dev
+
 matrix:
   fast_finish: true
   include:
