@@ -61,6 +61,8 @@ client::resolve(ip::host host)
     }
   }
 
+  freeaddrinfo(results);
+
   return addresses;
 }
 
