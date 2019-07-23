@@ -66,3 +66,29 @@ foreach(ACTION encode decode)
     app/qpack/qpack-interop-${ACTION}.cpp
   )
 endforeach()
+
+if(TARGET systemd)
+  add_executable(bnl-http3-client)
+
+  bnl_add_common(bnl-http3-client bin)
+  target_include_directories(bnl-http3-client PRIVATE app/endpoint)
+  target_link_libraries(bnl-http3-client PRIVATE
+    bnl-http3
+    bnl-quic
+    bnl-log
+    bnl-util
+    systemd
+  )
+
+  target_sources(bnl-http3-client PRIVATE
+    app/endpoint/client.cpp
+    app/endpoint/os/dns/client.cpp
+    app/endpoint/os/socket/udp.cpp
+    app/endpoint/os/fd.cpp
+    app/endpoint/os/ip/address.cpp
+    app/endpoint/sd/event/loop.cpp
+    app/endpoint/sd/event/source.cpp
+  )
+else()
+  message(STATUS "bnl: Not building HTTP/3 client because systemd dependency is missing.")
+endif()

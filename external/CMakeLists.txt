@@ -75,3 +75,11 @@ FetchContent_Declare(
 reproc_MakeAvailable(boringssl)
 
 target_include_directories(ssl SYSTEM PUBLIC ${boringssl_SOURCE_DIR}/include)
+
+## systemd ##
+
+find_package(PkgConfig)
+
+if(PkgConfig_FOUND)
+  pkg_check_modules(systemd IMPORTED_TARGET GLOBAL systemd)
+endif()
