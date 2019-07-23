@@ -3,7 +3,6 @@
 #include <os/error.hpp>
 
 #include <bnl/base/error.hpp>
-#include <bnl/base/scope_exit.hpp>
 #include <bnl/util/error.hpp>
 
 #include <arpa/inet.h>
@@ -106,7 +105,7 @@ make_socket(ip::endpoint peer, const log::api *logger_)
     THROW_SYSTEM(setsocktop, errno);
   }
 
-  return fd;
+  return success(std::move(fd));
 }
 
 namespace os {
