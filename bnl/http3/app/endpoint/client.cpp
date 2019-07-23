@@ -223,7 +223,7 @@ result<void>
 client::error(system_code sc)
 {
   LOG_E("{}", sc.message());
-  return sc;
+  return failure(std::move(sc));
 }
 
 result<void>
