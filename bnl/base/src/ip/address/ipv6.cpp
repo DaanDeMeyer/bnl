@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ostream>
 
 namespace bnl {
 namespace ipv6 {
@@ -21,6 +22,13 @@ base::buffer_view
 address::bytes() const noexcept
 {
   return { bytes_.data(), bytes_.size() };
+}
+
+std::ostream &
+operator<<(std::ostream &os, const address &address)
+{
+  (void) address;
+  return os << "Printing ipv6 is hard";
 }
 
 }

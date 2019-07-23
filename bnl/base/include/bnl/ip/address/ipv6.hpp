@@ -26,5 +26,8 @@ private:
   std::array<uint8_t, size> bytes_ = {};
 };
 
+BNL_BASE_EXPORT
+std::ostream &operator<<(std::ostream &os, const address &address);
+
 }
 }

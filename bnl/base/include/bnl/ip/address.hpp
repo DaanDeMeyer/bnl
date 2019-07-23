@@ -4,6 +4,8 @@
 #include <bnl/ip/address/ipv4.hpp>
 #include <bnl/ip/address/ipv6.hpp>
 
+#include <iosfwd>
+
 namespace bnl {
 namespace ip {
 
@@ -22,6 +24,9 @@ public:
   operator type() const noexcept; // NOLINT
 
   base::buffer_view bytes() const noexcept;
+
+  friend std::ostream &operator<<(std::ostream &os, const address &address);
+  friend bool operator==(const address &lhs, const address &rhs);
 
 private:
   type type_;

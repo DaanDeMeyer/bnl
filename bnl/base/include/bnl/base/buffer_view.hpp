@@ -29,6 +29,9 @@ public:
   const uint8_t *begin() const noexcept;
   const uint8_t *end() const noexcept;
 
+  uint8_t operator[](size_t index) const noexcept;
+  uint8_t operator*() const noexcept;
+
 private:
   const uint8_t *data_ = nullptr;
   size_t size_ = 0;

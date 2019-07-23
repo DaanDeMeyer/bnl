@@ -3,6 +3,8 @@
 #include <bnl/base/string.hpp>
 #include <bnl/base/string_view.hpp>
 
+#include <iosfwd>
+
 namespace bnl {
 namespace ip {
 
@@ -10,6 +12,7 @@ class BNL_BASE_EXPORT host {
 public:
   host() = default;
   host(std::string name) noexcept; // NOLINT
+  host(const char *name) noexcept; // NOLINT
 
   host(const host &) = default;
   host &operator=(const host &) = default;
@@ -22,6 +25,9 @@ public:
 private:
   base::string name_;
 };
+
+BNL_BASE_EXPORT std::ostream &
+operator<<(std::ostream &os, const host &host);
 
 }
 }

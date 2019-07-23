@@ -41,6 +41,17 @@ buffer_view::end() const noexcept
   return data() + size();
 }
 
+uint8_t buffer_view::operator[](size_t index) const noexcept
+{
+  assert(index < size());
+  return data()[index];
+}
+
+uint8_t buffer_view::operator*() const noexcept
+{
+  return operator[](0);
+}
+
 bool
 operator==(buffer_view lhs, buffer_view rhs) noexcept
 {

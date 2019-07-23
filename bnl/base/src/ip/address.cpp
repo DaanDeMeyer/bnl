@@ -62,5 +62,25 @@ address::bytes() const noexcept
   return {};
 }
 
+std::ostream &
+operator<<(std::ostream &os, const address &address)
+{
+  switch (address) {
+    case address::type::ipv4:
+      return os << address.ipv4_;
+    case address::type::ipv6:
+      return os << address.ipv6_;
+  }
+
+  assert(false);
+  return os;
+}
+
+bool
+operator==(const address &lhs, const address &rhs)
+{
+  return lhs.bytes() == rhs.bytes();
+}
+
 }
 }

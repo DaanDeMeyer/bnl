@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstdint>
+#include <iosfwd>
 
 namespace bnl {
 namespace ipv4 {
@@ -26,6 +27,10 @@ public:
 private:
   std::array<uint8_t, size> bytes_ = {};
 };
+
+BNL_BASE_EXPORT
+std::ostream &
+operator<<(std::ostream &os, const address &address);
 
 }
 }
