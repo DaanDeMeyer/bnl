@@ -988,7 +988,6 @@ connection::submit_crypto_data(crypto::level level, base::buffer_view data)
 result<base::buffer>
 connection::write_pkt()
 {
-  LOG_D("write_pkt");
   ngtcp2_path_storage path = make_path(path_);
 
   // TODO: Handle IPV6
@@ -1009,13 +1008,11 @@ connection::write_pkt()
   }
 
   return base::buffer(storage.data(), static_cast<size_t>(rv));
-  ;
 }
 
 result<std::pair<base::buffer, size_t>>
 connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
 {
-  LOG_D("write_stream");
   std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage = {};
 
   ssize_t stream_data_written = 0;
