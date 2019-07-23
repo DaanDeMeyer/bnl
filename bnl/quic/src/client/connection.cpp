@@ -7,13 +7,14 @@ namespace bnl {
 namespace quic {
 namespace client {
 
-connection::connection(path path,
+connection::connection(const ip::host &host,
+                       path path,
                        const params &params,
                        clock clock,
                        const log::api *logger) noexcept
   : prng_(std::random_device()())
   , ngtcp2_(path, params, this, std::move(clock), prng_, logger)
-  , handshake_(ngtcp2_.dcid(), &ngtcp2_, logger)
+  , handshake_(host, ngtcp2_.dcid(), &ngtcp2_, logger)
   , path_(path)
   , logger_(logger)
 {}

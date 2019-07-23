@@ -26,7 +26,8 @@ namespace client {
 
 class BNL_QUIC_EXPORT connection {
 public:
-  connection(path path,
+  connection(const ip::host &host,
+             path path,
              const params &params,
              clock clock,
              const log::api *logger) noexcept;

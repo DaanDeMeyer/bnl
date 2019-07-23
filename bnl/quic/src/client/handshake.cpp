@@ -124,7 +124,8 @@ send_alert_cb(SSL *ssl, ssl_encryption_level_t level, uint8_t alert)
   return 1;
 }
 
-handshake::handshake(base::buffer_view dcid,
+handshake::handshake(const ip::host &host,
+                     base::buffer_view dcid,
                      ngtcp2::connection *ngtcp2,
                      const log::api *logger)
   : ssl_(ssl_new(this), SSL_free)
@@ -135,7 +136,7 @@ handshake::handshake(base::buffer_view dcid,
   , ngtcp2_(ngtcp2)
   , logger_(logger)
 {
-  init(dcid).assume_value();
+  init(host, dcid).assume_value();
   // TODO: re-enable exceptions
 }
 
@@ -148,7 +149,7 @@ handshake::~handshake() noexcept = default;
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#initial-secrets
 result<void>
-handshake::init(base::buffer_view dcid)
+handshake::init(const ip::host &host, base::buffer_view dcid)
 {
   // Initial Keys
 
@@ -187,8 +188,8 @@ handshake::init(base::buffer_view dcid)
 
   // SNI
 
-  // TODO: Set actual hostname
-  SSL_set_tlsext_host_name(ssl_.get(), "localhost");
+  base::string hostname(host.name().data(), host.name().size());
+  SSL_set_tlsext_host_name(ssl_.get(), hostname.c_str());
 
   // Transport Parameters
 
