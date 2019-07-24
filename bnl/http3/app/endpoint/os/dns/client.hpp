@@ -21,7 +21,7 @@ class client {
 public:
   client(const log::api *logger);
 
-  result<std::vector<ip::address>> resolve(ip::host host);
+  result<std::vector<ip::address>> resolve(const ip::host &host);
 
 private:
   const log::api *logger_;

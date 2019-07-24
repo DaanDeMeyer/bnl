@@ -2,9 +2,9 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/buffers.hpp>
+#include <bnl/ip/host.hpp>
 #include <bnl/quic/crypto.hpp>
 #include <bnl/quic/export.hpp>
-#include <bnl/ip/host.hpp>
 
 #include <memory>
 
@@ -27,7 +27,8 @@ class connection;
 
 class BNL_QUIC_EXPORT handshake {
 public:
-  handshake(const ip::host &host, base::buffer_view dcid,
+  handshake(const ip::host &host,
+            base::buffer_view dcid,
             ngtcp2::connection *ngtcp2,
             const log::api *logger);
 

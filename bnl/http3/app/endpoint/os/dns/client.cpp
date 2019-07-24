@@ -35,7 +35,7 @@ client::client(const log::api *logger)
 {}
 
 result<std::vector<ip::address>>
-client::resolve(ip::host host)
+client::resolve(const ip::host &host)
 {
   base::string name(host.name().data(), host.name().size());
 
