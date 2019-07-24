@@ -81,5 +81,5 @@ target_include_directories(ssl SYSTEM PUBLIC ${boringssl_SOURCE_DIR}/include)
 find_package(PkgConfig)
 
 if(PKG_CONFIG_FOUND)
-  pkg_check_modules(systemd REQUIRED IMPORTED_TARGET GLOBAL systemd)
+  pkg_check_modules(systemd IMPORTED_TARGET GLOBAL systemd)
 endif()

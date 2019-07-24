@@ -70,12 +70,11 @@ matrix:
       osx_image: xcode10
       env: CC=clang CXX=clang++ BNL_TIDY=OFF
 
-# Install newer CMake
+# Download CMake manually because brew is too slow and Xenial's CMake is not
+# up-to-date. Also install required libsystemd-dev dependency on Linux.
 install:
-  # Download CMake manually because brew is too slow and Xenial's CMake is not
-  # up-to-date.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      sudo apt-get install -y libsystemd-dev; # For the example HTTP/3 client.
+      sudo apt-get install -y libsystemd-dev;
       curl -sSL https://github.com/Kitware/CMake/releases/download/v3.13.5/cmake-3.13.5-Linux-x86_64.tar.gz -o cmake.tar.gz;
       sudo tar xf cmake.tar.gz --strip 1 -C /usr/local;
     else
