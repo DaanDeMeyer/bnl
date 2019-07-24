@@ -11,11 +11,6 @@ notifications:
 
 env: BNL_TIDY=ON
 
-addons:
-  apt:
-    packages:
-      - libsystemd-dev
-
 matrix:
   fast_finish: true
   include:
@@ -77,6 +72,7 @@ matrix:
 
 # Install newer CMake
 install:
+  - sudo apt-get install -y libsystemd-dev
   # Download CMake manually because brew is too slow and Xenial's CMake is not
   # up-to-date.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
