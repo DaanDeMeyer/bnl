@@ -7,8 +7,6 @@
 #include <bnl/http3/export.hpp>
 #include <bnl/result.hpp>
 
-#include <queue>
-
 namespace bnl {
 
 namespace log {
@@ -37,7 +35,7 @@ private:
 
   state state_ = state::frame;
   bool fin_ = false;
-  std::queue<base::buffer> buffers_;
+  base::buffers buffers_;
 
   frame::encoder frame_;
 

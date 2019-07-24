@@ -22,7 +22,7 @@ encoder::add(header_view header)
   }
 
   base::buffer encoded = TRY(qpack_.encode(header));
-  buffers_.emplace(std::move(encoded));
+  buffers_.push(std::move(encoded));
 
   return success();
 }
@@ -64,9 +64,7 @@ encoder::encode() noexcept
     }
 
     case state::qpack: {
-      base::buffer encoded = std::move(buffers_.front());
-      buffers_.pop();
-
+      base::buffer encoded = buffers_.pop();
       state_ = buffers_.empty() ? state::fin : state_;
 
       return encoded;

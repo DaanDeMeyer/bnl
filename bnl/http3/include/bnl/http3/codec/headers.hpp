@@ -8,8 +8,6 @@
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/header.hpp>
 
-#include <queue>
-
 namespace bnl {
 
 namespace log {
@@ -37,7 +35,7 @@ private:
   enum class state : uint8_t { idle, frame, qpack, fin };
 
   state state_ = state::idle;
-  std::queue<base::buffer> buffers_;
+  base::buffers buffers_;
 
   frame::encoder frame_;
   qpack::encoder qpack_;

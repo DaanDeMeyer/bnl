@@ -20,7 +20,7 @@ encoder::add(base::buffer body)
     THROW(connection::error::internal);
   }
 
-  buffers_.emplace(std::move(body));
+  buffers_.push(std::move(body));
 
   return success();
 }
@@ -68,9 +68,7 @@ encoder::encode() noexcept
     }
 
     case state::data: {
-      base::buffer body = std::move(buffers_.front());
-      buffers_.pop();
-
+      base::buffer body = buffers_.pop();
       state_ = fin_ && buffers_.empty() ? state::fin : state::frame;
 
       return body;
