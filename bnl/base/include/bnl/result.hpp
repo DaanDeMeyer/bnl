@@ -1,7 +1,6 @@
 #pragma once
 
-#include <outcome/experimental/status_result.hpp>
-#include <outcome/try.hpp>
+#include <outcome-experimental.hpp>
 
 namespace bnl {
 

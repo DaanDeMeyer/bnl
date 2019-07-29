@@ -1,18 +1,14 @@
 include(FetchContent)
 
-FetchContent_Declare(
-  outcome
-  URL https://github.com/ned14/outcome/releases/download/v2.1/outcome-v2.0-source-201904030000.tar.xz
+file(
+  DOWNLOAD
+  https://raw.githubusercontent.com/ned14/outcome/v2.1/single-header/outcome-experimental.hpp
+  ${PROJECT_BINARY_DIR}/_deps/outcome/outcome-experimental.hpp
 )
 
-FetchContent_GetProperties(outcome)
-if(NOT outcome_POPULATED)
-  FetchContent_Populate(outcome)
-endif()
-
 add_library(outcome INTERFACE IMPORTED GLOBAL)
-target_include_directories(outcome INTERFACE ${outcome_SOURCE_DIR}/include)
 target_compile_features(outcome INTERFACE cxx_std_14)
+target_include_directories(outcome INTERFACE ${PROJECT_BINARY_DIR}/_deps/outcome)
 
 ## doctest ##
 
