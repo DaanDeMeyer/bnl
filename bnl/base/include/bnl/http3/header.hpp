@@ -25,6 +25,8 @@ private:
   base::string_view value_;
 };
 
+BNL_BASE_EXPORT bool header_is_lowercase(header_view header) noexcept;
+
 BNL_BASE_EXPORT bool
 operator==(header_view first, header_view second) noexcept;
 BNL_BASE_EXPORT bool

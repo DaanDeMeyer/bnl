@@ -96,15 +96,15 @@ decoder::decode(Sequence &encoded)
 
     case table::fixed::type::missing: {
       base::string name = TRY(literal_.decode(lookahead, 3));
+      base::string value = TRY(literal_.decode(lookahead, 7));
 
-      if (!util::is_lowercase(name)) {
+      header = http3::header(std::move(name), std::move(value));
+
+      if (!header_is_lowercase(header)) {
         LOG_E("Header ({}) is not lowercase", name);
         THROW(error::malformed_header);
       }
 
-      base::string value = TRY(literal_.decode(lookahead, 7));
-
-      header = http3::header(std::move(name), std::move(value));
       break;
     }
 

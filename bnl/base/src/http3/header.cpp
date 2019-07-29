@@ -24,6 +24,18 @@ header_view::value() const noexcept
 }
 
 bool
+header_is_lowercase(header_view header) noexcept
+{
+  for (char character : header.name()) {
+    if (character >= 'A' && character <= 'Z') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool
 operator==(header_view first, header_view second) noexcept
 {
   return first.name() == second.name() && first.value() == second.value();

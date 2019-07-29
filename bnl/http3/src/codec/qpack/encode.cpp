@@ -29,7 +29,7 @@ encoder::count() const noexcept
 result<size_t>
 encoder::encoded_size(header_view header) const noexcept
 {
-  if (!util::is_lowercase(header.name())) {
+  if (!header_is_lowercase(header)) {
     LOG_E("Header ({}) is not lowercase", header);
     THROW(error::malformed_header);
   }
