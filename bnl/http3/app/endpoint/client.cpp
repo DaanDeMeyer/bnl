@@ -198,17 +198,27 @@ client::recv_once()
 {
   base::buffer packet = BNL_TRY(socket_.recv());
 
-  auto on_quic_event = [this](quic::event event) -> result<void> {
-    result<void> r = http3_.recv(std::move(event), on_event_);
+  quic::client::generator quic = BNL_TRY(quic_.recv(std::move(packet)));
 
-    if (!r && r.error() == base::error::finished) {
-      return sd_.exit();
+  while (quic.next()) {
+    quic::event event = BNL_TRY(quic.result());
+
+    http3::client::generator http3 = BNL_TRY(http3_.recv(std::move(event)));
+
+    while (http3.next()) {
+      http3::event event = BNL_TRY(http3.result());
+
+      result<void> r = on_event_(std::move(event));
+
+      if (!r && r.error() == base::error::finished) {
+        return sd_.exit();
+      }
+
+      if (!r) {
+        return sd_.exit(std::move(r).error());
+      }
     }
-
-    return r;
-  };
-
-  BNL_TRY(quic_.recv(std::move(packet), std::move(on_quic_event)));
+  }
 
   return success();
 }
@@ -298,12 +308,10 @@ run(int argc, char *argv[])
 
       case http3::event::type::body:
         body = base::buffer::concat(body, event.body.buffer);
-
-        if (event.body.fin) {
-          return base::error::finished;
-        }
-
         break;
+
+      case http3::event::type::finished:
+        return base::error::finished;
     }
 
     return success();

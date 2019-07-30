@@ -88,15 +88,14 @@ public:
 
   result<void> start() noexcept;
 
-  result<void> recv(quic::data data, event::handler handler);
+  result<void> recv(quic::data data);
+
+  result<event> process() noexcept;
 
 protected:
   virtual result<event> process(frame frame) noexcept = 0;
 
   const headers::decoder &headers() const noexcept;
-
-private:
-  result<event> process() noexcept;
 
 private:
   enum class state : uint8_t { closed, headers, body, fin };

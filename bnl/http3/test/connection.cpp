@@ -59,7 +59,7 @@ start(Handle &handle, const message &message)
 }
 
 template<typename Sender, typename Receiver>
-static message
+static result<message>
 transfer(Sender &sender, Receiver &receiver)
 {
   message decoded;
@@ -67,13 +67,15 @@ transfer(Sender &sender, Receiver &receiver)
   while (true) {
     result<quic::event> r = sender.send();
     if (!r) {
+      REQUIRE(r.error() == base::error::idle);
       break;
     }
 
-    REQUIRE(r);
-    REQUIRE(r.value() == quic::event::type::data);
+    auto generator = BNL_TRY(receiver.recv(std::move(r).value()));
 
-    auto handler = [&decoded](http3::event event) -> result<void> {
+    while (generator.next()) {
+      http3::event event = BNL_TRY(generator.result());
+
       switch (event) {
         case http3::event::type::settings:
           break;
@@ -85,14 +87,10 @@ transfer(Sender &sender, Receiver &receiver)
         case http3::event::type::body:
           decoded.body = base::buffer::concat(decoded.body, event.body.buffer);
           break;
+
+        case http3::event::type::finished:
+          break;
       }
-
-      return success();
-    };
-
-    {
-      bnl::result<void> x = receiver.recv(std::move(r).value(), handler);
-      REQUIRE(x);
     }
   }
 
@@ -115,7 +113,7 @@ TEST_CASE("endpoint")
   http3::request::handle request = client.request().value();
   start(request, msg);
 
-  message decoded = transfer(client, server);
+  message decoded = transfer(client, server).value();
   REQUIRE(decoded == msg);
 
   msg = { { { ":status", "200" } }, { "qsdfg" } };
@@ -123,6 +121,6 @@ TEST_CASE("endpoint")
   http3::response::handle response = server.response(request.id()).value();
   start(response, msg);
 
-  decoded = transfer(server, client);
+  decoded = transfer(server, client).value();
   REQUIRE(decoded == msg);
 }

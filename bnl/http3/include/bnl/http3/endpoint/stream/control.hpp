@@ -43,13 +43,12 @@ public:
 
   uint64_t id() const noexcept;
 
-  result<void> recv(quic::data data, event::handler handler);
+  result<void> recv(quic::data data);
+
+  result<event> process() noexcept;
 
 protected:
   virtual result<event> process(frame frame) noexcept = 0;
-
-private:
-  result<event> process() noexcept;
 
 private:
   enum class state : uint8_t { type, settings, active };

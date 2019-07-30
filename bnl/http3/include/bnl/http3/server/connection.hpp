@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bnl/http3/endpoint/generator.hpp>
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/server/stream/control.hpp>
@@ -17,6 +18,10 @@ using handle = endpoint::stream::request::sender::handle;
 
 namespace server {
 
+class connection;
+
+using generator = endpoint::generator<connection>;
+
 class BNL_HTTP3_EXPORT connection {
 public:
   connection() = default;
@@ -26,12 +31,16 @@ public:
 
   result<quic::event> send() noexcept;
 
-  result<void> recv(quic::event event, event::handler handler);
+  result<generator> recv(quic::event event);
 
   result<response::handle> response(uint64_t id);
 
 private:
-  result<void> recv(quic::data data, event::handler handler);
+  friend generator;
+
+  result<void> recv(quic::data data);
+
+  result<event> process(uint64_t id);
 
 private:
   using control = std::pair<server::stream::control::sender,

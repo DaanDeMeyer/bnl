@@ -18,10 +18,10 @@ class BNL_HTTP3_EXPORT receiver : public endpoint::stream::request::receiver {
 public:
   explicit receiver(uint64_t id) noexcept;
 
-private:
-  result<event> process(frame frame) noexcept final;
+  using endpoint::stream::request::receiver::process;
 
 private:
+  result<event> process(frame frame) noexcept final;
 };
 
 }

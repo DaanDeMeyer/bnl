@@ -2,7 +2,6 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/export.hpp>
-#include <bnl/base/function_view.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/http3/header.hpp>
 #include <bnl/http3/settings.hpp>
@@ -13,9 +12,7 @@ namespace http3 {
 
 class BNL_BASE_EXPORT event {
 public:
-  using handler = base::function_view<result<void>(event)>;
-
-  enum class type { settings, header, body };
+  enum class type { settings, header, body, finished };
 
   struct payload {
     using settings = http3::settings;
@@ -27,11 +24,16 @@ public:
     };
 
     using body = quic::data;
+
+    struct finished {
+      uint64_t id;
+    };
   };
 
   event(payload::settings settings) noexcept; // NOLINT
   event(payload::header header) noexcept;     // NOLINT
   event(payload::body body) noexcept;         // NOLINT
+  event(payload::finished finished) noexcept; // NOLINT
 
   event(event &&other) noexcept;
   event &operator=(event &&) = delete;
@@ -48,6 +50,7 @@ public:
     payload::settings settings;
     payload::header header;
     payload::body body;
+    payload::finished finished;
   };
 };
 

@@ -51,26 +51,13 @@ receiver::id() const noexcept
 }
 
 result<void>
-receiver::recv(quic::data data, event::handler handler)
+receiver::recv(quic::data data)
 {
   if (data.fin) {
     return connection::error::closed_critical_stream;
   }
 
   buffers_.push(std::move(data.buffer));
-
-  while (true) {
-    result<http3::event> r = process();
-    if (!r) {
-      if (r.error() == base::error::incomplete) {
-        return success();
-      }
-
-      return std::move(r).error();
-    }
-
-    BNL_TRY(handler(std::move(r).value()));
-  }
 
   return success();
 }

@@ -3,7 +3,7 @@
 namespace bnl {
 namespace http3 {
 
-event::event(payload::settings settings) noexcept
+event::event(payload::settings settings) noexcept // NOLINE
   : type_(event::type::settings)
   , settings(settings)
 {}
@@ -18,6 +18,11 @@ event::event(payload::body body) noexcept // NOLINT
   , body(std::move(body))
 {}
 
+event::event(payload::finished finished) noexcept // NOLINE
+  : type_(event::type::finished)
+  , finished(finished)
+{}
+
 event::event(event &&other) noexcept // NOLINT
   : type_(other.type_)
 {
@@ -30,6 +35,9 @@ event::event(event &&other) noexcept // NOLINT
       break;
     case event::type::body:
       new (&body) payload::body(std::move(other.body));
+      break;
+    case event::type::finished:
+      new (&finished) payload::finished(other.finished);
       break;
   }
 }
@@ -55,6 +63,9 @@ event::~event() noexcept
       break;
     case event::type::body:
       destroy(body);
+      break;
+    case event::type::finished:
+      destroy(finished);
       break;
   }
 }

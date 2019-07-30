@@ -48,39 +48,30 @@ connection::send() noexcept
   return base::error::idle;
 }
 
-result<void>
-connection::recv(quic::event event, event::handler handler)
+result<generator>
+connection::recv(quic::event event)
 {
+  uint64_t id = event.id();
+
   switch (event) {
     case quic::event::type::data:
-      return recv(std::move(event.data), handler);
+      BNL_TRY(recv(std::move(event.data)));
+      break;
     case quic::event::type::error:
       return error::not_implemented;
   }
 
-  return http3::connection::error::internal;
+  return generator(id, *this);
 }
 
 result<void>
-connection::recv(quic::data data, event::handler handler)
+connection::recv(quic::data data)
 {
   server::stream::control::receiver &control = control_.second;
 
   if (data.id == control.id()) {
-    auto control_handler = [this, handler](http3::event event) {
-      switch (event) {
-        case event::type::settings:
-          settings_.peer = event.settings;
-          break;
-        default:
-          break;
-      }
-
-      return handler(std::move(event));
-    };
-
-    return control.recv(std::move(data), control_handler);
-  }
+    return control.recv(std::move(data));
+  };
 
   auto match = requests_.find(data.id);
   if (match == requests_.end()) {
@@ -95,7 +86,31 @@ connection::recv(quic::data data, event::handler handler)
 
   server::stream::request::receiver &request = requests_.at(data.id).second;
 
-  return request.recv(std::move(data), handler);
+  return request.recv(std::move(data));
+}
+
+result<event>
+connection::process(uint64_t id)
+{
+  server::stream::control::receiver &control = control_.second;
+
+  if (id == control.id()) {
+    event event = BNL_TRY(control.process());
+
+    switch (event) {
+      case event::type::settings:
+        settings_.peer = event.settings;
+        break;
+      default:
+        break;
+    }
+
+    return success(std::move(event));
+  }
+
+  server::stream::request::receiver &request = requests_.at(id).second;
+
+  return request.process();
 }
 
 result<response::handle>

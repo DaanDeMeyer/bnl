@@ -2,6 +2,7 @@
 
 #include <bnl/http3/client/stream/control.hpp>
 #include <bnl/http3/client/stream/request.hpp>
+#include <bnl/http3/endpoint/generator.hpp>
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/quic/event.hpp>
@@ -17,6 +18,10 @@ using handle = endpoint::stream::request::sender::handle;
 
 namespace client {
 
+class connection;
+
+using generator = endpoint::generator<connection>;
+
 class BNL_HTTP3_EXPORT connection {
 public:
   connection() = default;
@@ -26,12 +31,16 @@ public:
 
   result<quic::event> send() noexcept;
 
-  result<void> recv(quic::event event, event::handler handler);
+  result<generator> recv(quic::event event);
 
   result<request::handle> request();
 
 private:
-  result<void> recv(quic::data data, event::handler handler);
+  friend generator;
+
+  result<event> process(uint64_t id);
+
+  result<void> recv(quic::data data);
 
 private:
   // Use `_t` to avoid conflict with `request` method.

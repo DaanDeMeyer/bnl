@@ -7,6 +7,24 @@ namespace bnl {
 namespace quic {
 namespace client {
 
+generator::generator(connection &connection)
+  : connection_(connection)
+{}
+
+bool
+generator::next()
+{
+  return !connection_.event_buffer_.empty();
+}
+
+bnl::result<quic::event>
+generator::result()
+{
+  bnl::result<event> result = std::move(connection_.event_buffer_.front());
+  connection_.event_buffer_.pop_front();
+  return result;
+}
+
 connection::connection(const ip::host &host,
                        path path,
                        const params &params,
@@ -15,7 +33,6 @@ connection::connection(const ip::host &host,
   , ngtcp2_(path, params, this, std::move(clock), prng_)
   , handshake_(host, ngtcp2_.dcid(), &ngtcp2_)
   , path_(path)
-
 {}
 
 result<void>
@@ -276,19 +293,16 @@ connection::send()
   return base::error::idle;
 }
 
-result<void>
-connection::recv(base::buffer_view data, event::handler handler)
+result<generator>
+connection::recv(base::buffer_view data)
 {
-  BNL_TRY(ngtcp2_.read_pkt(data));
+  result<void> r = ngtcp2_.read_pkt(data);
 
-  while (!event_buffer_.empty()) {
-    event event = std::move(event_buffer_.front());
-    event_buffer_.pop_front();
-
-    BNL_TRY(handler(std::move(event)));
+  if (!r) {
+    event_buffer_.emplace_back(std::move(r).error());
   }
 
-  return success();
+  return generator(*this);
 }
 
 result<void>

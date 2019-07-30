@@ -45,6 +45,20 @@ event::operator event::type() const noexcept
   return type_;
 }
 
+uint64_t
+event::id() const noexcept
+{
+  switch (type_) {
+    case type::data:
+      return data.id;
+    case type::error:
+      return error.id;
+  }
+
+  assert(false);
+  return 0;
+}
+
 std::ostream &
 operator<<(std::ostream &os, const event &event)
 {

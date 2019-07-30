@@ -238,7 +238,7 @@ receiver::headers() const noexcept
 }
 
 result<void>
-receiver::recv(quic::data data, event::handler handler)
+receiver::recv(quic::data data)
 {
   if (fin_received_) {
     return connection::error::internal;
@@ -246,24 +246,6 @@ receiver::recv(quic::data data, event::handler handler)
 
   fin_received_ = data.fin;
   buffers_.push(std::move(data.buffer));
-
-  while (!finished()) {
-    result<http3::event> r = process();
-
-    if (!r) {
-      if (r.error() == base::error::incomplete && fin_received_) {
-        return connection::error::malformed_frame;
-      }
-
-      if (r.error() == base::error::incomplete) {
-        return success();
-      }
-
-      return std::move(r).error();
-    }
-
-    BNL_TRY(handler(std::move(r).value()));
-  }
 
   return success();
 }
@@ -321,8 +303,12 @@ receiver::process() noexcept
     }
 
     case state::fin:
-      return connection::error::internal;
+      return event::payload::finished{ id_ };
   };
+
+  if (sc == base::error::incomplete && fin_received_) {
+    return connection::error::malformed_frame;
+  }
 
   if (sc == base::error::delegate) {
     frame frame = BNL_TRY(frame::decode(buffers_));

@@ -50,39 +50,32 @@ connection::send() noexcept
   return base::error::idle;
 }
 
-result<void>
-connection::recv(quic::event event, event::handler handler)
+result<generator>
+connection::recv(quic::event event)
 {
   BNL_LOG_T("Received QUIC event: {}", event);
 
+  uint64_t id = event.id();
+
   switch (event) {
     case quic::event::type::data:
-      return recv(std::move(event.data), handler);
+      BNL_TRY(recv(std::move(event.data)));
+      break;
     case quic::event::type::error:
       return error::not_implemented;
   }
+
+  return generator(id, *this);
 }
 
 result<void>
-connection::recv(quic::data data, event::handler handler)
+connection::recv(quic::data data)
 {
   uint64_t id = data.id;
   client::stream::control::receiver &control = control_.second;
 
   if (id == control.id()) {
-    auto control_handler = [this, handler](http3::event event) {
-      switch (event) {
-        case event::type::settings:
-          settings_.peer = event.settings;
-          break;
-        default:
-          break;
-      }
-
-      return handler(std::move(event));
-    };
-
-    return control.recv(std::move(data), control_handler);
+    return control.recv(std::move(data));
   }
 
   // TODO: Actually handle unidirectional streams.
@@ -98,13 +91,48 @@ connection::recv(quic::data data, event::handler handler)
 
   client::stream::request::receiver &request = match->second.second;
 
-  BNL_TRY(request.recv(std::move(data), handler));
+  return request.recv(std::move(data));
+}
 
-  if (request.finished()) {
+result<event>
+connection::process(uint64_t id)
+{
+  client::stream::control::receiver &control = control_.second;
+
+  if (id == control.id()) {
+    event event = BNL_TRY(control.process());
+
+    switch (event) {
+      case event::type::settings:
+        settings_.peer = event.settings;
+        break;
+      default:
+        break;
+    }
+
+    return success(std::move(event));
+  }
+
+  // TODO: Actually handle unidirectional streams.
+  if ((id & 0x2U) != 0) {
+    return base::error::incomplete;
+  }
+
+  auto match = requests_.find(id);
+  // TODO: Better error
+  if (match == requests_.end()) {
+    return http3::connection::error::internal;
+  }
+
+  client::stream::request::receiver &request = match->second.second;
+
+  event event = BNL_TRY(request.process());
+
+  if (event == event::type::finished) {
     requests_.erase(id);
   }
 
-  return success();
+  return success(std::move(event));
 }
 
 result<request::handle>
