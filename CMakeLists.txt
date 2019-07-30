@@ -23,9 +23,9 @@ add_subdirectory(external)
 if(BNL_TEST)
   # Generate the doctest implementation file.
   file(
-    WRITE
-    ${PROJECT_BINARY_DIR}/_deps/doctest/impl.cpp
-    "#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN\n#include <doctest.h>"
+    GENERATE
+    OUTPUT ${PROJECT_BINARY_DIR}/_deps/doctest/impl.cpp
+    CONTENT "#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN\n#include <doctest.h>"
   )
 
   # bnl uses the doctest testing framework. All tests are grouped inside a

@@ -1,26 +1,30 @@
 include(FetchContent)
 
-file(
-  DOWNLOAD
-  https://raw.githubusercontent.com/ned14/outcome/v2.1/single-header/outcome-experimental.hpp
-  ${PROJECT_BINARY_DIR}/_deps/outcome/outcome-experimental.hpp
-)
+if(NOT EXISTS ${FETCHCONTENT_BASE_DIR}/outcome)
+  file(
+    DOWNLOAD
+    https://raw.githubusercontent.com/ned14/outcome/v2.1/single-header/outcome-experimental.hpp
+    ${FETCHCONTENT_BASE_DIR}/outcome/outcome-experimental.hpp
+  )
+endif()
 
 add_library(outcome INTERFACE IMPORTED GLOBAL)
 target_compile_features(outcome INTERFACE cxx_std_14)
-target_include_directories(outcome INTERFACE ${PROJECT_BINARY_DIR}/_deps/outcome)
+target_include_directories(outcome INTERFACE ${FETCHCONTENT_BASE_DIR}/outcome)
 
 ## doctest ##
 
-file(
-  DOWNLOAD
-  https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
-  ${PROJECT_BINARY_DIR}/_deps/doctest/doctest.h
-)
+if(NOT EXISTS ${FETCHCONTENT_BASE_DIR}/doctest)
+  file(
+    DOWNLOAD
+    https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
+    ${FETCHCONTENT_BASE_DIR}/doctest/doctest.h
+  )
+endif()
 
 add_library(doctest INTERFACE IMPORTED GLOBAL)
 target_compile_features(doctest INTERFACE cxx_std_11)
-target_include_directories(doctest INTERFACE ${PROJECT_BINARY_DIR}/_deps/doctest)
+target_include_directories(doctest INTERFACE ${FETCHCONTENT_BASE_DIR}/doctest)
 
 ## fmt ##
 
