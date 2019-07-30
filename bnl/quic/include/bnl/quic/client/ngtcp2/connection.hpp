@@ -35,8 +35,7 @@ public:
              const params &params,
              client::connection *context,
              clock clock,
-             std::mt19937 &prng,
-             const log::api *logger);
+             std::mt19937 &prng);
 
   connection(connection &&) = default;
   connection &operator=(connection &&) = default;
@@ -271,7 +270,6 @@ private:
 
   path path_;
   clock clock_;
-  const log::api *logger_;
 };
 
 }

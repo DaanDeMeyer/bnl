@@ -2,7 +2,6 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 static constexpr uint64_t CLIENT_STREAM_CONTROL_ID = 0x02;
 static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;
@@ -13,13 +12,12 @@ namespace server {
 namespace stream {
 namespace control {
 
-sender::sender(const log::api *logger) noexcept
-  : endpoint::stream::control::sender(SERVER_STREAM_CONTROL_ID, logger)
+sender::sender() noexcept
+  : endpoint::stream::control::sender(SERVER_STREAM_CONTROL_ID)
 {}
 
-receiver::receiver(const log::api *logger) noexcept
-  : endpoint::stream::control::receiver(CLIENT_STREAM_CONTROL_ID, logger)
-  , logger_(logger)
+receiver::receiver() noexcept
+  : endpoint::stream::control::receiver(CLIENT_STREAM_CONTROL_ID)
 {}
 
 result<event>
@@ -32,11 +30,11 @@ receiver::process(frame frame) noexcept
       // TODO: Implement CANCEL_PUSH
       // TODO: Implement MAX_PUSH_ID
       // TODO: Implement PRIORITY
-      THROW(error::not_implemented);
+      return error::not_implemented;
     case frame::type::goaway:
-      THROW(http3::connection::error::unexpected_frame);
+      return http3::connection::error::unexpected_frame;
     default:
-      THROW(http3::connection::error::internal);
+      return http3::connection::error::internal;
   }
 }
 

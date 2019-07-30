@@ -21,18 +21,24 @@ include(cmake/bnl.cmake)
 add_subdirectory(external)
 
 if(BNL_TEST)
+  # Generate the doctest implementation file.
+  file(
+    WRITE
+    ${PROJECT_BINARY_DIR}/_deps/doctest/impl.cpp
+    "#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN\n#include <doctest.h>"
+  )
+
   # bnl uses the doctest testing framework. All tests are grouped inside a
   # single executable. Use `target_sources(bnl-test PRIVATE <file>)` to add
   # new tests. Tests are executed by running the build/test executable.
-  add_executable(bnl-test)
+  add_executable(bnl-test ${PROJECT_BINARY_DIR}/_deps/doctest/impl.cpp)
 
   bnl_add_common(bnl-test "")
-  target_link_libraries(bnl-test PRIVATE doctest_with_main)
+  target_link_libraries(bnl-test PRIVATE doctest)
   set_target_properties(bnl-test PROPERTIES OUTPUT_NAME test)
 endif()
 
 add_subdirectory(bnl/base)
-add_subdirectory(bnl/util)
 add_subdirectory(bnl/log)
 add_subdirectory(bnl/quic)
 add_subdirectory(bnl/http3)

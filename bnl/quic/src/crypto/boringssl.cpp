@@ -1,7 +1,6 @@
 #include <bnl/quic/crypto.hpp>
 
 #include <bnl/quic/error.hpp>
-#include <bnl/util/error.hpp>
 
 #include <openssl/aead.h>
 #include <openssl/aes.h>
@@ -57,7 +56,7 @@ crypto::hkdf_extract(base::buffer_view secret, base::buffer_view salt)
                         salt.data(),
                         salt.size());
   if (rv == 0) {
-    THROW(error::crypto);
+    return error::crypto;
   }
 
   assert(prk.size() == prk_size);
@@ -78,7 +77,7 @@ crypto::hkdf_expand(base::buffer_view prk, base::buffer_view info, size_t size)
                        info.data(),
                        info.size());
   if (rv == 0) {
-    THROW(error::crypto);
+    return error::crypto;
   }
 
   return okm;
@@ -94,7 +93,7 @@ crypto::encrypt(base::buffer_view_mut dest,
   auto context = EVP_AEAD_CTX_new(
     evp_aead(aead_), key.data(), key.size(), EVP_AEAD_DEFAULT_TAG_LENGTH);
   if (context == nullptr) {
-    THROW(error::crypto);
+    return error::crypto;
   }
 
   size_t max_size = plaintext.size() + EVP_AEAD_max_overhead(evp_aead(aead_));
@@ -114,7 +113,7 @@ crypto::encrypt(base::buffer_view_mut dest,
   EVP_AEAD_CTX_free(context);
 
   if (rv == 0) {
-    THROW(error::crypto);
+    return error::crypto;
   }
 
   assert(out_size == max_size);
@@ -132,7 +131,7 @@ crypto::decrypt(base::buffer_view_mut dest,
   auto context = EVP_AEAD_CTX_new(
     evp_aead(aead_), key.data(), key.size(), EVP_AEAD_DEFAULT_TAG_LENGTH);
   if (context == nullptr) {
-    THROW(error::crypto);
+    return error::crypto;
   }
 
   size_t max_size = dest.size();
@@ -152,7 +151,7 @@ crypto::decrypt(base::buffer_view_mut dest,
   EVP_AEAD_CTX_free(context);
 
   if (rv == 0) {
-    THROW(error::crypto);
+    return error::crypto;
   }
 
   return success();
@@ -183,7 +182,7 @@ crypto::hp_mask(base::buffer_view_mut dest,
       int rv = AES_set_encrypt_key(
         key.data(), static_cast<unsigned int>(key.size() * 8), &aes_key);
       if (rv < 0) {
-        THROW(error::crypto);
+        return error::crypto;
       }
 
       AES_ecb_encrypt(sample.data(), dest.data(), &aes_key, AES_ENCRYPT);

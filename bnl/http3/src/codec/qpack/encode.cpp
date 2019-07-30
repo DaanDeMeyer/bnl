@@ -2,8 +2,7 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
-#include <bnl/util/string.hpp>
+#include <bnl/log.hpp>
 
 #include <algorithm>
 
@@ -15,11 +14,6 @@ namespace bnl {
 namespace http3 {
 namespace qpack {
 
-encoder::encoder(const log::api *logger) noexcept
-  : literal_()
-  , logger_(logger)
-{}
-
 uint64_t
 encoder::count() const noexcept
 {
@@ -30,8 +24,8 @@ result<size_t>
 encoder::encoded_size(header_view header) const noexcept
 {
   if (!header_is_lowercase(header)) {
-    LOG_E("Header ({}) is not lowercase", header);
-    THROW(error::malformed_header);
+    BNL_LOG_E("Header ({}) is not lowercase", header);
+    return error::malformed_header;
   }
 
   size_t encoded_size = 0;
@@ -47,29 +41,29 @@ encoder::encoded_size(header_view header) const noexcept
   switch (type) {
 
     case table::fixed::type::header_value: {
-      encoded_size += prefix_int_.encoded_size(index, 6);
+      encoded_size += prefix_int::encoded_size(index, 6);
       break;
     }
 
     case table::fixed::type::header_only: {
-      encoded_size += prefix_int_.encoded_size(index, 4);
+      encoded_size += prefix_int::encoded_size(index, 4);
 
-      size_t value_encoded_size = literal_.encoded_size(header.value(), 7);
+      size_t value_encoded_size = literal::encoded_size(header.value(), 7);
       encoded_size += value_encoded_size;
       break;
     }
 
     case table::fixed::type::missing: {
-      size_t name_encoded_size = literal_.encoded_size(header.name(), 3);
+      size_t name_encoded_size = literal::encoded_size(header.name(), 3);
       encoded_size += name_encoded_size;
 
-      size_t value_encoded_size = literal_.encoded_size(header.value(), 7);
+      size_t value_encoded_size = literal::encoded_size(header.value(), 7);
       encoded_size += value_encoded_size;
       break;
     }
 
     default:
-      NOTREACHED();
+      assert(false);
   }
 
   return encoded_size;
@@ -101,27 +95,27 @@ encoder::encode(uint8_t *dest, header_view header) noexcept
 
     case table::fixed::type::header_value:
       *dest = INDEXED_HEADER_FIELD_PREFIX;
-      dest += prefix_int_.encode(dest, index, 6);
+      dest += prefix_int::encode(dest, index, 6);
       break;
 
     case table::fixed::type::header_only:
       *dest = LITERAL_WITH_NAME_REFERENCE_PREFIX;
-      dest += prefix_int_.encode(dest, index, 4);
+      dest += prefix_int::encode(dest, index, 4);
 
       *dest = LITERAL_NO_PREFIX;
-      dest += literal_.encode(dest, header.value(), 7);
+      dest += literal::encode(dest, header.value(), 7);
       break;
 
     case table::fixed::type::missing:
       *dest = LITERAL_WITHOUT_NAME_REFERENCE_PREFIX;
-      dest += literal_.encode(dest, header.name(), 3);
+      dest += literal::encode(dest, header.name(), 3);
 
       *dest = LITERAL_NO_PREFIX;
-      dest += literal_.encode(dest, header.value(), 7);
+      dest += literal::encode(dest, header.value(), 7);
       break;
 
     default:
-      NOTREACHED();
+      assert(false);
   }
 
   size_t encoded_size = static_cast<size_t>(dest - begin);
@@ -133,10 +127,10 @@ encoder::encode(uint8_t *dest, header_view header) noexcept
 result<base::buffer>
 encoder::encode(header_view header)
 {
-  size_t encoded_size = TRY(this->encoded_size(header));
+  size_t encoded_size = BNL_TRY(this->encoded_size(header));
   base::buffer encoded(encoded_size);
 
-  TRY(encode(encoded.data(), header));
+  BNL_TRY(encode(encoded.data(), header));
 
   return encoded;
 }

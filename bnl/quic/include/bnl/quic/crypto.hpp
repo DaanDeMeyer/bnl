@@ -7,11 +7,6 @@
 #include <cstddef>
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace quic {
 
 class BNL_QUIC_EXPORT crypto {
@@ -57,7 +52,7 @@ public:
   };
 
   crypto() = default;
-  crypto(aead aead, hash hash, const log::api *logger);
+  crypto(aead aead, hash hash);
 
   crypto(crypto &&) = default;
   crypto &operator=(crypto &&) = default;
@@ -115,7 +110,6 @@ private:
 private:
   aead aead_ = aead::aes_128_gcm;
   hash hash_ = hash::sha256;
-  const log::api *logger_ = nullptr;
 };
 
 std::ostream &

@@ -1,11 +1,10 @@
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/client/connection.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/http3/server/connection.hpp>
 #include <bnl/log.hpp>
-#include <bnl/util/test.hpp>
 
 #include <array>
 #include <map>
@@ -104,8 +103,8 @@ TEST_CASE("endpoint")
 {
   log::api logger;
 
-  http3::client::connection client(&logger);
-  http3::server::connection server(&logger);
+  http3::client::connection client;
+  http3::server::connection server;
 
   message msg = { { { ":method", "GET" },
                     { ":scheme", "https" },
@@ -113,7 +112,7 @@ TEST_CASE("endpoint")
                     { ":path", "index.html" } },
                   { "abcde" } };
 
-  http3::request::handle request = EXTRACT(client.request());
+  http3::request::handle request = client.request().value();
   start(request, msg);
 
   message decoded = transfer(client, server);
@@ -121,7 +120,7 @@ TEST_CASE("endpoint")
 
   msg = { { { ":status", "200" } }, { "qsdfg" } };
 
-  http3::response::handle response = EXTRACT(server.response(request.id()));
+  http3::response::handle response = server.response(request.id()).value();
   start(response, msg);
 
   decoded = transfer(server, client);

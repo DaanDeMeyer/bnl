@@ -1,20 +1,14 @@
 #include <bnl/http3/codec/frame.hpp>
 
-#include <bnl/http3/error.hpp>
-#include <bnl/util/enum.hpp>
-#include <bnl/util/error.hpp>
-
+#include <bnl/base/enum.hpp>
 #include <bnl/base/error.hpp>
+#include <bnl/http3/error.hpp>
 
 namespace bnl {
 namespace http3 {
 
-frame::encoder::encoder(const log::api *logger) noexcept
-  : varint_(logger)
-{}
-
 result<uint64_t>
-frame::encoder::payload_size(const frame &frame) const noexcept
+payload_size(const frame &frame) noexcept
 {
   uint64_t payload_size = 0;
 
@@ -32,10 +26,10 @@ frame::encoder::payload_size(const frame &frame) const noexcept
                       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-priority
 
       uint64_t prioritized_element_id = frame.priority.prioritized_element_id;
-      payload_size += TRY(varint_.encoded_size(prioritized_element_id));
+      payload_size += BNL_TRY(varint::encoded_size(prioritized_element_id));
 
       uint64_t element_dependency_id = frame.priority.element_dependency_id;
-      payload_size += TRY(varint_.encoded_size(element_dependency_id));
+      payload_size += BNL_TRY(varint::encoded_size(element_dependency_id));
 
       payload_size++; // Weight
       break;
@@ -43,7 +37,7 @@ frame::encoder::payload_size(const frame &frame) const noexcept
 
     case frame::type::cancel_push: {
       uint64_t push_id = frame.cancel_push.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id));
+      payload_size += BNL_TRY(varint::encoded_size(push_id));
       break;
     }
 
@@ -53,32 +47,32 @@ frame::encoder::payload_size(const frame &frame) const noexcept
           continue;
         }
 
-        payload_size += TRY(varint_.encoded_size(setting.first));
-        payload_size += TRY(varint_.encoded_size(setting.second));
+        payload_size += BNL_TRY(varint::encoded_size(setting.first));
+        payload_size += BNL_TRY(varint::encoded_size(setting.second));
       }
       break;
 
     case frame::type::push_promise: {
       uint64_t push_id = frame.push_promise.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id));
+      payload_size += BNL_TRY(varint::encoded_size(push_id));
       payload_size += frame.push_promise.size;
       break;
     }
 
     case frame::type::goaway: {
-      payload_size += TRY(varint_.encoded_size(frame.goaway.stream_id));
+      payload_size += BNL_TRY(varint::encoded_size(frame.goaway.stream_id));
       break;
     }
 
     case frame::type::max_push_id: {
       uint64_t push_id = frame.max_push_id.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id));
+      payload_size += BNL_TRY(varint::encoded_size(push_id));
       break;
     }
 
     case frame::type::duplicate_push:
       uint64_t push_id = frame.duplicate_push.push_id;
-      payload_size += TRY(varint_.encoded_size(push_id));
+      payload_size += BNL_TRY(varint::encoded_size(push_id));
       break;
   }
 
@@ -86,9 +80,9 @@ frame::encoder::payload_size(const frame &frame) const noexcept
 }
 
 result<size_t>
-frame::encoder::encoded_size(const frame &frame) const noexcept
+frame::encoded_size(const frame &frame) noexcept
 {
-  uint64_t payload_size = TRY(this->payload_size(frame));
+  uint64_t payload_size = BNL_TRY(http3::payload_size(frame));
   size_t payload_encoded_size = 0;
 
   // `payload_size` includes the size of the DATA frame payload and
@@ -103,7 +97,7 @@ frame::encoder::encoded_size(const frame &frame) const noexcept
 
     case frame::type::push_promise: {
       uint64_t push_id = frame.push_promise.push_id;
-      payload_encoded_size = TRY(varint_.encoded_size(push_id));
+      payload_encoded_size = BNL_TRY(varint::encoded_size(push_id));
       break;
     }
 
@@ -117,25 +111,25 @@ frame::encoder::encoded_size(const frame &frame) const noexcept
 
   size_t encoded_size = 0;
 
-  uint64_t type = util::to_underlying(frame.type_);
-  encoded_size += TRY(varint_.encoded_size(type));
-  encoded_size += TRY(varint_.encoded_size(payload_size));
+  uint64_t type = enumeration::value(frame.type_);
+  encoded_size += BNL_TRY(varint::encoded_size(type));
+  encoded_size += BNL_TRY(varint::encoded_size(payload_size));
   encoded_size += payload_encoded_size;
 
   return encoded_size;
 }
 
 result<size_t>
-frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
+frame::encode(uint8_t *dest, const frame &frame) noexcept
 {
   assert(dest != nullptr);
 
   uint8_t *begin = dest;
 
-  uint64_t payload_size = TRY(this->payload_size(frame));
+  uint64_t payload_size = BNL_TRY(http3::payload_size(frame));
 
-  dest += TRY(varint_.encode(dest, util::to_underlying(frame.type_)));
-  dest += TRY(varint_.encode(dest, payload_size));
+  dest += BNL_TRY(varint::encode(dest, enumeration::value(frame.type_)));
+  dest += BNL_TRY(varint::encode(dest, payload_size));
 
   switch (frame) {
     case frame::type::data:
@@ -144,9 +138,9 @@ frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
       break;
     case frame::type::priority: {
       uint8_t prioritized_element_type =
-        util::to_underlying(frame.priority.prioritized_element_type);
+        enumeration::value(frame.priority.prioritized_element_type);
       uint8_t element_dependency_type =
-        util::to_underlying(frame.priority.element_dependency_type);
+        enumeration::value(frame.priority.element_dependency_type);
 
       uint8_t byte = 0;
       byte = static_cast<uint8_t>(
@@ -160,14 +154,14 @@ frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
       uint64_t prioritized_element_id = frame.priority.prioritized_element_id;
       uint64_t element_dependency_id = frame.priority.element_dependency_id;
 
-      dest += TRY(varint_.encode(dest, prioritized_element_id));
-      dest += TRY(varint_.encode(dest, element_dependency_id));
+      dest += BNL_TRY(varint::encode(dest, prioritized_element_id));
+      dest += BNL_TRY(varint::encode(dest, element_dependency_id));
 
       *dest++ = frame.priority.weight;
       break;
     }
     case frame::type::cancel_push:
-      dest += TRY(varint_.encode(dest, frame.cancel_push.push_id));
+      dest += BNL_TRY(varint::encode(dest, frame.cancel_push.push_id));
       break;
     case frame::type::settings:
       for (auto setting : frame.settings.array()) {
@@ -175,21 +169,21 @@ frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
           continue;
         }
 
-        dest += TRY(varint_.encode(dest, setting.first));
-        dest += TRY(varint_.encode(dest, setting.second));
+        dest += BNL_TRY(varint::encode(dest, setting.first));
+        dest += BNL_TRY(varint::encode(dest, setting.second));
       }
       break;
     case frame::type::push_promise:
-      dest += TRY(varint_.encode(dest, frame.push_promise.push_id));
+      dest += BNL_TRY(varint::encode(dest, frame.push_promise.push_id));
       break;
     case frame::type::goaway:
-      dest += TRY(varint_.encode(dest, frame.goaway.stream_id));
+      dest += BNL_TRY(varint::encode(dest, frame.goaway.stream_id));
       break;
     case frame::type::max_push_id:
-      dest += TRY(varint_.encode(dest, frame.max_push_id.push_id));
+      dest += BNL_TRY(varint::encode(dest, frame.max_push_id.push_id));
       break;
     case frame::type::duplicate_push:
-      dest += TRY(varint_.encode(dest, frame.duplicate_push.push_id));
+      dest += BNL_TRY(varint::encode(dest, frame.duplicate_push.push_id));
       break;
   }
 
@@ -197,12 +191,12 @@ frame::encoder::encode(uint8_t *dest, const frame &frame) const noexcept
 }
 
 result<base::buffer>
-frame::encoder::encode(const frame &frame) const
+frame::encode(const frame &frame)
 {
-  size_t encoded_size = TRY(this->encoded_size(frame));
+  size_t encoded_size = BNL_TRY(frame::encoded_size(frame));
   base::buffer encoded(encoded_size);
 
-  TRY(encode(encoded.data(), frame));
+  BNL_TRY(encode(encoded.data(), frame));
 
   return encoded;
 }

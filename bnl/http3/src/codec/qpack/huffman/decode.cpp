@@ -28,8 +28,6 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/enum.hpp>
-#include <bnl/util/error.hpp>
 
 #include "decode_generated.cpp"
 
@@ -38,46 +36,9 @@ namespace http3 {
 namespace qpack {
 namespace huffman {
 
-decoder::decoder(const log::api *logger) noexcept
-  : logger_(logger)
-{}
-
-template<typename Sequence>
-result<base::string>
-decoder::decode(Sequence &encoded, size_t encoded_size) const
-{
-  size_t decoded_size = TRY(this->decoded_size(encoded, encoded_size));
-  base::string decoded;
-  decoded.resize(decoded_size);
-
-  char *dest = &decoded[0];
-  uint8_t state = 0;
-
-  for (size_t i = 0; i < encoded_size; ++i) {
-    const decode::node &first = decode::table[state][encoded[i] >> 4U];
-
-    if ((first.flags & util::to_underlying(decode::flag::symbol)) != 0) {
-      *dest++ = static_cast<char>(first.symbol);
-    }
-
-    const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
-
-    if ((second.flags & util::to_underlying(decode::flag::symbol)) != 0) {
-      *dest++ = static_cast<char>(second.symbol);
-    }
-
-    state = second.state;
-  }
-
-  encoded.consume(encoded_size);
-
-  return decoded;
-}
-
 template<typename Lookahead>
 result<size_t>
-decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
-  noexcept
+decoded_size(const Lookahead &encoded, size_t encoded_size) noexcept
 {
   if (encoded.size() < encoded_size) {
     return base::error::incomplete;
@@ -88,37 +49,71 @@ decoder::decoded_size(const Lookahead &encoded, size_t encoded_size) const
   bool accept = false;
 
   for (size_t i = 0; i < encoded_size; i++) {
-    const decode::node &first = decode::table[state][encoded[i] >> 4U];
+    const decoding::node &first = decoding::table[state][encoded[i] >> 4U];
 
-    bool failed = (first.flags & decode::flag::failed) != 0;
+    bool failed = (first.flags & decoding::flag::failed) != 0;
     if (failed) {
-      THROW(connection::error::qpack_decompression_failed);
+      return connection::error::qpack_decompression_failed;
     }
 
-    if ((first.flags & decode::flag::symbol) != 0) {
+    if ((first.flags & decoding::flag::symbol) != 0) {
       decoded_size++;
     }
 
-    const decode::node &second = decode::table[first.state][encoded[i] & 0xfU];
+    const decoding::node &second =
+      decoding::table[first.state][encoded[i] & 0xfU];
 
-    failed = (second.flags & decode::flag::failed) != 0;
+    failed = (second.flags & decoding::flag::failed) != 0;
     if (failed) {
-      THROW(connection::error::qpack_decompression_failed);
+      return connection::error::qpack_decompression_failed;
     }
 
-    if ((second.flags & decode::flag::symbol) != 0) {
+    if ((second.flags & decoding::flag::symbol) != 0) {
       decoded_size++;
     }
 
     state = second.state;
-    accept = (second.flags & decode::flag::accepted) != 0;
+    accept = (second.flags & decoding::flag::accepted) != 0;
   }
 
   if (!accept) {
-    THROW(connection::error::qpack_decompression_failed);
+    return connection::error::qpack_decompression_failed;
   }
 
   return decoded_size;
+}
+
+template<typename Sequence>
+result<base::string>
+decode(Sequence &encoded, size_t encoded_size)
+{
+  size_t decoded_size = BNL_TRY(huffman::decoded_size(encoded, encoded_size));
+  base::string decoded;
+  decoded.resize(decoded_size);
+
+  char *dest = &decoded[0];
+  uint8_t state = 0;
+
+  for (size_t i = 0; i < encoded_size; ++i) {
+    const decoding::node &first = decoding::table[state][encoded[i] >> 4U];
+
+    if ((first.flags & decoding::flag::symbol) != 0) {
+      *dest++ = static_cast<char>(first.symbol);
+    }
+
+    const decoding::node &second =
+      decoding::table[first.state][encoded[i] & 0xfU];
+
+    if ((second.flags & decoding::flag::symbol) != 0) {
+      *dest++ = static_cast<char>(second.symbol);
+    }
+
+    state = second.state;
+  }
+
+  encoded.consume(encoded_size);
+
+  return decoded;
 }
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_QPACK_HUFFMAN_DECODE_IMPL);

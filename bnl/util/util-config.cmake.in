@@ -1,6 +1,0 @@
-@PACKAGE_INIT@
-
-include(CMakeFindDependencyMacro)
-find_dependency(bnl-base REQUIRED)
-
-include(${CMAKE_CURRENT_LIST_DIR}/@TARGET@-targets.cmake)

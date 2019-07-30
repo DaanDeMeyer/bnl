@@ -5,7 +5,7 @@ namespace bnl {
 namespace http3 {
 namespace qpack {
 namespace huffman {
-namespace encode {
+namespace encoding {
 
 struct symbol {
   uint32_t code;

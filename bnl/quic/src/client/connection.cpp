@@ -1,7 +1,7 @@
 #include <bnl/quic/client/connection.hpp>
 
 #include <bnl/base/error.hpp>
-#include <bnl/util/error.hpp>
+#include <bnl/log.hpp>
 
 namespace bnl {
 namespace quic {
@@ -10,26 +10,25 @@ namespace client {
 connection::connection(const ip::host &host,
                        path path,
                        const params &params,
-                       clock clock,
-                       const log::api *logger) noexcept
+                       clock clock) noexcept
   : prng_(std::random_device()())
-  , ngtcp2_(path, params, this, std::move(clock), prng_, logger)
-  , handshake_(host, ngtcp2_.dcid(), &ngtcp2_, logger)
+  , ngtcp2_(path, params, this, std::move(clock), prng_)
+  , handshake_(host, ngtcp2_.dcid(), &ngtcp2_)
   , path_(path)
-  , logger_(logger)
+
 {}
 
 result<void>
 connection::client_initial()
 {
-  LOG_T("handshake: client initial");
+  BNL_LOG_T("handshake: client initial");
   return handshake_.send();
 }
 
 result<void>
 connection::recv_crypto_data(crypto::level level, base::buffer_view data)
 {
-  LOG_T("handshake: recv crypto data: {}", data.size());
+  BNL_LOG_T("handshake: recv crypto data: {}", data.size());
 
   result<void> r = handshake_.recv(level, data);
 
@@ -43,7 +42,7 @@ connection::recv_crypto_data(crypto::level level, base::buffer_view data)
 void
 connection::handshake_completed()
 {
-  LOG_I("handshake: finished");
+  BNL_LOG_I("handshake: finished");
 }
 
 void
@@ -58,7 +57,7 @@ connection::recv_stream_data(uint64_t id, bool fin, base::buffer_view data)
 result<void>
 connection::acked_crypto_offset(crypto::level level, size_t size)
 {
-  LOG_T("handshake: acked crypto offset: {}", size);
+  BNL_LOG_T("handshake: acked crypto offset: {}", size);
   return handshake_.ack(level, size);
 }
 
@@ -67,12 +66,12 @@ connection::acked_stream_data_offset(uint64_t id, size_t size)
 {
   auto match = streams_.find(id);
   if (match == streams_.end()) {
-    LOG_E("ngtcp2 acked data for stream {} which does not exist", id);
-    THROW(quic::connection::error::internal);
+    BNL_LOG_E("ngtcp2 acked data for stream {} which does not exist", id);
+    return quic::connection::error::internal;
   }
 
   stream &stream = match->second;
-  TRY(stream.ack(size));
+  BNL_TRY(stream.ack(size));
 
   if (stream.finished()) {
     streams_.erase(id);
@@ -84,13 +83,13 @@ connection::acked_stream_data_offset(uint64_t id, size_t size)
 void
 connection::stream_opened(uint64_t id)
 {
-  LOG_I("stream opened: {}", id);
+  BNL_LOG_I("stream opened: {}", id);
 }
 
 void
 connection::stream_closed(uint64_t id, uint64_t error)
 {
-  LOG_I("stream closed: {} (reason: {})", id, error);
+  BNL_LOG_I("stream closed: {} (reason: {})", id, error);
 }
 
 void
@@ -100,7 +99,7 @@ connection::stream_reset(uint64_t id, uint64_t final_size, uint64_t error)
 
   event_buffer_.emplace_back(
     event::payload::error{ application::error::rst_stream, id, error });
-  LOG_I("Stream reset: {} (reason: {})", id, error);
+  BNL_LOG_I("Stream reset: {} (reason: {})", id, error);
 }
 
 result<void>
@@ -110,9 +109,9 @@ connection::recv_stateless_reset(base::buffer_view bytes,
   (void) bytes;
   (void) token;
 
-  LOG_T("received stateless reset");
+  BNL_LOG_T("received stateless reset");
 
-  THROW(error::not_implemented);
+  return error::not_implemented;
 }
 
 result<void>
@@ -120,15 +119,15 @@ connection::recv_retry(base::buffer_view dcid)
 {
   (void) dcid;
 
-  LOG_T("received retry");
+  BNL_LOG_T("received retry");
 
-  THROW(error::not_implemented);
+  return error::not_implemented;
 }
 
 void
 connection::extend_max_local_streams_bidi(uint64_t max_streams)
 {
-  LOG_T("max local bidi streams: {}", max_streams);
+  BNL_LOG_T("max local bidi streams: {}", max_streams);
 
   max_local_bidi_streams_ = max_streams;
 }
@@ -136,7 +135,7 @@ connection::extend_max_local_streams_bidi(uint64_t max_streams)
 void
 connection::extend_max_local_streams_uni(uint64_t max_streams)
 {
-  LOG_T("max local uni streams: {}", max_streams);
+  BNL_LOG_T("max local uni streams: {}", max_streams);
 
   max_local_uni_streams_ = max_streams;
 }
@@ -144,7 +143,7 @@ connection::extend_max_local_streams_uni(uint64_t max_streams)
 void
 connection::extend_max_remote_streams_bidi(uint64_t max_streams)
 {
-  LOG_I("max remote bidi streams: {}", max_streams);
+  BNL_LOG_I("max remote bidi streams: {}", max_streams);
 
   max_remote_bidi_streams_ = max_streams;
 }
@@ -152,7 +151,7 @@ connection::extend_max_remote_streams_bidi(uint64_t max_streams)
 void
 connection::extend_max_remote_streams_uni(uint64_t max_streams)
 {
-  LOG_I("max remote uni streams: {}", max_streams);
+  BNL_LOG_I("max remote uni streams: {}", max_streams);
 
   max_remote_uni_streams_ = max_streams;
 }
@@ -199,7 +198,7 @@ connection::path_validation(base::buffer_view local,
   (void) peer;
 
   if (!succeeded) {
-    THROW(error::path_validation);
+    return error::path_validation;
   }
 
   return success();
@@ -236,13 +235,13 @@ connection::select_preferred_address(base::buffer_view_mut dest,
 void
 connection::extend_max_stream_data(uint64_t id, uint64_t max_data)
 {
-  LOG_I("stream ({}) max data: {}", id, max_data);
+  BNL_LOG_I("stream ({}) max data: {}", id, max_data);
 }
 
 result<base::buffer>
 connection::send()
 {
-  TRY(handshake_.send());
+  BNL_TRY(handshake_.send());
 
   {
     result<base::buffer> r = ngtcp2_.write_pkt();
@@ -280,13 +279,13 @@ connection::send()
 result<void>
 connection::recv(base::buffer_view data, event::handler handler)
 {
-  TRY(ngtcp2_.read_pkt(data));
+  BNL_TRY(ngtcp2_.read_pkt(data));
 
   while (!event_buffer_.empty()) {
     event event = std::move(event_buffer_.front());
     event_buffer_.pop_front();
 
-    TRY(handler(std::move(event)));
+    BNL_TRY(handler(std::move(event)));
   }
 
   return success();
@@ -299,10 +298,11 @@ connection::add(event event)
     case event::type::data:
       return add(std::move(event.data));
     case event::type::error:
-      THROW(error::not_implemented);
+      return error::not_implemented;
   }
 
-  NOTREACHED();
+  assert(false);
+  return success();
 }
 
 result<void>
@@ -311,15 +311,15 @@ connection::add(quic::data data) // NOLINT
   auto match = streams_.find(data.id);
 
   if (match == streams_.end()) {
-    stream stream(data.id, &ngtcp2_, logger_);
+    stream stream(data.id, &ngtcp2_);
     streams_.insert(std::make_pair(data.id, std::move(stream)));
   }
 
   stream &stream = streams_.at(data.id);
-  TRY(stream.add(std::move(data.buffer)));
+  BNL_TRY(stream.add(std::move(data.buffer)));
 
   if (data.fin) {
-    TRY(stream.fin());
+    BNL_TRY(stream.fin());
   }
 
   return success();
@@ -347,12 +347,6 @@ result<crypto>
 connection::crypto() const noexcept
 {
   return handshake_.negotiated_crypto();
-}
-
-const log::api *
-connection::logger() const noexcept
-{
-  return logger_;
 }
 
 }

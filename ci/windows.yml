@@ -44,6 +44,5 @@ jobs:
           set PATH=$(Build.SourcesDirectory)\build\bnl\base\lib;%PATH%
           set PATH=$(Build.SourcesDirectory)\build\bnl\http3\lib;%PATH%
           set PATH=$(Build.SourcesDirectory)\build\bnl\log\lib;%PATH%
-          set PATH=$(Build.SourcesDirectory)\build\bnl\util\lib;%PATH%
           build\test
         displayName: Test

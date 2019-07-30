@@ -15,18 +15,10 @@
 // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#rfc.section.4
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace http3 {
 
 class BNL_HTTP3_EXPORT frame {
 public:
-  class encoder;
-  class decoder;
-
   enum class type : uint64_t {
     data = 0x0,
     headers = 0x1,
@@ -108,6 +100,18 @@ public:
 
   operator type() const noexcept; // NOLINT
 
+  static result<size_t> encoded_size(const frame &frame) noexcept;
+
+  static result<size_t> encode(uint8_t *dest, const frame &frame) noexcept;
+
+  static result<base::buffer> encode(const frame &frame);
+
+  template<typename Sequence>
+  static result<frame::type> peek(const Sequence &encoded) noexcept;
+
+  template<typename Sequence>
+  static result<frame> decode(Sequence &encoded) noexcept;
+
 private:
   const type type_;
 
@@ -136,59 +140,13 @@ BNL_HTTP3_EXPORT
 std::ostream &
 operator<<(std::ostream &os, const frame &frame);
 
-class BNL_HTTP3_EXPORT frame::encoder {
-public:
-  explicit encoder(const log::api *logger) noexcept;
-
-  encoder(encoder &&) = default;
-  encoder &operator=(encoder &&) = default;
-
-  result<size_t> encoded_size(const frame &frame) const noexcept;
-
-  result<size_t> encode(uint8_t *dest, const frame &frame) const noexcept;
-
-  result<base::buffer> encode(const frame &frame) const;
-
-private:
-  result<uint64_t> payload_size(const frame &frame) const noexcept;
-
-private:
-  varint::encoder varint_;
-};
-
-class BNL_HTTP3_EXPORT frame::decoder {
-public:
-  explicit decoder(const log::api *logger) noexcept;
-
-  decoder(decoder &&) = default;
-  decoder &operator=(decoder &&) = default;
-
-  template<typename Sequence>
-  result<frame::type> peek(const Sequence &encoded) const noexcept;
-
-  template<typename Sequence>
-  result<frame> decode(Sequence &encoded) const noexcept;
-
-private:
-  template<typename Lookahead>
-  result<frame> decode_single(Lookahead &lookahead) const noexcept;
-
-  template<typename Lookahead>
-  result<uint8_t> uint8_decode(Lookahead &lookahead) const noexcept;
-
-private:
-  varint::decoder varint_;
-
-  const log::api *logger_;
-};
-
 #define BNL_HTTP3_FRAME_PEEK_IMPL(T)                                           \
-  template BNL_HTTP3_EXPORT result<frame::type> frame::decoder::peek<T>(       \
-    const T &) const noexcept // NOLINT
+  template BNL_HTTP3_EXPORT result<frame::type> frame::peek<T>(                \
+    const T &) noexcept // NOLINT
 
 #define BNL_HTTP3_FRAME_DECODE_IMPL(T)                                         \
-  template BNL_HTTP3_EXPORT result<frame> frame::decoder::decode<T>(           \
-    T &) /* NOLINT */ const noexcept
+  template BNL_HTTP3_EXPORT result<frame> frame::decode<T>(                    \
+    T &) /* NOLINT */ noexcept
 
 BNL_BASE_SEQUENCE_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);
 BNL_BASE_LOOKAHEAD_DECL(BNL_HTTP3_FRAME_PEEK_IMPL);

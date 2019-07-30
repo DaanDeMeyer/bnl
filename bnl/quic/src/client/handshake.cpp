@@ -1,10 +1,10 @@
 #include <bnl/quic/client/handshake.hpp>
 
+#include <bnl/base/enum.hpp>
 #include <bnl/base/error.hpp>
+#include <bnl/log.hpp>
 #include <bnl/quic/client/ngtcp2/connection.hpp>
 #include <bnl/quic/error.hpp>
-#include <bnl/util/enum.hpp>
-#include <bnl/util/error.hpp>
 
 #include <openssl/ssl.h>
 
@@ -32,7 +32,7 @@ ssl_new(handshake *handshake)
 
   return ssl;
 }
-  
+
 static ssl_encryption_level_t
 make_crypto_level(crypto::level level)
 {
@@ -120,15 +120,14 @@ send_alert_cb(SSL *ssl, ssl_encryption_level_t level, uint8_t alert)
 
 handshake::handshake(const ip::host &host,
                      base::buffer_view dcid,
-                     ngtcp2::connection *ngtcp2,
-                     const log::api *logger)
+                     ngtcp2::connection *ngtcp2)
   : ssl_(ssl_new(this), SSL_free)
   , ssl_quic_method_(new SSL_QUIC_METHOD{ set_encryption_secrets_cb,
                                           add_handshake_data_cb,
                                           flush_flight_cb,
                                           send_alert_cb })
   , ngtcp2_(ngtcp2)
-  , logger_(logger)
+
 {
   init(host, dcid).assume_value();
   // TODO: re-enable exceptions
@@ -147,18 +146,18 @@ handshake::init(const ip::host &host, base::buffer_view dcid)
 {
   // Initial Keys
 
-  quic::crypto crypto(crypto::aead::aes_128_gcm, crypto::hash::sha256, logger_);
+  quic::crypto crypto(crypto::aead::aes_128_gcm, crypto::hash::sha256);
 
   base::buffer initial =
-    TRY(crypto.initial_secret(dcid, ngtcp2::connection::INITIAL_SALT));
+    BNL_TRY(crypto.initial_secret(dcid, ngtcp2::connection::INITIAL_SALT));
 
-  base::buffer client_secret = TRY(crypto.client_initial_secret(initial));
-  crypto::key write_key = TRY(crypto.packet_protection_key(client_secret));
-  TRY(ngtcp2_->install_initial_tx_keys(write_key));
+  base::buffer client_secret = BNL_TRY(crypto.client_initial_secret(initial));
+  crypto::key write_key = BNL_TRY(crypto.packet_protection_key(client_secret));
+  BNL_TRY(ngtcp2_->install_initial_tx_keys(write_key));
 
-  base::buffer server_secret = TRY(crypto.server_initial_secret(initial));
-  crypto::key read_key = TRY(crypto.packet_protection_key(server_secret));
-  TRY(ngtcp2_->install_initial_rx_keys(read_key));
+  base::buffer server_secret = BNL_TRY(crypto.server_initial_secret(initial));
+  crypto::key read_key = BNL_TRY(crypto.packet_protection_key(server_secret));
+  BNL_TRY(ngtcp2_->install_initial_rx_keys(read_key));
 
   // ALPN
 
@@ -168,7 +167,7 @@ handshake::init(const ip::host &host, base::buffer_view dcid)
 
   int rv = SSL_set_alpn_protos(ssl_.get(), alpn, alpn_size);
   if (rv == 1) {
-    THROW(quic::error::handshake);
+    return quic::error::handshake;
   }
 
   // Client mode
@@ -187,17 +186,17 @@ handshake::init(const ip::host &host, base::buffer_view dcid)
 
   // Transport Parameters
 
-  base::buffer tp = TRY(ngtcp2_->get_local_transport_parameters());
+  base::buffer tp = BNL_TRY(ngtcp2_->get_local_transport_parameters());
   rv = SSL_set_quic_transport_params(ssl_.get(), tp.data(), tp.size());
   if (rv == 0) {
-    THROW(quic::error::handshake);
+    return quic::error::handshake;
   }
 
   // QUIC
 
   rv = SSL_set_quic_method(ssl_.get(), ssl_quic_method_.get());
   if (rv == 0) {
-    THROW(quic::error::handshake);
+    return quic::error::handshake;
   }
 
   return success();
@@ -216,7 +215,7 @@ handshake::send()
         break;
       default:
         log_errors();
-        THROW(quic::error::handshake);
+        return quic::error::handshake;
     }
   }
 
@@ -230,14 +229,14 @@ handshake::recv(crypto::level level, base::buffer_view data)
     ssl_.get(), make_crypto_level(level), data.data(), data.size());
   if (rv == 0) {
     log_errors();
-    THROW(quic::error::handshake);
+    return quic::error::handshake;
   }
 
   if (completed()) {
     rv = SSL_process_quic_post_handshake(ssl_.get());
     if (rv == 0) {
       log_errors();
-      THROW(quic::error::handshake);
+      return quic::error::handshake;
     }
 
     return success();
@@ -253,7 +252,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
         return base::error::incomplete;
       default:
         log_errors();
-        THROW(quic::error::handshake);
+        return quic::error::handshake;
     }
   }
 
@@ -264,7 +263,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
   SSL_get_peer_quic_transport_params(ssl_.get(), &peer_tp, &peer_tp_len);
 
   base::buffer_view view(peer_tp, peer_tp_len);
-  TRY(ngtcp2_->set_remote_transport_parameters(view));
+  BNL_TRY(ngtcp2_->set_remote_transport_parameters(view));
 
   return success();
 }
@@ -272,13 +271,13 @@ handshake::recv(crypto::level level, base::buffer_view data)
 result<void>
 handshake::ack(crypto::level level, size_t size)
 {
-  base::buffers &keepalive = keepalive_[util::to_underlying(level)];
+  base::buffers &keepalive = keepalive_[enumeration::value(level)];
 
   if (size > keepalive.size()) {
-    LOG_E("ngtcp2's acked crypto data ({}) exceeds remaining data ({})",
-          size,
-          keepalive.size());
-    THROW(quic::connection::error::internal);
+    BNL_LOG_E("ngtcp2's acked crypto data ({}) exceeds remaining data ({})",
+              size,
+              keepalive.size());
+    return quic::connection::error::internal;
   }
 
   keepalive.consume(size);
@@ -298,14 +297,14 @@ handshake::negotiated_crypto() const noexcept
   const SSL_CIPHER *cipher = SSL_get_current_cipher(ssl_.get());
 
   if (cipher == nullptr) {
-    LOG_E("Cipher suite not negotiated yet");
-    THROW(quic::error::handshake);
+    BNL_LOG_E("Cipher suite not negotiated yet");
+    return quic::error::handshake;
   }
 
-  crypto::aead aead = TRY(make_aead(cipher));
-  crypto::hash hash = TRY(make_hash(cipher));
+  crypto::aead aead = BNL_TRY(make_aead(cipher));
+  crypto::hash hash = BNL_TRY(make_hash(cipher));
 
-  return quic::crypto(aead, hash, logger_);
+  return quic::crypto(aead, hash);
 }
 
 result<crypto::aead>
@@ -320,8 +319,8 @@ handshake::make_aead(const SSL_CIPHER *cipher) const noexcept
       return crypto::aead::chacha20_poly1305;
   }
 
-  LOG_E("Unsupported Cipher Suite: {}", SSL_CIPHER_standard_name(cipher));
-  THROW(quic::error::handshake);
+  BNL_LOG_E("Unsupported Cipher Suite: {}", SSL_CIPHER_standard_name(cipher));
+  return quic::error::handshake;
 }
 
 result<crypto::hash>
@@ -335,22 +334,22 @@ handshake::make_hash(const SSL_CIPHER *cipher) const noexcept
       return crypto::hash::sha384;
   }
 
-  LOG_E("Unsupported Cipher Suite: {}", SSL_CIPHER_standard_name(cipher));
-  THROW(quic::error::handshake);
+  BNL_LOG_E("Unsupported Cipher Suite: {}", SSL_CIPHER_standard_name(cipher));
+  return quic::error::handshake;
 }
 
 result<void>
 handshake::update_keys()
 {
-  quic::crypto crypto = TRY(this->negotiated_crypto());
+  quic::crypto crypto = BNL_TRY(this->negotiated_crypto());
 
-  tx_secret_ = TRY(crypto.update_secret(tx_secret_));
-  crypto::key write_key = TRY(crypto.packet_protection_key(tx_secret_));
-  TRY(ngtcp2_->update_tx_keys(write_key));
+  tx_secret_ = BNL_TRY(crypto.update_secret(tx_secret_));
+  crypto::key write_key = BNL_TRY(crypto.packet_protection_key(tx_secret_));
+  BNL_TRY(ngtcp2_->update_tx_keys(write_key));
 
-  rx_secret_ = TRY(crypto.update_secret(rx_secret_));
-  crypto::key read_key = TRY(crypto.packet_protection_key(rx_secret_));
-  TRY(ngtcp2_->update_rx_keys(read_key));
+  rx_secret_ = BNL_TRY(crypto.update_secret(rx_secret_));
+  crypto::key read_key = BNL_TRY(crypto.packet_protection_key(rx_secret_));
+  BNL_TRY(ngtcp2_->update_rx_keys(read_key));
 
   return success();
 }
@@ -360,40 +359,40 @@ handshake::set_encryption_secrets(crypto::level level,
                                   base::buffer_view read_secret,
                                   base::buffer_view write_secret)
 {
-  quic::crypto crypto = TRY(this->negotiated_crypto());
+  quic::crypto crypto = BNL_TRY(this->negotiated_crypto());
 
-  LOG_T("{}", crypto);
+  BNL_LOG_T("{}", crypto);
 
   ngtcp2_->set_aead_overhead(crypto.aead_overhead());
 
-  crypto::key write_key = TRY(crypto.packet_protection_key(write_secret));
+  crypto::key write_key = BNL_TRY(crypto.packet_protection_key(write_secret));
   crypto::key read_key;
 
   // Data is not received at the 0-RTT level by the client so BoringSSL does not
   // provide the client with a key for receiving early data.
   if (level != crypto::level::early_data) {
-    read_key = TRY(crypto.packet_protection_key(read_secret));
+    read_key = BNL_TRY(crypto.packet_protection_key(read_secret));
   }
 
   switch (level) {
     case crypto::level::initial:
-      THROW(quic::error::handshake);
+      return quic::error::handshake;
     case crypto::level::early_data:
-      TRY(ngtcp2_->install_early_keys(write_key));
+      BNL_TRY(ngtcp2_->install_early_keys(write_key));
       break;
     case crypto::level::handshake:
-      TRY(ngtcp2_->install_handshake_tx_keys(write_key));
-      TRY(ngtcp2_->install_handshake_rx_keys(read_key));
-      LOG_T("handshake: installed handshake keys");
+      BNL_TRY(ngtcp2_->install_handshake_tx_keys(write_key));
+      BNL_TRY(ngtcp2_->install_handshake_rx_keys(read_key));
+      BNL_LOG_T("handshake: installed handshake keys");
       break;
     case crypto::level::application:
       tx_secret_ = base::buffer(write_secret);
-      TRY(ngtcp2_->install_tx_keys(write_key));
+      BNL_TRY(ngtcp2_->install_tx_keys(write_key));
 
       rx_secret_ = base::buffer(read_secret);
-      TRY(ngtcp2_->install_rx_keys(read_key));
+      BNL_TRY(ngtcp2_->install_rx_keys(read_key));
 
-      LOG_T("handshake: installed application keys");
+      BNL_LOG_T("handshake: installed application keys");
       break;
   }
 
@@ -403,12 +402,12 @@ handshake::set_encryption_secrets(crypto::level level,
 result<void>
 handshake::add_handshake_data(crypto::level level, base::buffer_view data)
 {
-  base::buffers &keepalive = keepalive_[util::to_underlying(level)];
+  base::buffers &keepalive = keepalive_[enumeration::value(level)];
 
   keepalive.push(base::buffer(data));
   const base::buffer &buffer = keepalive.back();
 
-  TRY(ngtcp2_->submit_crypto_data(level, buffer));
+  BNL_TRY(ngtcp2_->submit_crypto_data(level, buffer));
 
   return success();
 }
@@ -425,7 +424,7 @@ handshake::log_errors()
     std::array<char, 100> string = {};
     ERR_error_string_n(error, string.data(), string.size());
 
-    LOG_E(string.data());
+    BNL_LOG_E(string.data());
   }
 }
 

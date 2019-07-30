@@ -1,26 +1,23 @@
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/log.hpp>
-#include <bnl/util/test.hpp>
 
 using namespace bnl;
 
 template<size_t N>
 static http3::frame
-encode_and_decode(const http3::frame &frame,
-                  const http3::frame::encoder &encoder,
-                  const http3::frame::decoder &decoder)
+encode_and_decode(const http3::frame &frame)
 {
-  size_t encoded_size = EXTRACT(encoder.encoded_size(frame));
+  size_t encoded_size = http3::frame::encoded_size(frame).value();
   REQUIRE(encoded_size == N);
 
-  base::buffer encoded = EXTRACT(encoder.encode(frame));
+  base::buffer encoded = http3::frame::encode(frame).value();
   REQUIRE(encoded.size() == N);
 
-  http3::frame decoded = EXTRACT(decoder.decode(encoded));
+  http3::frame decoded = http3::frame::decode(encoded).value();
   REQUIRE(encoded.empty());
 
   REQUIRE(decoded == frame);
@@ -30,22 +27,17 @@ encode_and_decode(const http3::frame &frame,
 
 TEST_CASE("frame")
 {
-  log::api logger;
-
-  http3::frame::encoder encoder(&logger);
-  http3::frame::decoder decoder(&logger);
-
   SUBCASE("data")
   {
     http3::frame frame = http3::frame::payload::data{ 64 };
-    http3::frame decoded = encode_and_decode<3>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<3>(frame);
     REQUIRE(decoded.data.size == frame.data.size);
   }
 
   SUBCASE("headers")
   {
     http3::frame frame = http3::frame::payload::headers{ 16384 };
-    http3::frame decoded = encode_and_decode<5>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<5>(frame);
     REQUIRE(decoded.headers.size == frame.headers.size);
   }
 
@@ -61,7 +53,7 @@ TEST_CASE("frame")
     priority.weight = 43;
 
     http3::frame frame = priority;
-    http3::frame decoded = encode_and_decode<16>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<16>(frame);
 
     REQUIRE(decoded.priority.prioritized_element_type ==
             frame.priority.prioritized_element_type);
@@ -75,7 +67,7 @@ TEST_CASE("frame")
   SUBCASE("cancel push")
   {
     http3::frame frame = http3::frame::payload::cancel_push{ 64 };
-    http3::frame decoded = encode_and_decode<4>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<4>(frame);
     REQUIRE(decoded.cancel_push.push_id == frame.cancel_push.push_id);
   }
 
@@ -84,7 +76,7 @@ TEST_CASE("frame")
     http3::frame frame = http3::frame::payload::settings();
 
     // Size 15 because default num placeholders is not encoded.
-    http3::frame decoded = encode_and_decode<15>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<15>(frame);
 
     REQUIRE(decoded.settings.max_header_list_size ==
             frame.settings.max_header_list_size);
@@ -96,7 +88,7 @@ TEST_CASE("frame")
   {
     http3::frame frame =
       http3::frame::payload::push_promise{ 16384, 1073741824 };
-    http3::frame decoded = encode_and_decode<13>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<13>(frame);
     REQUIRE(decoded.push_promise.push_id == frame.push_promise.push_id);
     REQUIRE(decoded.push_promise.size == frame.push_promise.size);
   }
@@ -104,14 +96,14 @@ TEST_CASE("frame")
   SUBCASE("goaway")
   {
     http3::frame frame = http3::frame::payload::goaway{ 1073741823 };
-    http3::frame decoded = encode_and_decode<6>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<6>(frame);
     REQUIRE(decoded.goaway.stream_id == frame.goaway.stream_id);
   }
 
   SUBCASE("max push id")
   {
     http3::frame frame = http3::frame::payload::max_push_id{ 1073741824 };
-    http3::frame decoded = encode_and_decode<10>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<10>(frame);
     REQUIRE(decoded.max_push_id.push_id == frame.max_push_id.push_id);
   }
 
@@ -120,7 +112,7 @@ TEST_CASE("frame")
     http3::frame frame =
       http3::frame::payload::duplicate_push{ 4611686018427387903 };
 
-    http3::frame decoded = encode_and_decode<10>(frame, encoder, decoder);
+    http3::frame decoded = encode_and_decode<10>(frame);
     REQUIRE(decoded.duplicate_push.push_id == frame.duplicate_push.push_id);
   }
 
@@ -128,7 +120,7 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::data{ 4611686018427387904 };
 
-    result<base::buffer> r = encoder.encode(frame);
+    result<base::buffer> r = http3::frame::encode(frame);
     REQUIRE(r.error() == http3::error::varint_overflow);
   }
 
@@ -136,15 +128,15 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::duplicate_push{ 50 };
 
-    base::buffer encoded = EXTRACT(encoder.encode(frame));
+    base::buffer encoded = http3::frame::encode(frame).value();
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    result<http3::frame> r = decoder.decode(incomplete);
+    result<http3::frame> r = http3::frame::decode(incomplete);
 
     REQUIRE(r.error() == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
-    http3::frame decoded = EXTRACT(decoder.decode(encoded));
+    http3::frame decoded = http3::frame::decode(encoded).value();
 
     REQUIRE(encoded.empty());
     REQUIRE(frame == decoded);
@@ -154,13 +146,13 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::cancel_push{ 16384 };
 
-    base::buffer encoded = EXTRACT(encoder.encode(frame));
+    base::buffer encoded = http3::frame::encode(frame).value();
     REQUIRE(encoded.size() == 6);
 
     // Mangle the frame length.
     const_cast<uint8_t *>(encoded.data())[1] = 16; // NOLINT
 
-    result<http3::frame> r = decoder.decode(encoded);
+    result<http3::frame> r = http3::frame::decode(encoded);
 
     REQUIRE(r.error() == http3::connection::error::malformed_frame);
     REQUIRE(encoded.size() == 6);

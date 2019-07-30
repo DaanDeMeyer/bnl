@@ -14,12 +14,6 @@ using namespace bnl;
 
 struct sd_event;
 
-namespace bnl {
-namespace log {
-class api;
-}
-}
-
 namespace os {
 class fd;
 }
@@ -29,7 +23,7 @@ namespace event {
 
 class loop {
 public:
-  loop(const log::api *logger);
+  loop();
 
   loop(loop &&) = default;
   loop &operator=(loop &&) = default;
@@ -47,10 +41,8 @@ public:
   result<void> exit(system_code sc);
 
 private:
-  std::unique_ptr<sd_event, sd_event *(*)(sd_event *)> event_;
+  std::unique_ptr<sd_event, sd_event *(*) (sd_event *)> event_;
   system_code error_;
-
-  const log::api *logger_;
 };
 
 }

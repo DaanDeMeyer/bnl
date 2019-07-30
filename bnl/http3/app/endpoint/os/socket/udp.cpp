@@ -3,7 +3,7 @@
 #include <os/error.hpp>
 
 #include <bnl/base/error.hpp>
-#include <bnl/util/error.hpp>
+#include <bnl/log.hpp>
 
 #include <arpa/inet.h>
 #include <cassert>
@@ -81,7 +81,7 @@ make_endpoint(const sockaddr *sockaddr)
 }
 
 static result<os::fd>
-make_socket(ip::endpoint peer, const log::api *logger_)
+make_socket(ip::endpoint peer)
 {
   sockaddr_storage storage = make_sockaddr(peer);
 
@@ -111,9 +111,8 @@ make_socket(ip::endpoint peer, const log::api *logger_)
 namespace os {
 namespace socket {
 
-udp::udp(ip::endpoint peer, const log::api *logger)
-  : socket_(make_socket(peer, logger).assume_value())
-  , logger_(logger)
+udp::udp(ip::endpoint peer)
+  : socket_(make_socket(peer).assume_value())
 {}
 
 ip::endpoint
@@ -186,7 +185,7 @@ udp::send()
 
   send_buffer_.consume(static_cast<size_t>(rv));
 
-  LOG_T("send: {}", rv);
+  BNL_LOG_T("send: {}", rv);
 
   return success();
 }
@@ -217,7 +216,7 @@ udp::recv()
     THROW_SYSTEM(read, errno);
   }
 
-  LOG_T("recv: {}", rv);
+  BNL_LOG_T("recv: {}", rv);
 
   return datagram;
 }

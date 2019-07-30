@@ -52,8 +52,7 @@ public:
     return false;
   }
 
-  generic_code _generic_code(const status_code<void> &sc) const
-    noexcept final
+  generic_code _generic_code(const status_code<void> &sc) const noexcept final
   {
     (void) sc;
     return errc::unknown;

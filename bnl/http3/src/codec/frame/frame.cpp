@@ -1,7 +1,5 @@
 #include <bnl/http3/codec/frame.hpp>
 
-#include <bnl/util/enum.hpp>
-
 #include <fmt/ostream.h>
 
 namespace bnl {
@@ -118,7 +116,7 @@ operator!=(const frame &lhs, const frame &rhs)
 std::ostream &
 operator<<(std::ostream &os, const frame &frame)
 {
-  uint64_t type = util::to_underlying(static_cast<frame::type>(frame));
+  frame::type type = frame;
 
   constexpr const char *format = "{} ({:#04x})";
 

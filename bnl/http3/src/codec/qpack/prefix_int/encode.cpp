@@ -1,14 +1,12 @@
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 
-#include <bnl/util/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace qpack {
 namespace prefix_int {
 
 size_t
-encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
+encoded_size(uint64_t value, uint8_t prefix) noexcept
 {
   uint8_t prefix_max = static_cast<uint8_t>((1U << prefix) - 1);
 
@@ -32,7 +30,7 @@ encoder::encoded_size(uint64_t value, uint8_t prefix) const noexcept
 }
 
 size_t
-encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const noexcept
+encode(uint8_t *dest, uint64_t value, uint8_t prefix) noexcept
 {
   uint8_t *begin = dest;
 
@@ -58,9 +56,9 @@ encoder::encode(uint8_t *dest, uint64_t value, uint8_t prefix) const noexcept
 }
 
 base::buffer
-encoder::encode(uint64_t value, uint8_t prefix) const
+encode(uint64_t value, uint8_t prefix)
 {
-  size_t encoded_size = this->encoded_size(value, prefix);
+  size_t encoded_size = prefix_int::encoded_size(value, prefix);
   base::buffer encoded(encoded_size);
 
   encode(encoded.data(), value, prefix);

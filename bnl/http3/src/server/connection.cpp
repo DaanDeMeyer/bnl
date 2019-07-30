@@ -2,17 +2,10 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {
 namespace server {
-
-connection::connection(const log::api *logger)
-  : control_{ server::stream::control::sender(logger),
-              server::stream::control::receiver(logger) }
-  , logger_(logger)
-{}
 
 result<quic::event>
 connection::send() noexcept
@@ -55,16 +48,17 @@ connection::send() noexcept
   return base::error::idle;
 }
 
-result<void> connection::recv(quic::event event, event::handler handler)
+result<void>
+connection::recv(quic::event event, event::handler handler)
 {
   switch (event) {
     case quic::event::type::data:
       return recv(std::move(event.data), handler);
     case quic::event::type::error:
-      THROW(error::not_implemented);
+      return error::not_implemented;
   }
 
-  NOTREACHED();
+  return http3::connection::error::internal;
 }
 
 result<void>
@@ -90,10 +84,10 @@ connection::recv(quic::data data, event::handler handler)
 
   auto match = requests_.find(data.id);
   if (match == requests_.end()) {
-    server::stream::request::sender sender(data.id, logger_);
-    server::stream::request::receiver receiver(data.id, logger_);
+    server::stream::request::sender sender(data.id);
+    server::stream::request::receiver receiver(data.id);
 
-    TRY(receiver.start());
+    BNL_TRY(receiver.start());
 
     request request = std::make_pair(std::move(sender), std::move(receiver));
     requests_.insert(std::make_pair(data.id, std::move(request)));
@@ -109,7 +103,7 @@ connection::response(uint64_t id)
 {
   auto match = requests_.find(id);
   if (match == requests_.end()) {
-    THROW(error::stream_closed);
+    return error::stream_closed;
   }
 
   stream::request::sender &sender = match->second.first;

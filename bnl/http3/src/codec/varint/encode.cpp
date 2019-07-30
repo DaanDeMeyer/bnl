@@ -2,18 +2,13 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {
 namespace varint {
 
-encoder::encoder(const log::api *logger) noexcept
-  : logger_(logger)
-{}
-
 result<size_t>
-encoder::encoded_size(uint64_t varint) const noexcept
+encoded_size(uint64_t varint) noexcept
 {
   if (varint < 0x40U) {
     return sizeof(uint8_t);
@@ -31,7 +26,7 @@ encoder::encoded_size(uint64_t varint) const noexcept
     return sizeof(uint64_t);
   }
 
-  THROW(error::varint_overflow);
+  return error::varint_overflow;
 }
 
 // All encode functions convert from host to network byte order (big-endian)
@@ -86,11 +81,11 @@ uint64_encode(uint8_t *dest, uint64_t number)
 }
 
 result<size_t>
-encoder::encode(uint8_t *dest, uint64_t varint) const noexcept
+encode(uint8_t *dest, uint64_t varint) noexcept
 {
   assert(dest != nullptr);
 
-  size_t varint_size = TRY(this->encoded_size(varint));
+  size_t varint_size = BNL_TRY(encoded_size(varint));
 
   switch (varint_size) {
     case sizeof(uint8_t):
@@ -106,19 +101,19 @@ encoder::encode(uint8_t *dest, uint64_t varint) const noexcept
       uint64_encode(dest, varint);
       break;
     default:
-      NOTREACHED();
+      assert(false);
   }
 
   return varint_size;
 }
 
 result<base::buffer>
-encoder::encode(uint64_t varint) const
+encode(uint64_t varint)
 {
-  size_t encoded_size = TRY(this->encoded_size(varint));
+  size_t encoded_size = BNL_TRY(varint::encoded_size(varint));
   base::buffer encoded(encoded_size);
 
-  TRY(encode(encoded.data(), varint));
+  BNL_TRY(encode(encoded.data(), varint));
 
   return encoded;
 }

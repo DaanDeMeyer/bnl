@@ -2,17 +2,11 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
+#include <bnl/log.hpp>
 
 namespace bnl {
 namespace http3 {
 namespace client {
-
-connection::connection(const log::api *logger)
-  : control_{ client::stream::control::sender(logger),
-              client::stream::control::receiver(logger) }
-  , logger_(logger)
-{}
 
 result<quic::event>
 connection::send() noexcept
@@ -42,7 +36,7 @@ connection::send() noexcept
       client::stream::request::receiver &receiver = entry.second.second;
 
       if (receiver.closed()) {
-        TRY(receiver.start());
+        BNL_TRY(receiver.start());
       }
 
       return r;
@@ -59,16 +53,14 @@ connection::send() noexcept
 result<void>
 connection::recv(quic::event event, event::handler handler)
 {
-  LOG_T("Received QUIC event: {}", event);
+  BNL_LOG_T("Received QUIC event: {}", event);
 
   switch (event) {
     case quic::event::type::data:
       return recv(std::move(event.data), handler);
     case quic::event::type::error:
-      THROW(error::not_implemented);
+      return error::not_implemented;
   }
-
-  NOTREACHED();
 }
 
 result<void>
@@ -101,12 +93,12 @@ connection::recv(quic::data data, event::handler handler)
   auto match = requests_.find(id);
   // TODO: Better error
   if (match == requests_.end()) {
-    THROW(http3::connection::error::internal);
+    return http3::connection::error::internal;
   }
 
   client::stream::request::receiver &request = match->second.second;
 
-  TRY(request.recv(std::move(data), handler));
+  BNL_TRY(request.recv(std::move(data), handler));
 
   if (request.finished()) {
     requests_.erase(id);
@@ -120,8 +112,8 @@ connection::request()
 {
   uint64_t id = next_stream_id_;
 
-  client::stream::request::sender sender(id, logger_);
-  client::stream::request::receiver receiver(id, logger_);
+  client::stream::request::sender sender(id);
+  client::stream::request::receiver receiver(id);
 
   request_t request = std::make_pair(std::move(sender), std::move(receiver));
   requests_.insert(std::make_pair(id, std::move(request)));

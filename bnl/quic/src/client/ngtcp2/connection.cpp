@@ -1,11 +1,11 @@
 #include <bnl/quic/client/ngtcp2/connection.hpp>
 
 #include <bnl/base/error.hpp>
+#include <bnl/log.hpp>
 #include <bnl/quic/client/connection.hpp>
 #include <bnl/quic/client/ngtcp2/error.hpp>
 #include <bnl/quic/error.hpp>
 #include <bnl/quic/path.hpp>
-#include <bnl/util/error.hpp>
 
 #include <ngtcp2/ngtcp2.h>
 
@@ -20,7 +20,6 @@ namespace ngtcp2 {
 #define THROW_NGTCP2(function, rv)                                             \
   {                                                                            \
     code code_ = make_status_code(static_cast<error>(rv));                     \
-    LOG_E("{}: {}", #function, code_.message());                               \
     return code_;                                                              \
   }                                                                            \
   (void) 0
@@ -155,10 +154,9 @@ connection::in_encrypt(ngtcp2_conn *connection,
                        void *context)
 {
   (void) connection;
-  auto client = static_cast<client::connection *>(context);
+  (void) context;
 
-  crypto crypto(
-    crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
+  crypto crypto(crypto::aead::aes_128_gcm, crypto::hash::sha256);
 
   result<void> r = crypto.encrypt(base::buffer_view_mut(dest, dest_size),
                                   base::buffer_view(plaintext, plaintext_size),
@@ -186,10 +184,9 @@ connection::in_decrypt(ngtcp2_conn *connection,
                        void *context)
 {
   (void) connection;
-  auto client = static_cast<client::connection *>(context);
+  (void) context;
 
-  crypto crypto(
-    crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
+  crypto crypto(crypto::aead::aes_128_gcm, crypto::hash::sha256);
 
   result<void> r =
     crypto.decrypt(base::buffer_view_mut(dest, dest_size),
@@ -289,10 +286,9 @@ connection::in_hp_mask(ngtcp2_conn *connection,
                        void *context)
 {
   (void) connection;
-  auto client = static_cast<client::connection *>(context);
+  (void) context;
 
-  crypto crypto(
-    crypto::aead::aes_128_gcm, crypto::hash::sha256, client->logger());
+  crypto crypto(crypto::aead::aes_128_gcm, crypto::hash::sha256);
 
   result<void> r = crypto.hp_mask(base::buffer_view_mut(dest, dest_size),
                                   base::buffer_view(key, key_size),
@@ -634,7 +630,7 @@ connection::extend_max_stream_data(ngtcp2_conn *connection,
 void
 connection::log(void *context, const char *format, ...) // NOLINT
 {
-  auto client = static_cast<client::connection *>(context);
+  (void) context;
 
   // C varargs are a runtime concept, the logging macros expect variadic
   // templates at compile time. As a result, we can't pass C varargs to the
@@ -651,7 +647,7 @@ connection::log(void *context, const char *format, ...) // NOLINT
 
   va_end(args); // NOLINT
 
-  BNL_LOG_TRACE(client->logger(), formatted.data());
+  BNL_LOG_T(formatted.data());
 }
 
 static ngtcp2_cid
@@ -695,12 +691,11 @@ connection::connection(path path,
                        const params &params,
                        client::connection *context,
                        clock clock,
-                       std::mt19937 &prng,
-                       const log::api *logger)
+                       std::mt19937 &prng)
   : connection_(nullptr, ngtcp2_conn_del)
   , path_(path)
   , clock_(std::move(clock))
-  , logger_(logger)
+
 {
   ngtcp2_cid scid = make_cid(prng);
   ngtcp2_cid dcid = make_cid(prng);
@@ -993,7 +988,7 @@ connection::write_pkt()
   // TODO: Handle IPV6
   std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage = {};
 
-  duration ts = TRY(clock_());
+  duration ts = BNL_TRY(clock_());
   ssize_t rv = ngtcp2_conn_write_pkt(connection_.get(),
                                      &path.path,
                                      storage.data(),
@@ -1017,7 +1012,7 @@ connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
 
   ssize_t stream_data_written = 0;
 
-  duration ts = TRY(clock_());
+  duration ts = BNL_TRY(clock_());
   ssize_t rv = ngtcp2_conn_write_stream(connection_.get(),
                                         nullptr,
                                         storage.data(),
@@ -1046,7 +1041,7 @@ connection::read_pkt(base::buffer_view packet)
 {
   ngtcp2_path_storage path = make_path(path_);
 
-  duration ts = TRY(clock_());
+  duration ts = BNL_TRY(clock_());
   int rv = ngtcp2_conn_read_pkt(connection_.get(),
                                 &path.path,
                                 packet.data(),
@@ -1083,7 +1078,7 @@ connection::expiry() const noexcept
 result<void>
 connection::expire()
 {
-  duration now = TRY(clock_());
+  duration now = BNL_TRY(clock_());
   ngtcp2_tstamp ts = make_timestamp(now);
 
   if (ngtcp2_conn_loss_detection_expiry(connection_.get()) <= ts) {

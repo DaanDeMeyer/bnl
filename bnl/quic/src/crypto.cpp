@@ -1,7 +1,7 @@
 #include <bnl/quic/crypto.hpp>
 
+#include <bnl/log.hpp>
 #include <bnl/quic/error.hpp>
-#include <bnl/util/error.hpp>
 
 #include <algorithm>
 #include <array>
@@ -64,10 +64,10 @@ crypto::key::operator key_view() const noexcept
   return { data_, iv_, hp_ };
 }
 
-crypto::crypto(aead aead, hash hash, const log::api *logger)
+crypto::crypto(aead aead, hash hash)
   : aead_(aead)
   , hash_(hash)
-  , logger_(logger)
+
 {}
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.2
@@ -99,9 +99,9 @@ crypto::server_initial_secret(base::buffer_view secret)
 result<crypto::key>
 crypto::packet_protection_key(base::buffer_view secret)
 {
-  return crypto::key{ TRY(crypto::packet_protection_data(secret)),
-                      TRY(crypto::packet_protection_iv(secret)),
-                      TRY(crypto::packet_protection_hp(secret)) };
+  return crypto::key{ BNL_TRY(crypto::packet_protection_data(secret)),
+                      BNL_TRY(crypto::packet_protection_iv(secret)),
+                      BNL_TRY(crypto::packet_protection_hp(secret)) };
 }
 
 // https://tools.ietf.org/html/rfc5116#section-5 (authentication tag length)
@@ -117,7 +117,7 @@ crypto::aead_overhead() const noexcept
       return 16;
   }
 
-  NOTREACHED();
+  return 0;
 }
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-tls.html#rfc.section.5.1
@@ -186,7 +186,8 @@ crypto::aead_key_size(aead aead) const noexcept
       return 32;
   }
 
-  NOTREACHED();
+  assert(false);
+  return 0;
 }
 
 // https://tools.ietf.org/html/rfc5116#section-5
@@ -201,7 +202,8 @@ crypto::aead_nonce_min_size(aead aead) const noexcept
       return 12;
   }
 
-  NOTREACHED();
+  assert(false);
+  return 0;
 }
 
 // Size in bytes
@@ -215,7 +217,8 @@ crypto::hash_size(hash hash) const noexcept
       return 48;
   }
 
-  NOTREACHED();
+  assert(false);
+  return 0;
 }
 
 std::ostream &

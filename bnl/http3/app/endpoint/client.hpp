@@ -16,7 +16,7 @@ class client {
 public:
   using handler = std::function<result<void>(http3::event)>;
 
-  client(const ip::host &host, ip::endpoint peer, const log::api *logger);
+  client(const ip::host &host, ip::endpoint peer);
 
   client(client &&other) noexcept;
   client &operator=(client &&) = delete;
@@ -52,6 +52,4 @@ private:
   http3::client::connection http3_;
 
   handler on_event_;
-
-  const log::api *logger_;
 };

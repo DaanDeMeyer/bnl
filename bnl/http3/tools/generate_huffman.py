@@ -420,7 +420,7 @@ namespace bnl {{
 namespace http3 {{
 namespace qpack {{
 namespace huffman {{
-namespace encode {{
+namespace encoding {{
 
 struct symbol {{
   uint32_t code;
@@ -481,7 +481,7 @@ namespace bnl {{
 namespace http3 {{
 namespace qpack {{
 namespace huffman {{
-namespace decode {{
+namespace decoding {{
 
 enum flag : uint8_t {{
   accepted = {},

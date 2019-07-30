@@ -5,7 +5,7 @@ namespace bnl {
 namespace http3 {
 namespace qpack {
 namespace huffman {
-namespace decode {
+namespace decoding {
 
 enum flag : uint8_t {
   accepted = 1,

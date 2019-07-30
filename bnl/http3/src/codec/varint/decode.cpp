@@ -2,15 +2,10 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {
 namespace varint {
-
-decoder::decoder(const log::api *logger) noexcept
-  : logger_(logger)
-{}
 
 // All decode functions convert from network to host byte order and remove the
 // varint header (first two bits) before returning a value.
@@ -74,7 +69,7 @@ uint64_decode(Lookahead &lookahead)
 
 template<typename Sequence>
 result<uint64_t>
-decoder::decode(Sequence &encoded) const noexcept
+decode(Sequence &encoded) noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
@@ -108,7 +103,7 @@ decoder::decode(Sequence &encoded) const noexcept
       varint = uint64_decode(lookahead);
       break;
     default:
-      NOTREACHED();
+      assert(false);
   }
 
   encoded.consume(lookahead.consumed());

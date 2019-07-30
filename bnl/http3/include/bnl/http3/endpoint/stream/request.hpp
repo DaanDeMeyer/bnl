@@ -11,11 +11,6 @@
 #include <bnl/quic/event.hpp>
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace http3 {
 namespace endpoint {
 namespace stream {
@@ -23,7 +18,7 @@ namespace request {
 
 class BNL_HTTP3_EXPORT sender {
 public:
-  sender(uint64_t id, const log::api *logger) noexcept;
+  explicit sender(uint64_t id) noexcept;
 
   sender(sender &&other) noexcept;
   sender &operator=(sender &&other) noexcept;
@@ -76,12 +71,11 @@ private:
   body::encoder body_;
 
   uint64_t id_;
-  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT receiver {
 public:
-  receiver(uint64_t id, const log::api *logger) noexcept;
+  explicit receiver(uint64_t id) noexcept;
 
   receiver(receiver &&) = default;
   receiver &operator=(receiver &&) = default;
@@ -111,12 +105,10 @@ private:
   base::buffers buffers_;
   bool fin_received_ = false;
 
-  frame::decoder frame_;
   headers::decoder headers_;
   body::decoder body_;
 
   uint64_t id_;
-  const log::api *logger_;
 };
 
 }

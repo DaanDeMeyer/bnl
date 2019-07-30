@@ -26,8 +26,6 @@
 
 #include <bnl/http3/codec/qpack/huffman.hpp>
 
-#include <bnl/util/error.hpp>
-
 #include "encode_generated.cpp"
 
 namespace bnl {
@@ -36,13 +34,13 @@ namespace qpack {
 namespace huffman {
 
 size_t
-encoder::encoded_size(base::string_view string) const noexcept
+encoded_size(base::string_view string) noexcept
 {
   size_t num_bits = 0;
 
   for (char character : string) {
     uint8_t byte = static_cast<uint8_t>(character);
-    num_bits += encode::table[byte].num_bits;
+    num_bits += encoding::table[byte].num_bits;
   }
 
   // Pad the prefix of EOS (256).
@@ -50,7 +48,7 @@ encoder::encoded_size(base::string_view string) const noexcept
 }
 
 static size_t
-symbol_encode(uint8_t *dest, size_t *rem_bits, const encode::symbol &symbol)
+symbol_encode(uint8_t *dest, size_t *rem_bits, const encoding::symbol &symbol)
 {
   uint8_t *begin = dest;
 
@@ -97,21 +95,21 @@ symbol_encode(uint8_t *dest, size_t *rem_bits, const encode::symbol &symbol)
 }
 
 size_t
-encoder::encode(uint8_t *dest, base::string_view string) const noexcept
+encode(uint8_t *dest, base::string_view string) noexcept
 {
   uint8_t *begin = dest;
   size_t rem_bits = 8;
 
   for (char character : string) {
     uint8_t byte = static_cast<uint8_t>(character);
-    const encode::symbol &symbol = encode::table[byte];
+    const encoding::symbol &symbol = encoding::table[byte];
     dest += symbol_encode(dest, &rem_bits, symbol);
   }
 
   // 256 is special terminal symbol, pad with its prefix.
   if (rem_bits < 8) {
     // If rem_bits < 8, we should have at least 1 buffer space available.
-    const encode::symbol &symbol = encode::table[256];
+    const encoding::symbol &symbol = encoding::table[256];
     *dest = static_cast<uint8_t>(
       *dest |
       static_cast<uint8_t>(symbol.code >> (symbol.num_bits - rem_bits)));
@@ -122,9 +120,9 @@ encoder::encode(uint8_t *dest, base::string_view string) const noexcept
 }
 
 base::buffer
-encoder::encode(base::string_view string) const
+encode(base::string_view string)
 {
-  size_t encoded_size = this->encoded_size(string);
+  size_t encoded_size = huffman::encoded_size(string);
   base::buffer encoded(encoded_size);
 
   encode(encoded.data(), string);

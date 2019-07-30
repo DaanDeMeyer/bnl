@@ -6,11 +6,6 @@
 #include <bnl/result.hpp>
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace quic {
 namespace client {
 
@@ -20,7 +15,7 @@ class connection;
 
 class BNL_QUIC_EXPORT stream {
 public:
-  stream(uint64_t id, ngtcp2::connection *ngtcp2, const log::api *logger);
+  stream(uint64_t id, ngtcp2::connection *ngtcp2);
 
   result<base::buffer> send();
 
@@ -40,7 +35,6 @@ private:
 
   uint64_t id_;
   ngtcp2::connection *ngtcp2_;
-  const log::api *logger_;
 };
 
 }

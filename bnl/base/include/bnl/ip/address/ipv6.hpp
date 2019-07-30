@@ -27,7 +27,8 @@ private:
 };
 
 BNL_BASE_EXPORT
-std::ostream &operator<<(std::ostream &os, const address &address);
+std::ostream &
+operator<<(std::ostream &os, const address &address);
 
 }
 }

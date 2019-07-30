@@ -9,17 +9,12 @@
 #include <bnl/http3/header.hpp>
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace http3 {
 namespace headers {
 
 class BNL_HTTP3_EXPORT encoder {
 public:
-  explicit encoder(const log::api *logger) noexcept;
+  encoder() = default;
 
   encoder(encoder &&) = default;
   encoder &operator=(encoder &&) = default;
@@ -37,15 +32,12 @@ private:
   state state_ = state::idle;
   base::buffers buffers_;
 
-  frame::encoder frame_;
   qpack::encoder qpack_;
-
-  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
 public:
-  explicit decoder(const log::api *logger) noexcept;
+  decoder() = default;
 
   decoder(decoder &&) = default;
   decoder &operator=(decoder &&) = default;
@@ -63,10 +55,7 @@ private:
   state state_ = state::frame;
   uint64_t headers_size_ = 0;
 
-  frame::decoder frame_;
   qpack::decoder qpack_;
-
-  const log::api *logger_;
 };
 
 #define BNL_HTTP3_HEADERS_DECODE_IMPL(T)                                       \

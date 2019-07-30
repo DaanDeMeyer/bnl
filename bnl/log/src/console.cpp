@@ -29,7 +29,7 @@ console::log(log::level level,
              const char *format,
              const fmt::format_args &args) const
 {
-  (void)function;
+  (void) function;
 
   if (level < level_) {
     return;

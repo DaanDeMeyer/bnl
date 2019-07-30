@@ -1,6 +1,9 @@
 bnl_add_library(base)
 
-target_link_libraries(bnl-base PUBLIC fmt outcome)
+target_link_libraries(
+  bnl-base
+  PUBLIC fmt outcome
+)
 
 target_sources(bnl-base PRIVATE
   src/base/buffer_view.cpp

@@ -2,7 +2,6 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 #include <algorithm>
 
@@ -11,13 +10,9 @@ namespace http3 {
 namespace qpack {
 namespace literal {
 
-decoder::decoder(const log::api *logger) noexcept
-  : huffman_(logger)
-{}
-
 template<typename Sequence>
 result<base::string>
-decoder::decode(Sequence &encoded, uint8_t prefix) const
+decode(Sequence &encoded, uint8_t prefix)
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
@@ -27,7 +22,8 @@ decoder::decode(Sequence &encoded, uint8_t prefix) const
 
   bool is_huffman = static_cast<uint8_t>(*lookahead >> prefix) & 0x01; // NOLINT
 
-  uint64_t literal_encoded_size = TRY(prefix_int_.decode(lookahead, prefix));
+  uint64_t literal_encoded_size =
+    BNL_TRY(prefix_int::decode(lookahead, prefix));
 
   if (literal_encoded_size > lookahead.size()) {
     return base::error::incomplete;
@@ -38,7 +34,7 @@ decoder::decode(Sequence &encoded, uint8_t prefix) const
   base::string literal;
 
   if (is_huffman) {
-    literal = TRY(huffman_.decode(lookahead, bounded_encoded_size));
+    literal = BNL_TRY(huffman::decode(lookahead, bounded_encoded_size));
   } else {
     literal.resize(bounded_encoded_size);
 

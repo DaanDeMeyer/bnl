@@ -1,9 +1,8 @@
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/codec/qpack/huffman.hpp>
 #include <bnl/log.hpp>
-#include <bnl/util/test.hpp>
 
 #include <random>
 
@@ -30,13 +29,12 @@ random_string(size_t length)
 }
 
 static void
-encode_and_decode(base::string_view string,
-                  const http3::qpack::huffman::encoder &encoder,
-                  const http3::qpack::huffman::decoder &decoder)
+encode_and_decode(base::string_view string)
 {
-  base::buffer encoded = encoder.encode(string);
+  base::buffer encoded = http3::qpack::huffman::encode(string);
 
-  base::string decoded = EXTRACT(decoder.decode(encoded, encoded.size()));
+  base::string decoded =
+    http3::qpack::huffman::decode(encoded, encoded.size()).value();
 
   REQUIRE(decoded.size() == string.size());
   REQUIRE(string == decoded);
@@ -44,27 +42,23 @@ encode_and_decode(base::string_view string,
 
 TEST_CASE("huffman")
 {
-  log::api logger;
-
-  http3::qpack::huffman::encoder encoder;
-  http3::qpack::huffman::decoder decoder(&logger);
-
   SUBCASE("random")
   {
     for (size_t i = 0; i < 1000; i++) {
       base::string string = random_string(20);
-      encode_and_decode(string, encoder, decoder);
+      encode_and_decode(string);
     }
   }
 
   SUBCASE("incomplete")
   {
     base::string data("abcde");
-    base::buffer encoded = encoder.encode(data);
+    base::buffer encoded = http3::qpack::huffman::encode(data);
 
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    result<base::string> r = decoder.decode(incomplete, encoded.size());
+    result<base::string> r =
+      http3::qpack::huffman::decode(incomplete, encoded.size());
 
     REQUIRE(r.error() == base::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);

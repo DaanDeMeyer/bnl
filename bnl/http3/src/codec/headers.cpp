@@ -2,26 +2,19 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {
 namespace headers {
 
-encoder::encoder(const log::api *logger) noexcept
-  : frame_(logger)
-  , qpack_(logger)
-  , logger_(logger)
-{}
-
 result<void>
 encoder::add(header_view header)
 {
   if (state_ != state::idle) {
-    THROW(connection::error::internal);
+    return connection::error::internal;
   }
 
-  base::buffer encoded = TRY(qpack_.encode(header));
+  base::buffer encoded = BNL_TRY(qpack_.encode(header));
   buffers_.push(std::move(encoded));
 
   return success();
@@ -31,7 +24,7 @@ result<void>
 encoder::fin() noexcept
 {
   if (state_ != state::idle) {
-    THROW(connection::error::internal);
+    return connection::error::internal;
   }
 
   state_ = state::frame;
@@ -56,7 +49,7 @@ encoder::encode() noexcept
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
 
-      base::buffer encoded = TRY(frame_.encode(frame));
+      base::buffer encoded = BNL_TRY(frame::encode(frame));
 
       state_ = state::qpack;
 
@@ -71,17 +64,11 @@ encoder::encode() noexcept
     }
 
     case state::fin:
-      THROW(connection::error::internal);
+      return connection::error::internal;
   }
 
-  NOTREACHED();
+  return connection::error::internal;
 }
-
-decoder::decoder(const log::api *logger) noexcept
-  : frame_(logger)
-  , qpack_(logger)
-  , logger_(logger)
-{}
 
 bool
 decoder::started() const noexcept
@@ -102,27 +89,27 @@ decoder::decode(Sequence &encoded)
   switch (state_) {
 
     case state::frame: {
-      frame::type type = TRY(frame_.peek(encoded));
+      frame::type type = BNL_TRY(frame::peek(encoded));
 
       if (type != frame::type::headers) {
         return base::error::delegate;
       }
 
-      frame frame = TRY(frame_.decode(encoded));
+      frame frame = BNL_TRY(frame::decode(encoded));
 
       state_ = state::qpack;
       headers_size_ = frame.headers.size;
 
       if (headers_size_ == 0) {
-        THROW(connection::error::malformed_frame);
+        return connection::error::malformed_frame;
       }
     }
     /* FALLTHRU */
     case state::qpack: {
-      header header = TRY(qpack_.decode(encoded));
+      header header = BNL_TRY(qpack_.decode(encoded));
 
       if (qpack_.count() > headers_size_) {
-        THROW(connection::error::malformed_frame);
+        return connection::error::malformed_frame;
       }
 
       bool fin = qpack_.count() == headers_size_;
@@ -132,10 +119,10 @@ decoder::decode(Sequence &encoded)
     }
 
     case state::fin:
-      THROW(connection::error::internal);
+      return connection::error::internal;
   }
 
-  NOTREACHED();
+  return connection::error::internal;
 }
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_HEADERS_DECODE_IMPL);

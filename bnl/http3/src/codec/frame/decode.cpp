@@ -1,27 +1,20 @@
 #include <bnl/http3/codec/frame.hpp>
 
-#include <bnl/http3/error.hpp>
-#include <bnl/util/enum.hpp>
-#include <bnl/util/error.hpp>
-
 #include <bnl/base/error.hpp>
+#include <bnl/http3/error.hpp>
+#include <bnl/log.hpp>
 
 namespace bnl {
 namespace http3 {
 
-frame::decoder::decoder(const log::api *logger) noexcept
-  : varint_(logger)
-  , logger_(logger)
-{}
-
 template<typename Sequence>
 result<frame::type>
-frame::decoder::peek(const Sequence &encoded) const noexcept
+frame::peek(const Sequence &encoded) noexcept
 {
   typename Sequence::lookahead_type lookahead(encoded);
 
   while (true) {
-    uint64_t type = TRY(varint_.decode(lookahead));
+    uint64_t type = BNL_TRY(varint::decode(lookahead));
 
     switch (static_cast<frame::type>(type)) {
       case frame::type::data:
@@ -39,37 +32,31 @@ frame::decoder::peek(const Sequence &encoded) const noexcept
     }
   }
 
-  NOTREACHED();
+  assert(false);
+  return success();
 }
 
-template<typename Sequence>
-result<frame>
-frame::decoder::decode(Sequence &encoded) const noexcept
+template<typename Lookahead>
+result<uint8_t>
+uint8_decode(Lookahead &lookahead) noexcept
 {
-  // frame has no copy constructor so we check the while condition inside the
-  // while loop instead.
-  while (true) {
-    typename Sequence::lookahead_type lookahead(encoded);
-
-    result<frame> r = decode_single(lookahead);
-    if (!r && r.error() != base::error::delegate) {
-      return std::move(r).error();
-    }
-
-    encoded.consume(lookahead.consumed());
-
-    if (r) {
-      return r;
-    }
+  if (lookahead.empty()) {
+    return base::error::incomplete;
   }
+
+  uint8_t result = *lookahead;
+
+  lookahead.consume(sizeof(uint8_t));
+
+  return result;
 }
 
 template<typename Lookahead>
 result<frame>
-frame::decoder::decode_single(Lookahead &lookahead) const noexcept
+decode_single(Lookahead &lookahead) noexcept
 {
-  uint64_t type = TRY(varint_.decode(lookahead));
-  uint64_t payload_encoded_size = TRY(varint_.decode(lookahead));
+  uint64_t type = BNL_TRY(varint::decode(lookahead));
+  uint64_t payload_encoded_size = BNL_TRY(varint::decode(lookahead));
 
   // Use lambda to get around lack of copy assignment operator on `frame`.
   auto payload_decode = [&]() -> result<frame> {
@@ -95,17 +82,17 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
       case frame::type::priority: {
         frame::payload::priority priority{};
 
-        uint8_t byte = TRY(uint8_decode(lookahead));
+        uint8_t byte = BNL_TRY(uint8_decode(lookahead));
         priority.prioritized_element_type =
           static_cast<frame::payload::priority::type>(byte >> 6U);
         priority.element_dependency_type =
           static_cast<frame::payload::priority::type>(
             static_cast<uint8_t>(byte >> 4U) & 0x03U);
 
-        priority.prioritized_element_id = TRY(varint_.decode(lookahead));
-        priority.element_dependency_id = TRY(varint_.decode(lookahead));
+        priority.prioritized_element_id = BNL_TRY(varint::decode(lookahead));
+        priority.element_dependency_id = BNL_TRY(varint::decode(lookahead));
 
-        priority.weight = TRY(uint8_decode(lookahead));
+        priority.weight = BNL_TRY(uint8_decode(lookahead));
 
         return priority;
       }
@@ -113,7 +100,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
       case frame::type::cancel_push: {
         frame::payload::cancel_push cancel_push{};
 
-        cancel_push.push_id = TRY(varint_.decode(lookahead));
+        cancel_push.push_id = BNL_TRY(varint::decode(lookahead));
 
         return cancel_push;
       }
@@ -125,8 +112,8 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
 
         while (settings_encoded_size < payload_encoded_size) {
           size_t before = lookahead.consumed();
-          uint64_t id = TRY(varint_.decode(lookahead));
-          uint64_t value = TRY(varint_.decode(lookahead));
+          uint64_t id = BNL_TRY(varint::decode(lookahead));
+          uint64_t value = BNL_TRY(varint::decode(lookahead));
 
           settings_encoded_size += lookahead.consumed() - before;
 
@@ -156,7 +143,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
         frame::payload::push_promise push_promise{};
 
         size_t before = lookahead.consumed();
-        push_promise.push_id = TRY(varint_.decode(lookahead));
+        push_promise.push_id = BNL_TRY(varint::decode(lookahead));
 
         size_t varint_encoded_size = lookahead.consumed() - before;
 
@@ -177,7 +164,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
       case frame::type::goaway: {
         frame::payload::goaway goaway{};
 
-        goaway.stream_id = TRY(varint_.decode(lookahead));
+        goaway.stream_id = BNL_TRY(varint::decode(lookahead));
 
         return goaway;
       }
@@ -185,7 +172,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
       case frame::type::max_push_id: {
         frame::payload::max_push_id max_push_id{};
 
-        max_push_id.push_id = TRY(varint_.decode(lookahead));
+        max_push_id.push_id = BNL_TRY(varint::decode(lookahead));
 
         return max_push_id;
       }
@@ -193,7 +180,7 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
       case frame::type::duplicate_push: {
         frame::payload::duplicate_push duplicate_push{};
 
-        duplicate_push.push_id = TRY(varint_.decode(lookahead));
+        duplicate_push.push_id = BNL_TRY(varint::decode(lookahead));
 
         return duplicate_push;
       }
@@ -209,31 +196,39 @@ frame::decoder::decode_single(Lookahead &lookahead) const noexcept
   };
 
   size_t before = lookahead.consumed();
-  frame frame = TRY(payload_decode());
+  frame frame = BNL_TRY(payload_decode());
 
   size_t actual_encoded_size = lookahead.consumed() - before;
 
   if (actual_encoded_size != payload_encoded_size) {
-    LOG_E("Frame payload's actual length does not match its advertised length");
-    THROW(connection::error::malformed_frame);
+    BNL_LOG_E(
+      "Frame payload's actual length does not match its advertised length");
+    return connection::error::malformed_frame;
   }
 
   return frame;
 }
 
-template<typename Lookahead>
-result<uint8_t>
-frame::decoder::uint8_decode(Lookahead &lookahead) const noexcept
+template<typename Sequence>
+result<frame>
+frame::decode(Sequence &encoded) noexcept
 {
-  if (lookahead.empty()) {
-    return base::error::incomplete;
+  // frame has no copy constructor so we check the while condition inside the
+  // while loop instead.
+  while (true) {
+    typename Sequence::lookahead_type lookahead(encoded);
+
+    result<frame> r = decode_single(lookahead);
+    if (!r && r.error() != base::error::delegate) {
+      return std::move(r).error();
+    }
+
+    encoded.consume(lookahead.consumed());
+
+    if (r) {
+      return r;
+    }
   }
-
-  uint8_t result = *lookahead;
-
-  lookahead.consume(sizeof(uint8_t));
-
-  return result;
 }
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_FRAME_PEEK_IMPL);

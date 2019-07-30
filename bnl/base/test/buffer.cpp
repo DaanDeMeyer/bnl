@@ -1,4 +1,4 @@
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include <bnl/base/buffer.hpp>
 

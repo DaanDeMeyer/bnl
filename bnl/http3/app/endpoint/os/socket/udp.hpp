@@ -10,18 +10,12 @@
 
 using namespace bnl;
 
-namespace bnl {
-namespace log {
-class api;
-}
-}
-
 namespace os {
 namespace socket {
 
 class udp {
 public:
-  udp(ip::endpoint peer, const log::api *logger_);
+  udp(ip::endpoint peer);
 
   udp(udp &&) = default;
   udp &operator=(udp &&) = default;
@@ -41,8 +35,6 @@ public:
 private:
   base::buffers send_buffer_;
   os::fd socket_;
-
-  const log::api *logger_;
 };
 
 }

@@ -1,7 +1,6 @@
 #include <bnl/http3/codec/qpack.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/log/console.hpp>
-#include <bnl/util/error.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -10,13 +9,6 @@
 #include <vector>
 
 using namespace bnl;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Waddress"
-
-// Allocate logger on the heap because `THROW` and `LOG_E` macro expect a
-// pointer.
-static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
 
 static base::buffer
 id_encode(uint64_t id)
@@ -60,17 +52,18 @@ encode(uint64_t id,
        const std::vector<http3::header> &headers,
        std::ofstream &output)
 {
-  http3::qpack::encoder qpack(logger_.get());
+  http3::qpack::encoder qpack;
 
   std::queue<base::buffer> buffers;
 
   for (const http3::header &header : headers) {
-    result<base::buffer> r = TRY(qpack.encode(header));
+    result<base::buffer> r = BNL_TRY(qpack.encode(header));
     buffers.emplace(std::move(r).value());
   }
 
   if (qpack.count() > UINT32_MAX) {
-    LOG_E("Headers encoded size does not fit in an unsigned 32-bit integer");
+    BNL_LOG_E(
+      "Headers encoded size does not fit in an unsigned 32-bit integer");
   }
 
   write(output, id_encode(id));
@@ -100,7 +93,7 @@ main(int argc, char *argv[])
   try {
     input.open(argv[1], std::ios::binary);
   } catch (const std::ios_base::failure &e) {
-    LOG_E("Error opening input file: {}", e.what());
+    BNL_LOG_E("Error opening input file: {}", e.what());
     return 1;
   }
 
@@ -115,7 +108,7 @@ main(int argc, char *argv[])
   try {
     output.open(argv[2], std::ios::trunc | std::ios::binary);
   } catch (const std::ios_base::failure &e) {
-    LOG_E("Error opening output file: {}", e.what());
+    BNL_LOG_E("Error opening output file: {}", e.what());
     return 1;
   }
 
@@ -133,7 +126,7 @@ main(int argc, char *argv[])
 
       result<void> r = encode(id, headers, output);
       if (!r) {
-        LOG_E("Error encoding headers");
+        BNL_LOG_E("Error encoding headers");
         return 1;
       }
 
@@ -149,7 +142,7 @@ main(int argc, char *argv[])
 
     size_t i = line.find('\t');
     if (i == base::string::npos) {
-      LOG_E("Missing TAB character");
+      BNL_LOG_E("Missing TAB character");
       return 1;
     }
 
@@ -159,5 +152,3 @@ main(int argc, char *argv[])
 
   return 0;
 }
-
-#pragma GCC diagnostic pop

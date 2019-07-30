@@ -2,7 +2,7 @@ bnl_add_library(quic)
 
 target_link_libraries(bnl-quic
   PUBLIC bnl-base
-  PRIVATE bnl-util ngtcp2 ssl
+  PRIVATE ngtcp2 ssl
 )
 
 target_include_directories(bnl-quic PRIVATE src)

@@ -30,8 +30,8 @@ public:
   };
 
   event(payload::settings settings) noexcept; // NOLINT
-  event(payload::header header) noexcept; // NOLINT
-  event(payload::body body) noexcept; // NOLINT
+  event(payload::header header) noexcept;     // NOLINT
+  event(payload::body body) noexcept;         // NOLINT
 
   event(event &&other) noexcept;
   event &operator=(event &&) = delete;

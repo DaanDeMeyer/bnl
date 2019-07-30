@@ -16,11 +16,6 @@
 #include <random>
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace quic {
 namespace client {
 
@@ -29,8 +24,7 @@ public:
   connection(const ip::host &host,
              path path,
              const params &params,
-             clock clock,
-             const log::api *logger) noexcept;
+             clock clock) noexcept;
 
   connection(connection &&) = default;
   connection &operator=(connection &&) = default;
@@ -100,7 +94,6 @@ private:
 
   void extend_max_stream_data(uint64_t id, uint64_t max_data);
 
-  const log::api *logger() const noexcept;
   result<quic::crypto> crypto() const noexcept;
 
 private:
@@ -120,8 +113,6 @@ private:
   ngtcp2::connection ngtcp2_;
   handshake handshake_;
   quic::path path_;
-
-  const log::api *logger_;
 };
 
 }

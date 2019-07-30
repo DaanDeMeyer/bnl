@@ -2,22 +2,16 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
 
 namespace bnl {
 namespace http3 {
 namespace body {
 
-encoder::encoder(const log::api *logger) noexcept
-  : frame_(logger)
-  , logger_(logger)
-{}
-
 result<void>
 encoder::add(base::buffer body)
 {
   if (fin_) {
-    THROW(connection::error::internal);
+    return connection::error::internal;
   }
 
   buffers_.push(std::move(body));
@@ -29,7 +23,7 @@ result<void>
 encoder::fin() noexcept
 {
   if (state_ == state::fin) {
-    THROW(connection::error::internal);
+    return connection::error::internal;
   }
 
   fin_ = true;
@@ -60,7 +54,7 @@ encoder::encode() noexcept
       }
 
       frame frame = frame::payload::data{ buffers_.front().size() };
-      base::buffer encoded = TRY(frame_.encode(frame));
+      base::buffer encoded = BNL_TRY(frame::encode(frame));
 
       state_ = state::data;
 
@@ -75,16 +69,11 @@ encoder::encode() noexcept
     }
 
     case state::fin:
-      THROW(connection::error::internal);
+      return connection::error::internal;
   }
 
-  NOTREACHED();
+  return connection::error::internal;
 }
-
-decoder::decoder(const log::api *logger) noexcept
-  : frame_(logger)
-  , logger_(logger)
-{}
 
 bool
 decoder::in_progress() const noexcept
@@ -99,13 +88,13 @@ decoder::decode(Sequence &encoded)
   switch (state_) {
 
     case state::frame: {
-      frame::type type = TRY(frame_.peek(encoded));
+      frame::type type = BNL_TRY(frame::peek(encoded));
 
       if (type != frame::type::data) {
         return base::error::delegate;
       }
 
-      frame frame = TRY(frame_.decode(encoded));
+      frame frame = BNL_TRY(frame::decode(encoded));
 
       state_ = state::data;
       remaining_ = frame.data.size;
@@ -131,7 +120,7 @@ decoder::decode(Sequence &encoded)
     }
   }
 
-  NOTREACHED();
+  return connection::error::internal;
 }
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_BODY_DECODE_IMPL);

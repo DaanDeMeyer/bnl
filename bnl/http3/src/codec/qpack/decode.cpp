@@ -2,8 +2,7 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
-#include <bnl/util/string.hpp>
+#include <bnl/log.hpp>
 
 #include <tuple>
 
@@ -12,12 +11,6 @@
 namespace bnl {
 namespace http3 {
 namespace qpack {
-
-// TODO: Find out what is best for max header and max value size.
-decoder::decoder(const log::api *logger)
-  : literal_(logger)
-  , logger_(logger)
-{}
 
 uint64_t
 decoder::count() const noexcept
@@ -52,19 +45,19 @@ decoder::decode(Sequence &encoded)
 
     case table::fixed::type::header_value: {
       if ((*lookahead & 0x40U) == 0) {
-        LOG_E("'S' (static table) bit not set in indexed header field");
-        THROW(connection::error::qpack_decompression_failed);
+        BNL_LOG_E("'S' (static table) bit not set in indexed header field");
+        return connection::error::qpack_decompression_failed;
       }
 
       uint8_t index =
-        static_cast<uint8_t>(TRY(prefix_int_.decode(lookahead, 6)));
+        static_cast<uint8_t>(BNL_TRY(prefix_int::decode(lookahead, 6)));
 
       bool found = false;
       std::tie(found, header) = table::fixed::find_header_value(index);
 
       if (!found) {
-        LOG_E("Indexed header field ({}) not found in static table", index);
-        THROW(connection::error::qpack_decompression_failed);
+        BNL_LOG_E("Indexed header field ({}) not found in static table", index);
+        return connection::error::qpack_decompression_failed;
       }
 
       break;
@@ -72,45 +65,47 @@ decoder::decode(Sequence &encoded)
 
     case table::fixed::type::header_only: {
       if ((*lookahead & 0x10U) == 0) {
-        LOG_E("'S' (static table) bit not set in literal with name reference");
-        THROW(connection::error::qpack_decompression_failed);
+        BNL_LOG_E(
+          "'S' (static table) bit not set in literal with name reference");
+        return connection::error::qpack_decompression_failed;
       }
 
       uint8_t index =
-        static_cast<uint8_t>(TRY(prefix_int_.decode(lookahead, 4)));
+        static_cast<uint8_t>(BNL_TRY(prefix_int::decode(lookahead, 4)));
 
       bool found = false;
       base::string name;
       std::tie(found, name) = table::fixed::find_header_only(index);
 
       if (!found) {
-        LOG_E("Header name reference ({}) not found in static table", index);
-        THROW(connection::error::qpack_decompression_failed);
+        BNL_LOG_E("Header name reference ({}) not found in static table",
+                  index);
+        return connection::error::qpack_decompression_failed;
       }
 
-      base::string value = TRY(literal_.decode(lookahead, 7));
+      base::string value = BNL_TRY(literal::decode(lookahead, 7));
 
       header = http3::header(std::move(name), std::move(value));
       break;
     }
 
     case table::fixed::type::missing: {
-      base::string name = TRY(literal_.decode(lookahead, 3));
-      base::string value = TRY(literal_.decode(lookahead, 7));
+      base::string name = BNL_TRY(literal::decode(lookahead, 3));
+      base::string value = BNL_TRY(literal::decode(lookahead, 7));
 
       header = http3::header(std::move(name), std::move(value));
 
       if (!header_is_lowercase(header)) {
-        LOG_E("Header ({}) is not lowercase", name);
-        THROW(error::malformed_header);
+        BNL_LOG_E("Header ({}) is not lowercase", header);
+        return error::malformed_header;
       }
 
       break;
     }
 
     case table::fixed::type::unknown:
-      LOG_E("Unexpected header block instruction prefix ({})", *lookahead);
-      THROW(connection::error::qpack_decompression_failed);
+      BNL_LOG_E("Unexpected header block instruction prefix ({})", *lookahead);
+      return connection::error::qpack_decompression_failed;
   }
 
   count_ += lookahead.consumed();

@@ -32,4 +32,7 @@ api::log(log::level level,
 }
 
 }
+
+log::api *logger = nullptr;
+
 }

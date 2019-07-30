@@ -2,7 +2,7 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
+#include <bnl/log.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -10,11 +10,8 @@ namespace endpoint {
 namespace stream {
 namespace control {
 
-sender::sender(uint64_t id, const log::api *logger) noexcept
-  : varint_(logger)
-  , frame_(logger)
-  , id_(id)
-  , logger_(logger)
+sender::sender(uint64_t id) noexcept
+  : id_(id)
 {}
 
 result<quic::event>
@@ -22,13 +19,13 @@ sender::send() noexcept
 {
   switch (state_) {
     case state::type: {
-      base::buffer encoded = TRY(varint_.encode(type));
+      base::buffer encoded = BNL_TRY(varint::encode(type));
       state_ = state::settings;
       return quic::data{ id_, false, std::move(encoded) };
     }
 
     case state::settings: {
-      base::buffer encoded = TRY(frame_.encode(settings_));
+      base::buffer encoded = BNL_TRY(frame::encode(settings_));
       state_ = state::idle;
       return quic::data{ id_, false, std::move(encoded) };
     }
@@ -37,14 +34,12 @@ sender::send() noexcept
       return base::error::idle;
   }
 
-  NOTREACHED();
+  assert(false);
+  return connection::error::internal;
 }
 
-receiver::receiver(uint64_t id, const log::api *logger) noexcept
-  : varint_(logger)
-  , frame_(logger)
-  , id_(id)
-  , logger_(logger)
+receiver::receiver(uint64_t id) noexcept
+  : id_(id)
 {}
 
 receiver::~receiver() noexcept = default;
@@ -59,7 +54,7 @@ result<void>
 receiver::recv(quic::data data, event::handler handler)
 {
   if (data.fin) {
-    THROW(connection::error::closed_critical_stream);
+    return connection::error::closed_critical_stream;
   }
 
   buffers_.push(std::move(data.buffer));
@@ -74,7 +69,7 @@ receiver::recv(quic::data data, event::handler handler)
       return std::move(r).error();
     }
 
-    TRY(handler(std::move(r).value()));
+    BNL_TRY(handler(std::move(r).value()));
   }
 
   return success();
@@ -88,21 +83,22 @@ receiver::process() noexcept
     // TODO: Move this out of control stream since we technically won't know its
     // the control stream until we've decoded the type.
     case state::type: {
-      uint64_t type = TRY(varint_.decode(buffers_));
+      uint64_t type = BNL_TRY(varint::decode(buffers_));
       (void) type; // Silence GCC 9 Wunused-variable warning
       assert(type == control::type);
       state_ = state::settings;
     }
     /* FALLTHRU */
     case state::settings: {
-      frame frame = TRY(frame_.decode(buffers_));
+      frame frame = BNL_TRY(frame::decode(buffers_));
 
       // First frame on the control stream has to be a SETTINGS frame.
       // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-settings
       if (frame != frame::type::settings) {
-        LOG_E("First frame on the control stream ({}) is not a SETTINGS frame",
-              frame);
-        THROW(connection::error::missing_settings);
+        BNL_LOG_E(
+          "First frame on the control stream ({}) is not a SETTINGS frame",
+          frame);
+        return connection::error::missing_settings;
       };
 
       state_ = state::active;
@@ -111,16 +107,16 @@ receiver::process() noexcept
     }
 
     case state::active: {
-      frame frame = TRY(frame_.decode(buffers_));
+      frame frame = BNL_TRY(frame::decode(buffers_));
 
       switch (frame) {
         case frame::type::headers: // TODO: STANDARDIZE
         case frame::type::data:
         case frame::type::push_promise:
         case frame::type::duplicate_push:
-          THROW(connection::error::wrong_stream);
+          return connection::error::wrong_stream;
         case frame::type::settings:
-          THROW(connection::error::unexpected_frame);
+          return connection::error::unexpected_frame;
         default:
           break;
       }
@@ -129,7 +125,8 @@ receiver::process() noexcept
     }
   }
 
-  NOTREACHED();
+  assert(false);
+  return connection::error::internal;
 }
 
 }

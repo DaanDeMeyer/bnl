@@ -2,7 +2,7 @@
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/error.hpp>
-#include <bnl/util/error.hpp>
+#include <bnl/log.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -10,11 +10,8 @@ namespace endpoint {
 namespace stream {
 namespace request {
 
-sender::sender(uint64_t id, const log::api *logger) noexcept
-  : headers_(logger)
-  , body_(logger)
-  , id_(id)
-  , logger_(logger)
+sender::sender(uint64_t id) noexcept
+  : id_(id)
 {}
 
 sender::sender(sender &&other) noexcept
@@ -23,7 +20,6 @@ sender::sender(sender &&other) noexcept
   , headers_(std::move(other.headers_))
   , body_(std::move(other.body_))
   , id_(other.id_)
-  , logger_(other.logger_)
 {
   if (handle_ != nullptr) {
     handle_->sender_ = this;
@@ -41,7 +37,6 @@ sender::operator=(sender &&other) noexcept
     headers_ = std::move(other.headers_);
     body_ = std::move(other.body_);
     id_ = other.id_;
-    logger_ = other.logger_;
 
     if (handle_ != nullptr) {
       handle_->sender_ = this;
@@ -72,7 +67,7 @@ sender::send() noexcept
   switch (state_) {
 
     case state::headers: {
-      base::buffer encoded = TRY(headers_.encode());
+      base::buffer encoded = BNL_TRY(headers_.encode());
 
       if (headers_.finished()) {
         state_ = body_.finished() ? state::fin : state::body;
@@ -84,7 +79,7 @@ sender::send() noexcept
     }
 
     case state::body: {
-      base::buffer encoded = TRY(body_.encode());
+      base::buffer encoded = BNL_TRY(body_.encode());
 
       if (body_.finished()) {
         state_ = state::fin;
@@ -94,10 +89,11 @@ sender::send() noexcept
     }
 
     case state::fin:
-      THROW(connection::error::internal);
+      return connection::error::internal;
   }
 
-  NOTREACHED();
+  assert(false);
+  return connection::error::internal;
 }
 
 result<void>
@@ -207,12 +203,8 @@ sender::handle::fin() noexcept
   return sender_->fin();
 }
 
-receiver::receiver(uint64_t id, const log::api *logger) noexcept
-  : frame_(logger)
-  , headers_(logger)
-  , body_(logger)
-  , id_(id)
-  , logger_(logger)
+receiver::receiver(uint64_t id) noexcept
+  : id_(id)
 {}
 
 receiver::~receiver() noexcept = default;
@@ -249,7 +241,7 @@ result<void>
 receiver::recv(quic::data data, event::handler handler)
 {
   if (fin_received_) {
-    THROW(connection::error::internal);
+    return connection::error::internal;
   }
 
   fin_received_ = data.fin;
@@ -270,7 +262,7 @@ receiver::recv(quic::data data, event::handler handler)
       return std::move(r).error();
     }
 
-    TRY(handler(std::move(r).value()));
+    BNL_TRY(handler(std::move(r).value()));
   }
 
   return success();
@@ -284,7 +276,7 @@ receiver::process() noexcept
   switch (state_) {
 
     case state::closed:
-      THROW(connection::error::internal);
+      return connection::error::internal;
 
     case state::headers: {
       result<header> r = headers_.decode(buffers_);
@@ -319,7 +311,7 @@ receiver::process() noexcept
         // We've processed all stream data but there still frame data left to be
         // received.
         if (body_.in_progress()) {
-          THROW(connection::error::malformed_frame);
+          return (connection::error::malformed_frame);
         }
 
         state_ = state::fin;
@@ -329,29 +321,29 @@ receiver::process() noexcept
     }
 
     case state::fin:
-      THROW(connection::error::internal);
+      return connection::error::internal;
   };
 
   if (sc == base::error::delegate) {
-    frame frame = TRY(frame_.decode(buffers_));
+    frame frame = BNL_TRY(frame::decode(buffers_));
 
     switch (frame) {
       case frame::type::headers:
         // TODO: Implement trailing HEADERS
         if (state_ == receiver::state::body) {
-          LOG_W("Ignoring trailing headers");
+          BNL_LOG_W("Ignoring trailing headers");
           buffers_.consume(buffers_.size());
           state_ = state::fin;
           return event::payload::body{ id_, true, base::buffer() };
         }
         break;
       case frame::type::data:
-        THROW(connection::error::unexpected_frame);
+        return connection::error::unexpected_frame;
       case frame::type::settings:
       case frame::type::max_push_id:
       case frame::type::cancel_push:
       case frame::type::goaway:
-        THROW(connection::error::wrong_stream);
+        return connection::error::wrong_stream;
       default:
         return process(frame);
     }

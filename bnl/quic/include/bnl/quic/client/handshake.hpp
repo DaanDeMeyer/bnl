@@ -13,11 +13,6 @@ using SSL_CIPHER = struct ssl_cipher_st;
 using SSL_QUIC_METHOD = struct ssl_quic_method_st;
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace quic {
 namespace client {
 
@@ -29,8 +24,7 @@ class BNL_QUIC_EXPORT handshake {
 public:
   handshake(const ip::host &host,
             base::buffer_view dcid,
-            ngtcp2::connection *ngtcp2,
-            const log::api *logger);
+            ngtcp2::connection *ngtcp2);
 
   handshake(handshake &&other);            // NOLINT
   handshake &operator=(handshake &&other); // NOLINT
@@ -74,7 +68,6 @@ private:
   base::buffer rx_secret_;
 
   ngtcp2::connection *ngtcp2_;
-  const log::api *logger_;
 };
 
 }

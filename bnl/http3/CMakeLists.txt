@@ -8,7 +8,7 @@ endif()
 
 target_link_libraries(bnl-http3
   PUBLIC bnl-base
-  PRIVATE bnl-util xxhash
+  PRIVATE xxhash
 )
 
 target_sources(bnl-http3 PRIVATE
@@ -56,7 +56,6 @@ foreach(ACTION encode decode)
   target_link_libraries(bnl-http3-qpack-interop-${ACTION} PRIVATE
     bnl-http3
     bnl-log
-    bnl-util
   )
   set_target_properties(bnl-http3-qpack-interop-${ACTION} PROPERTIES
     OUTPUT_NAME qpack-interop-${ACTION}
@@ -76,14 +75,13 @@ if(systemd_FOUND)
     bnl-http3
     bnl-quic
     bnl-log
-    bnl-util
     systemd
   )
 
   target_sources(bnl-http3-client PRIVATE
     app/endpoint/client.cpp
-    app/endpoint/os/dns/client.cpp
     app/endpoint/os/socket/udp.cpp
+    app/endpoint/os/dns.cpp
     app/endpoint/os/fd.cpp
     app/endpoint/os/ip/address.cpp
     app/endpoint/sd/event/loop.cpp

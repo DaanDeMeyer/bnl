@@ -11,9 +11,9 @@ namespace sd {
 
 namespace event {
 
-loop::loop(const log::api *logger)
+loop::loop()
   : event_(nullptr, sd_event_unref)
-  , logger_(logger)
+
 {
   sd_event *event = nullptr;
 
@@ -31,7 +31,7 @@ loop::now() const noexcept
   uint64_t result = 0;
 
   int rv = sd_event_now(event_.get(), CLOCK_MONOTONIC, &result);
-  (void )rv; // Silence GCC 9 Wunused-variable warning
+  (void) rv; // Silence GCC 9 Wunused-variable warning
   assert(rv >= 0);
 
   return duration(result);

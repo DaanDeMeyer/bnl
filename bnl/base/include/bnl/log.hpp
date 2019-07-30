@@ -4,6 +4,7 @@
 #include <bnl/result.hpp>
 
 #include <fmt/core.h>
+#include <fmt/ostream.h>
 
 BNL_BASE_EXPORT std::ostream &
 operator<<(std::ostream &os, const bnl::status_code_domain::string_ref &string);
@@ -46,12 +47,15 @@ protected:
 };
 
 }
+
+BNL_BASE_EXPORT extern log::api *logger;
+
 }
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 
-#define BNL_LOG(logger, level, format, ...)                                    \
+#define BNL_LOG(level, format, ...)                                            \
   if (logger != nullptr) {                                                     \
     (logger)->operator()((level),                                              \
                          __FILE__,                                             \
@@ -62,19 +66,19 @@ protected:
   }                                                                            \
   (void) 0
 
-#define BNL_LOG_TRACE(logger, format, ...)                                     \
-  BNL_LOG(logger, bnl::log::level::trace, (format), ##__VA_ARGS__)
+#define BNL_LOG_T(format, ...)                                                 \
+  BNL_LOG(bnl::log::level::trace, (format), ##__VA_ARGS__)
 
-#define BNL_LOG_DEBUG(logger, format, ...)                                     \
-  BNL_LOG(logger, bnl::log::level::debug, (format), ##__VA_ARGS__)
+#define BNL_LOG_D(format, ...)                                                 \
+  BNL_LOG(bnl::log::level::debug, (format), ##__VA_ARGS__)
 
-#define BNL_LOG_INFO(logger, format, ...)                                      \
-  BNL_LOG(logger, bnl::log::level::info, (format), ##__VA_ARGS__)
+#define BNL_LOG_I(format, ...)                                                 \
+  BNL_LOG(bnl::log::level::info, (format), ##__VA_ARGS__)
 
-#define BNL_LOG_WARNING(logger, format, ...)                                   \
-  BNL_LOG(logger, bnl::log::level::warning, (format), ##__VA_ARGS__)
+#define BNL_LOG_W(format, ...)                                                 \
+  BNL_LOG(bnl::log::level::warning, (format), ##__VA_ARGS__)
 
-#define BNL_LOG_ERROR(logger, format, ...)                                     \
-  BNL_LOG(logger, bnl::log::level::error, (format), ##__VA_ARGS__)
+#define BNL_LOG_E(format, ...)                                                 \
+  BNL_LOG(bnl::log::level::error, (format), ##__VA_ARGS__)
 
 #pragma clang diagnostic pop

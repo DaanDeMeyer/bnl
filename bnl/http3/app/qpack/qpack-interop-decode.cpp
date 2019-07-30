@@ -2,19 +2,11 @@
 #include <bnl/http3/codec/qpack.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/log/console.hpp>
-#include <bnl/util/error.hpp>
 
 #include <fstream>
 #include <vector>
 
 using namespace bnl;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Waddress"
-
-// Allocate logger on the heap because `THROW` and `LOG_E` macro expect a
-// pointer.
-static std::unique_ptr<log::api> logger_(new log::console()); // NOLINT
 
 static result<uint64_t>
 id_decode(base::buffer &encoded)
@@ -67,14 +59,14 @@ write(std::ostream &dest, const std::vector<http3::header> &headers)
 static result<void>
 decode(base::buffer &encoded, std::ofstream &output)
 {
-  TRY(id_decode(encoded));
-  size_t encoded_size = TRY(size_decode(encoded));
+  BNL_TRY(id_decode(encoded));
+  size_t encoded_size = BNL_TRY(size_decode(encoded));
 
-  http3::qpack::decoder qpack(logger_.get());
+  http3::qpack::decoder qpack;
   std::vector<http3::header> headers;
 
   while (qpack.count() != encoded_size) {
-    http3::header header = TRY(qpack.decode(encoded));
+    http3::header header = BNL_TRY(qpack.decode(encoded));
     headers.emplace_back(std::move(header));
   }
 
@@ -98,7 +90,7 @@ main(int argc, char *argv[])
   try {
     input.open(argv[1], std::ios::binary);
   } catch (const std::ios_base::failure &e) {
-    LOG_E("Error opening input file: {}", e.what());
+    BNL_LOG_E("Error opening input file: {}", e.what());
     return 1;
   }
 
@@ -114,7 +106,7 @@ main(int argc, char *argv[])
     encoded = base::buffer(static_cast<size_t>(size));
     input.read(reinterpret_cast<char *>(encoded.data()), size);
   } catch (const std::ios_base::failure &e) {
-    LOG_E("Error reading input: {}", e.what());
+    BNL_LOG_E("Error reading input: {}", e.what());
     return 1;
   }
 
@@ -126,7 +118,7 @@ main(int argc, char *argv[])
   try {
     output.open(argv[2], std::ios::trunc | std::ios::binary);
   } catch (const std::ios_base::failure &e) {
-    LOG_E("Error opening output file: {}", e.what());
+    BNL_LOG_E("Error opening output file: {}", e.what());
     return 1;
   }
 
@@ -135,12 +127,10 @@ main(int argc, char *argv[])
   while (!encoded.empty()) {
     result<void> r = decode(encoded, output);
     if (!r) {
-      LOG_E("Error decoding headers");
+      BNL_LOG_E("Error decoding headers");
       return 1;
     }
   }
 
   return 0;
 }
-
-#pragma GCC diagnostic pop

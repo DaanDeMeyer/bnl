@@ -61,7 +61,6 @@ before_test:
   - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\base\lib;%PATH%
   - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\http3\lib;%PATH%
   - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\log\lib;%PATH%
-  - set PATH=%APPVEYOR_BUILD_FOLDER%\build\bnl\util\lib;%PATH%
 
 test_script:
   - build\test

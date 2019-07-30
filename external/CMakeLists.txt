@@ -12,18 +12,15 @@ target_include_directories(outcome INTERFACE ${PROJECT_BINARY_DIR}/_deps/outcome
 
 ## doctest ##
 
-FetchContent_Declare(
-  doctest
-  URL https://github.com/onqtam/doctest/archive/2.3.2.tar.gz
+file(
+  DOWNLOAD
+  https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
+  ${PROJECT_BINARY_DIR}/_deps/doctest/doctest.h
 )
 
-if(BNL_TEST)
-  option(DOCTEST_WITH_TESTS "" OFF)
-  option(DOCTEST_WITH_MAIN_IN_STATIC_LIB "" ON)
-  option(DOCTEST_NO_INSTALL "" ON)
-
-  reproc_MakeAvailable(doctest)
-endif()
+add_library(doctest INTERFACE IMPORTED GLOBAL)
+target_compile_features(doctest INTERFACE cxx_std_11)
+target_include_directories(doctest INTERFACE ${PROJECT_BINARY_DIR}/_deps/doctest)
 
 ## fmt ##
 

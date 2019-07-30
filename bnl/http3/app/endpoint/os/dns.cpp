@@ -1,5 +1,8 @@
-#include <os/dns/client.hpp>
+#include <os/dns.hpp>
+
 #include <os/error.hpp>
+
+#include <bnl/log.hpp>
 
 #include <netdb.h>
 
@@ -30,12 +33,8 @@ make_address(sockaddr *sockaddr)
 namespace os {
 namespace dns {
 
-client::client(const log::api *logger)
-  : logger_(logger)
-{}
-
 result<std::vector<ip::address>>
-client::resolve(const ip::host &host)
+resolve(const ip::host &host)
 {
   base::string name(host.name().data(), host.name().size());
 

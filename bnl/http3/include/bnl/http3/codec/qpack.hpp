@@ -15,17 +15,12 @@
 // `SETTINGS_QPACK_MAX_TABLE_CAPACITY` as zero when using this implementation.
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace http3 {
 namespace qpack {
 
 class BNL_HTTP3_EXPORT encoder {
 public:
-  explicit encoder(const log::api *logger) noexcept;
+  encoder() = default;
 
   encoder(encoder &&) = default;
   encoder &operator=(encoder &&) = default;
@@ -43,16 +38,11 @@ private:
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
-
-  prefix_int::encoder prefix_int_;
-  literal::encoder literal_;
-
-  const log::api *logger_;
 };
 
 class BNL_HTTP3_EXPORT decoder {
 public:
-  explicit decoder(const log::api *logger);
+  decoder() = default;
 
   decoder(decoder &&) = default;
   decoder &operator=(decoder &&) = default;
@@ -67,11 +57,6 @@ private:
 
   state state_ = state::prefix;
   uint64_t count_ = 0;
-
-  prefix_int::decoder prefix_int_;
-  literal::decoder literal_;
-
-  const log::api *logger_;
 };
 
 #define BNL_HTTP3_QPACK_DECODE_IMPL(T)                                         \

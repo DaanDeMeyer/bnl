@@ -7,14 +7,8 @@
 #include <bnl/quic/event.hpp>
 
 #include <map>
-#include <utility>
 
 namespace bnl {
-
-namespace log {
-class api;
-}
-
 namespace http3 {
 
 namespace request {
@@ -25,7 +19,7 @@ namespace client {
 
 class BNL_HTTP3_EXPORT connection {
 public:
-  explicit connection(const log::api *logger);
+  connection() = default;
 
   connection(connection &&) = default;
   connection &operator=(connection &&) = default;
@@ -55,8 +49,6 @@ private:
 
   std::map<uint64_t, request_t> requests_;
   uint64_t next_stream_id_ = 0;
-
-  const log::api *logger_;
 };
 
 }

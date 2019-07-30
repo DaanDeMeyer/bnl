@@ -3,17 +3,17 @@
 #include <bnl/base/error.hpp>
 #include <bnl/quic/client/ngtcp2/connection.hpp>
 #include <bnl/quic/client/ngtcp2/error.hpp>
-#include <bnl/util/enum.hpp>
-#include <bnl/util/error.hpp>
+
+#include <bnl/log.hpp>
 
 namespace bnl {
 namespace quic {
 namespace client {
 
-stream::stream(uint64_t id, ngtcp2::connection *ngtcp2, const log::api *logger)
+stream::stream(uint64_t id, ngtcp2::connection *ngtcp2)
   : id_(id)
   , ngtcp2_(ngtcp2)
-  , logger_(logger)
+
 {}
 
 result<base::buffer>
@@ -84,11 +84,12 @@ result<void>
 stream::ack(size_t size)
 {
   if (size > keepalive_.size()) {
-    LOG_E("ngtcp2's acked stream ({}) data ({}) exceeds remaining data ({})",
-          id_,
-          size,
-          keepalive_.size());
-    THROW(quic::connection::error::internal);
+    BNL_LOG_E(
+      "ngtcp2's acked stream ({}) data ({}) exceeds remaining data ({})",
+      id_,
+      size,
+      keepalive_.size());
+    return quic::connection::error::internal;
   }
 
   keepalive_.consume(size);

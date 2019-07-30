@@ -1,11 +1,10 @@
 #include <client.hpp>
 
-#include <os/dns/client.hpp>
+#include <os/dns.hpp>
 #include <os/ip/address.hpp>
 
 #include <bnl/base/error.hpp>
 #include <bnl/log/console.hpp>
-#include <bnl/util/error.hpp>
 
 #include <csignal>
 #include <iostream>
@@ -44,19 +43,15 @@ default_quic_params()
   return params;
 }
 
-client::client(const ip::host &host, ip::endpoint peer, const log::api *logger)
-  : socket_(peer, logger)
-  , sd_(logger)
+client::client(const ip::host &host, ip::endpoint peer)
+  : socket_(peer)
   , socket_watcher_(sd_.io(socket_.fd()).assume_value())
   , retransmit_(sd_.timer().assume_value())
   , timeout_((sd_.timer().assume_value()))
   , quic_(host,
           quic::path(socket_.local(), socket_.peer()),
           default_quic_params(),
-          sd_.clock(),
-          logger)
-  , http3_(logger)
-  , logger_(logger)
+          sd_.clock())
 {
   sd_.signal(SIGINT).assume_value();
   sd_.signal(SIGTERM).assume_value();
@@ -74,7 +69,6 @@ client::client(client &&other) noexcept
   , timeout_(std::move(other.timeout_))
   , quic_(std::move(other.quic_))
   , http3_(std::move(other.http3_))
-  , logger_(other.logger_)
 {
   setup();
 }
@@ -103,12 +97,12 @@ client::io(uint32_t events)
   }
 
   if ((events & EPOLLOUT) != 0U || (events & EPOLLHUP) != 0U) {
-    TRY(send());
+    BNL_TRY(send());
   }
 
   if ((events & EPOLLIN) != 0U || (events & EPOLLRDHUP) != 0U) {
-    TRY(recv());
-    TRY(send());
+    BNL_TRY(recv());
+    BNL_TRY(send());
   }
 
   return success();
@@ -202,7 +196,7 @@ client::recv()
 result<void>
 client::recv_once()
 {
-  base::buffer packet = TRY(socket_.recv());
+  base::buffer packet = BNL_TRY(socket_.recv());
 
   auto on_quic_event = [this](quic::event event) -> result<void> {
     result<void> r = http3_.recv(std::move(event), on_event_);
@@ -214,7 +208,7 @@ client::recv_once()
     return r;
   };
 
-  TRY(quic_.recv(std::move(packet), std::move(on_quic_event)));
+  BNL_TRY(quic_.recv(std::move(packet), std::move(on_quic_event)));
 
   return success();
 }
@@ -222,7 +216,6 @@ client::recv_once()
 result<void>
 client::error(system_code sc)
 {
-  LOG_E("{}", sc.message());
   return failure(std::move(sc));
 }
 
@@ -231,8 +224,8 @@ client::retransmit(sd::event::duration usec)
 {
   (void) usec;
 
-  LOG_I("retransmit");
-  TRY(quic_.expire());
+  BNL_LOG_I("retransmit");
+  BNL_TRY(quic_.expire());
 
   return send();
 }
@@ -242,7 +235,7 @@ client::timeout(sd::event::duration usec)
 {
   (void) usec;
 
-  LOG_I("timeout");
+  BNL_LOG_I("timeout");
 
   return sd_.exit(errc::timed_out);
 }
@@ -258,45 +251,43 @@ run(int argc, char *argv[])
     return errc::invalid_argument;
   }
 
-  log::console logger;
-  os::dns::client dns(&logger);
+  log::console console;
+  bnl::logger = &console;
 
   ip::host host(argv[1]);
-
-  std::vector<ip::address> resolved = TRY(dns.resolve(host));
+  std::vector<ip::address> resolved = BNL_TRY(os::dns::resolve(host));
 
   if (resolved.empty()) {
-    BNL_LOG_ERROR(&logger, "Failed to resolve {}", host);
+    BNL_LOG_E("Failed to resolve {}", host);
     return errc::unknown;
   }
 
-  BNL_LOG_INFO(
-    &logger, "Host {} resolved to the following IP addresses: ", host);
+  BNL_LOG_I("Host {} resolved to the following IP addresses: ", host);
 
   for (const ip::address &address : resolved) {
-    BNL_LOG_INFO(&logger, "{}", address);
+    BNL_LOG_I("{}", address);
   }
 
   ip::address address = resolved[0];
   ip::port port = static_cast<uint16_t>(std::stoul(argv[2]));
   ip::endpoint peer(address, port);
 
-  client client(host, peer, &logger);
+  client client(host, peer);
 
-  http3::request::handle request = TRY(client.request());
+  http3::request::handle request = BNL_TRY(client.request());
 
-  TRY(request.header({ ":method", "GET" }));
-  TRY(request.header({ ":scheme", "https" }));
-  TRY(request.header({ ":authority", host.name() }));
-  TRY(request.header({ ":path", "/index.html" }));
+  BNL_TRY(request.header({ ":method", "GET" }));
+  BNL_TRY(request.header({ ":scheme", "https" }));
+  BNL_TRY(request.header({ ":authority", host.name() }));
+  BNL_TRY(request.header({ ":path", "/index.html" }));
 
-  TRY(request.start());
-  TRY(request.fin());
+  BNL_TRY(request.start());
+  BNL_TRY(request.fin());
 
   std::vector<http3::header> headers;
   base::buffer body;
 
-  TRY(client.run([&](http3::event event) -> result<void> {
+  BNL_TRY(client.run([&](http3::event event) -> result<void> {
     switch (event) {
       case http3::event::type::settings:
         break;

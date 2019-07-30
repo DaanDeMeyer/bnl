@@ -1,10 +1,9 @@
-#include <doctest/doctest.h>
+#include <doctest.h>
 
 #include <bnl/base/error.hpp>
 #include <bnl/http3/codec/qpack.hpp>
 #include <bnl/http3/error.hpp>
 #include <bnl/log.hpp>
-#include <bnl/util/test.hpp>
 
 #include <algorithm>
 
@@ -16,13 +15,13 @@ encode_and_decode(const http3::header &header,
                   http3::qpack::encoder &encoder,
                   http3::qpack::decoder &decoder)
 {
-  size_t encoded_size = EXTRACT(encoder.encoded_size(header));
+  size_t encoded_size = encoder.encoded_size(header).value();
   REQUIRE(encoded_size == N);
 
-  base::buffer encoded = EXTRACT(encoder.encode(header));
+  base::buffer encoded = encoder.encode(header).value();
   REQUIRE(encoded.size() == N);
 
-  http3::header decoded = EXTRACT(decoder.decode(encoded));
+  http3::header decoded = decoder.decode(encoded).value();
   REQUIRE(encoded.empty());
 
   REQUIRE(decoded.name() == header.name());
@@ -31,10 +30,8 @@ encode_and_decode(const http3::header &header,
 
 TEST_CASE("qpack")
 {
-  log::api logger;
-
-  http3::qpack::encoder encoder(&logger);
-  http3::qpack::decoder decoder(&logger);
+  http3::qpack::encoder encoder;
+  http3::qpack::decoder decoder;
 
   SUBCASE("indexed header field")
   {
@@ -64,7 +61,7 @@ TEST_CASE("qpack")
   SUBCASE("decode: incomplete")
   {
     http3::header location = { "location", "/pub/WWW/People.html" };
-    base::buffer encoded = EXTRACT(encoder.encode(location));
+    base::buffer encoded = encoder.encode(location).value();
 
     encoded = encoded.slice(10);
 
@@ -85,8 +82,7 @@ TEST_CASE("qpack")
 
     result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(r.error() ==
-            http3::connection::error::qpack_decompression_failed);
+    REQUIRE(r.error() == http3::connection::error::qpack_decompression_failed);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }
@@ -101,8 +97,7 @@ TEST_CASE("qpack")
 
     result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(r.error() ==
-            http3::connection::error::qpack_decompression_failed);
+    REQUIRE(r.error() == http3::connection::error::qpack_decompression_failed);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }
