@@ -116,15 +116,16 @@ jobs:
         CC: gcc-9
         CXX: g++-9
 
-  - template: ci/linux.yml
-    parameters:
-      name: linux_clang_7
-      variables:
-        PACKAGES: clang-7 libc++-7-dev libc++abi-7-dev
-        REPOSITORY: deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main
-        CC: clang-7
-        CXX: clang++-7
-        CXXFLAGS: -stdlib=libc++
+  # Disabled: See .travis.yml
+  # - template: ci/linux.yml
+  #   parameters:
+  #     name: linux_clang_7
+  #     variables:
+  #       PACKAGES: clang-7 libc++-7-dev libc++abi-7-dev
+  #       REPOSITORY: deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main
+  #       CC: clang-7
+  #       CXX: clang++-7
+  #       CXXFLAGS: -stdlib=libc++
 
   - template: ci/linux.yml
     parameters:

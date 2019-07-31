@@ -41,17 +41,19 @@ matrix:
             - g++-9
       env: CC=gcc-9 CXX=g++-9
 
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-7
-          packages:
-            - clang-7
-            - libc++-7-dev
-            - libc++abi-7-dev
-            - llvm-7
-      env: CC=clang-7 CXX=clang++-7 CXXFLAGS=-stdlib=libc++ UBSAN_SYMBOLIZER_PATH=/usr/lib/llvm-7/bin
+    # Disabled because of ld failure:
+    # Output: /usr/bin/ld: test: hidden symbol `_ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE11__recommendEm' isn't defined
+    # - os: linux
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - llvm-toolchain-xenial-7
+    #       packages:
+    #         - clang-7
+    #         - libc++-7-dev
+    #         - libc++abi-7-dev
+    #         - llvm-7
+    #   env: CC=clang-7 CXX=clang++-7 CXXFLAGS=-stdlib=libc++
 
     - os: linux
       addons:
@@ -64,7 +66,7 @@ matrix:
             - libc++-8-dev
             - libc++abi-8-dev
             - llvm-8
-      env: CC=clang-8 CXX=clang++-8 CXXFLAGS=-stdlib=libc++ UBSAN_SYMBOLIZER_PATH=/usr/lib/llvm-8/bin
+      env: CC=clang-8 CXX=clang++-8 CXXFLAGS=-stdlib=libc++
 
     - os: osx
       osx_image: xcode10
