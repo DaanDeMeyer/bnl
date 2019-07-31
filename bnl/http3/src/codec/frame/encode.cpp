@@ -1,8 +1,6 @@
 #include <bnl/http3/codec/frame.hpp>
 
 #include <bnl/base/enum.hpp>
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
 
 namespace bnl {
 namespace http3 {

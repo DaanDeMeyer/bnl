@@ -1,8 +1,6 @@
 #include <bnl/http3/codec/qpack.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 #include <algorithm>
 

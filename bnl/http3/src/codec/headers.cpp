@@ -1,8 +1,5 @@
 #include <bnl/http3/codec/headers.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace headers {
@@ -11,25 +8,25 @@ result<void>
 encoder::add(header_view header)
 {
   if (state_ != state::idle) {
-    return connection::error::internal;
+    return error::internal;
   }
 
   base::buffer encoded = BNL_TRY(qpack_.encode(header));
   buffers_.push(std::move(encoded));
 
-  return success();
+  return base::success();
 }
 
 result<void>
 encoder::fin() noexcept
 {
   if (state_ != state::idle) {
-    return connection::error::internal;
+    return error::internal;
   }
 
   state_ = state::frame;
 
-  return success();
+  return base::success();
 }
 
 bool
@@ -44,7 +41,7 @@ encoder::encode() noexcept
   switch (state_) {
 
     case state::idle:
-      return base::error::idle;
+      return error::idle;
 
     case state::frame: {
       frame frame = frame::payload::headers{ qpack_.count() };
@@ -64,10 +61,10 @@ encoder::encode() noexcept
     }
 
     case state::fin:
-      return connection::error::internal;
+      return error::internal;
   }
 
-  return connection::error::internal;
+  return error::internal;
 }
 
 bool
@@ -92,7 +89,7 @@ decoder::decode(Sequence &encoded)
       frame::type type = BNL_TRY(frame::peek(encoded));
 
       if (type != frame::type::headers) {
-        return base::error::delegate;
+        return error::delegate;
       }
 
       frame frame = BNL_TRY(frame::decode(encoded));
@@ -101,7 +98,7 @@ decoder::decode(Sequence &encoded)
       headers_size_ = frame.headers.size;
 
       if (headers_size_ == 0) {
-        return connection::error::malformed_frame;
+        return error::malformed_frame;
       }
     }
     /* FALLTHRU */
@@ -109,7 +106,7 @@ decoder::decode(Sequence &encoded)
       header header = BNL_TRY(qpack_.decode(encoded));
 
       if (qpack_.count() > headers_size_) {
-        return connection::error::malformed_frame;
+        return error::malformed_frame;
       }
 
       bool fin = qpack_.count() == headers_size_;
@@ -119,10 +116,10 @@ decoder::decode(Sequence &encoded)
     }
 
     case state::fin:
-      return connection::error::internal;
+      return error::internal;
   }
 
-  return connection::error::internal;
+  return error::internal;
 }
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_HEADERS_DECODE_IMPL);

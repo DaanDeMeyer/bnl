@@ -1,9 +1,5 @@
 #include <os/dns.hpp>
 
-#include <os/error.hpp>
-
-#include <bnl/log.hpp>
-
 #include <netdb.h>
 
 static ip::address

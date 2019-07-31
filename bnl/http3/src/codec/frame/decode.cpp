@@ -1,8 +1,6 @@
 #include <bnl/http3/codec/frame.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -33,7 +31,7 @@ frame::peek(const Sequence &encoded) noexcept
   }
 
   assert(false);
-  return success();
+  return base::success();
 }
 
 template<typename Lookahead>
@@ -41,7 +39,7 @@ result<uint8_t>
 uint8_decode(Lookahead &lookahead) noexcept
 {
   if (lookahead.empty()) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   uint8_t result = *lookahead;
@@ -191,7 +189,7 @@ decode_single(Lookahead &lookahead) noexcept
 
         // TODO: Error on unreasonable unknown frame payload size.
         lookahead.consume(static_cast<size_t>(payload_encoded_size));
-        return base::error::delegate;
+        return error::delegate;
     }
   };
 
@@ -203,7 +201,7 @@ decode_single(Lookahead &lookahead) noexcept
   if (actual_encoded_size != payload_encoded_size) {
     BNL_LOG_E(
       "Frame payload's actual length does not match its advertised length");
-    return connection::error::malformed_frame;
+    return error::malformed_frame;
   }
 
   return frame;
@@ -219,8 +217,8 @@ frame::decode(Sequence &encoded) noexcept
     typename Sequence::lookahead_type lookahead(encoded);
 
     result<frame> r = decode_single(lookahead);
-    if (!r && r.error() != base::error::delegate) {
-      return std::move(r).error();
+    if (!r && r.error() != error::delegate) {
+      return r.error();
     }
 
     encoded.consume(lookahead.consumed());

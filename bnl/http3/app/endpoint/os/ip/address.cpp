@@ -1,4 +1,3 @@
-#include <os/error.hpp>
 #include <os/ip/address.hpp>
 
 #include <arpa/inet.h>
@@ -17,13 +16,13 @@ make_address(base::string_view address)
   }
 
   if (rv != 0) {
-    return posix_code(errno);
+    THROW_SYSTEM(inet_pton, errno);
   }
 
   std::array<uint8_t, ipv6::address::size> ipv6 = {};
   rv = inet_pton(AF_INET6, string.c_str(), ipv6.data());
   if (rv != 1) {
-    return posix_code(errno);
+    THROW_SYSTEM(inet_pton, errno);
   }
 
   return ipv6::address({ ipv6.data(), ipv6.size() });

@@ -1,7 +1,6 @@
 #include <bnl/quic/crypto.hpp>
 
-#include <bnl/log.hpp>
-#include <bnl/quic/error.hpp>
+#include <bnl/base/log.hpp>
 
 #include <algorithm>
 #include <array>

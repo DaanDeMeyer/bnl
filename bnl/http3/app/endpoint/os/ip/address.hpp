@@ -1,8 +1,9 @@
 #pragma once
 
+#include <os/result.hpp>
+
 #include <bnl/base/string_view.hpp>
 #include <bnl/ip/address.hpp>
-#include <bnl/result.hpp>
 
 using namespace bnl;
 

@@ -3,7 +3,7 @@
 #include <os/dns.hpp>
 #include <os/ip/address.hpp>
 
-#include <bnl/base/error.hpp>
+#include <bnl/base/system_error.hpp>
 #include <bnl/log/console.hpp>
 
 #include <csignal>
@@ -86,7 +86,12 @@ client::setup()
 result<http3::request::handle>
 client::request()
 {
-  return http3_.request();
+  http3::result<http3::request::handle> r = http3_.request();
+  if (!r) {
+    return r.error();
+  }
+
+  return std::move(r).value();
 }
 
 result<void>
@@ -105,7 +110,7 @@ client::io(uint32_t events)
     BNL_TRY(send());
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -118,7 +123,7 @@ client::run(handler handler)
 result<void>
 client::send()
 {
-  result<void> r = success();
+  result<void> r = base::success();
 
   do {
     r = send_once();
@@ -127,12 +132,12 @@ client::send()
   retransmit_.update(sd_.now() + quic_.expiry());
   timeout_.update(sd_.now() + quic_.timeout());
 
-  if (r.error() == errc::resource_unavailable_try_again ||
-      r.error() == base::error::idle) {
-    return success();
+  if (r.error() == std::errc::resource_unavailable_try_again ||
+      r.error() == error::idle) {
+    return base::success();
   }
 
-  return std::move(r).error();
+  return r.error();
 }
 
 result<void>
@@ -141,44 +146,49 @@ client::send_once()
   {
     result<void> r = socket_.send();
     if (r) {
-      return success();
+      return base::success();
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != error::idle) {
+      return r.error();
     }
   }
 
   {
-    result<base::buffer> r = quic_.send();
+    quic::result<base::buffer> r = quic_.send();
     if (r) {
       socket_.add(std::move(r).value());
-      return success();
+      return base::success();
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != quic::error::idle) {
+      return r.error();
     }
   }
 
   {
-    result<quic::event> r = http3_.send();
+    http3::result<quic::event> r = http3_.send();
     if (r) {
-      return quic_.add(std::move(r).value());
+      quic::result<void> qr = quic_.add(std::move(r).value());
+      if (qr) {
+        return base::success();
+      }
+
+      return qr.error();
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != http3::error::idle) {
+      return r.error();
     }
   }
 
-  return base::error::idle;
+  return error::idle;
 }
 
 result<void>
 client::recv()
 {
-  result<void> r = success();
+  result<void> r = base::success();
 
   do {
     r = recv_once();
@@ -186,11 +196,11 @@ client::recv()
 
   timeout_.update(sd_.now() + quic_.timeout());
 
-  if (r.error() == errc::resource_unavailable_try_again) {
-    return success();
+  if (r.error() == std::errc::resource_unavailable_try_again) {
+    return base::success();
   }
 
-  return std::move(r).error();
+  return r.error();
 }
 
 result<void>
@@ -201,32 +211,32 @@ client::recv_once()
   quic::client::generator quic = BNL_TRY(quic_.recv(std::move(packet)));
 
   while (quic.next()) {
-    quic::event event = BNL_TRY(quic.result());
+    quic::event event = BNL_TRY(quic.get());
 
     http3::client::generator http3 = BNL_TRY(http3_.recv(std::move(event)));
 
     while (http3.next()) {
-      http3::event event = BNL_TRY(http3.result());
+      http3::event event = BNL_TRY(http3.get());
 
       result<void> r = on_event_(std::move(event));
 
-      if (!r && r.error() == base::error::finished) {
+      if (!r && r.error() == error::finished) {
         return sd_.exit();
       }
 
       if (!r) {
-        return sd_.exit(std::move(r).error());
+        return sd_.exit(r.error());
       }
     }
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
-client::error(system_code sc)
+client::error(std::error_code ec)
 {
-  return failure(std::move(sc));
+  return ec;
 }
 
 result<void>
@@ -247,7 +257,7 @@ client::timeout(sd::event::duration usec)
 
   BNL_LOG_I("timeout");
 
-  return sd_.exit(errc::timed_out);
+  return sd_.exit(error::timeout);
 }
 
 #pragma GCC diagnostic push
@@ -258,18 +268,18 @@ run(int argc, char *argv[])
 {
   if (argc < 3) {
     std::cout << "Usage: ./bnl-quic-client hostname port" << std::endl;
-    return errc::invalid_argument;
+    return error::invalid_argument;
   }
 
   log::console console;
-  bnl::logger = &console;
+  bnl::base::logger = &console;
 
   ip::host host(argv[1]);
   std::vector<ip::address> resolved = BNL_TRY(os::dns::resolve(host));
 
   if (resolved.empty()) {
     BNL_LOG_E("Failed to resolve {}", host);
-    return errc::unknown;
+    return error::resolve;
   }
 
   BNL_LOG_I("Host {} resolved to the following IP addresses: ", host);
@@ -311,10 +321,10 @@ run(int argc, char *argv[])
         break;
 
       case http3::event::type::finished:
-        return base::error::finished;
+        return error::finished;
     }
 
-    return success();
+    return base::success();
   }));
 
   for (const auto &header : headers) {
@@ -326,7 +336,7 @@ run(int argc, char *argv[])
   std::cout.write(reinterpret_cast<char *>(body.data()),
                   static_cast<std::streamsize>(body.size()));
 
-  return success();
+  return base::success();
 }
 
 #pragma GCC diagnostic pop

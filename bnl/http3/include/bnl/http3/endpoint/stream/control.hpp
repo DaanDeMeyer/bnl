@@ -4,6 +4,7 @@
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/event.hpp>
 #include <bnl/http3/export.hpp>
+#include <bnl/http3/result.hpp>
 #include <bnl/quic/event.hpp>
 
 namespace bnl {

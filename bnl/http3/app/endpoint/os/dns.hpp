@@ -1,8 +1,9 @@
 #pragma once
 
+#include <os/result.hpp>
+
 #include <bnl/ip/address.hpp>
 #include <bnl/ip/host.hpp>
-#include <bnl/result.hpp>
 
 #include <vector>
 

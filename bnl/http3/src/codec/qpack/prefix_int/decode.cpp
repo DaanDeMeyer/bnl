@@ -1,8 +1,5 @@
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace qpack {
@@ -13,7 +10,7 @@ result<uint8_t>
 uint8_decode(Lookahead &encoded) noexcept
 {
   if (encoded.empty()) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   uint8_t result = *encoded;

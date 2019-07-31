@@ -26,9 +26,6 @@
 
 #include <bnl/http3/codec/qpack/huffman.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 #include "decode_generated.cpp"
 
 namespace bnl {
@@ -41,7 +38,7 @@ result<size_t>
 decoded_size(const Lookahead &encoded, size_t encoded_size) noexcept
 {
   if (encoded.size() < encoded_size) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   size_t decoded_size = 0;
@@ -53,7 +50,7 @@ decoded_size(const Lookahead &encoded, size_t encoded_size) noexcept
 
     bool failed = (first.flags & decoding::flag::failed) != 0;
     if (failed) {
-      return connection::error::qpack_decompression_failed;
+      return error::qpack_decompression_failed;
     }
 
     if ((first.flags & decoding::flag::symbol) != 0) {
@@ -65,7 +62,7 @@ decoded_size(const Lookahead &encoded, size_t encoded_size) noexcept
 
     failed = (second.flags & decoding::flag::failed) != 0;
     if (failed) {
-      return connection::error::qpack_decompression_failed;
+      return error::qpack_decompression_failed;
     }
 
     if ((second.flags & decoding::flag::symbol) != 0) {
@@ -77,7 +74,7 @@ decoded_size(const Lookahead &encoded, size_t encoded_size) noexcept
   }
 
   if (!accept) {
-    return connection::error::qpack_decompression_failed;
+    return error::qpack_decompression_failed;
   }
 
   return decoded_size;

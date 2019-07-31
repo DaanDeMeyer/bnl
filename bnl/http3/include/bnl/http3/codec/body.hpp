@@ -5,7 +5,7 @@
 #include <bnl/base/template.hpp>
 #include <bnl/http3/codec/frame.hpp>
 #include <bnl/http3/export.hpp>
-#include <bnl/result.hpp>
+#include <bnl/http3/result.hpp>
 
 namespace bnl {
 namespace http3 {

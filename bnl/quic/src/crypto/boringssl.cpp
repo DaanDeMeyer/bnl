@@ -1,7 +1,5 @@
 #include <bnl/quic/crypto.hpp>
 
-#include <bnl/quic/error.hpp>
-
 #include <openssl/aead.h>
 #include <openssl/aes.h>
 #include <openssl/chacha.h>
@@ -118,7 +116,7 @@ crypto::encrypt(base::buffer_view_mut dest,
 
   assert(out_size == max_size);
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -154,7 +152,7 @@ crypto::decrypt(base::buffer_view_mut dest,
     return error::crypto;
   }
 
-  return success();
+  return base::success();
 }
 
 static uint32_t
@@ -209,7 +207,7 @@ crypto::hp_mask(base::buffer_view_mut dest,
     }
   }
 
-  return success();
+  return base::success();
 }
 }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <os/result.hpp>
 #include <os/socket/udp.hpp>
 #include <sd/event/loop.hpp>
 #include <sd/event/source.hpp>
@@ -8,7 +9,6 @@
 #include <bnl/ip/endpoint.hpp>
 #include <bnl/quic/client/connection.hpp>
 #include <bnl/quic/clock.hpp>
-#include <bnl/result.hpp>
 
 using namespace bnl;
 
@@ -34,7 +34,7 @@ private:
   result<void> recv();
   result<void> recv_once();
 
-  result<void> error(system_code sc);
+  result<void> error(std::error_code ec);
   result<void> retransmit(sd::event::duration usec);
   result<void> timeout(sd::event::duration usec);
 

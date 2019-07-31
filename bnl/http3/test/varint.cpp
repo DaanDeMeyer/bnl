@@ -1,9 +1,6 @@
 #include <doctest.h>
 
-#include <bnl/base/error.hpp>
 #include <bnl/http3/codec/varint.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
 
 static constexpr uint8_t VARINT_UINT8_HEADER = 0x00;
 static constexpr uint8_t VARINT_UINT16_HEADER = 0x40;
@@ -145,12 +142,12 @@ TEST_CASE("varint")
     uint64_t varint = http3::varint::max + 1;
 
     {
-      result<size_t> r = http3::varint::encoded_size(varint);
+      http3::result<size_t> r = http3::varint::encoded_size(varint);
       REQUIRE(r.error() == http3::error::varint_overflow);
     }
 
     {
-      result<base::buffer> r = http3::varint::encode(varint);
+      http3::result<base::buffer> r = http3::varint::encode(varint);
       REQUIRE(r.error() == http3::error::varint_overflow);
     }
   }
@@ -164,9 +161,9 @@ TEST_CASE("varint")
 
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    result<uint64_t> r = http3::varint::decode(incomplete);
+    http3::result<uint64_t> r = http3::varint::decode(incomplete);
 
-    REQUIRE(r.error() == base::error::incomplete);
+    REQUIRE(r.error() == http3::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
     uint64_t decoded = http3::varint::decode(encoded).value();

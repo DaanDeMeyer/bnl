@@ -1,9 +1,8 @@
 #pragma once
 
+#include <os/result.hpp>
 #include <sd/event/source.hpp>
 #include <sd/event/time.hpp>
-
-#include <bnl/result.hpp>
 
 #include <chrono>
 #include <cstdint>
@@ -29,7 +28,7 @@ public:
   loop &operator=(loop &&) = default;
 
   duration now() const noexcept;
-  std::function<result<duration>()> clock() const noexcept;
+  std::function<duration()> clock() const noexcept;
 
   result<event::io> io(const os::fd &fd);
   result<event::timer> timer();
@@ -38,11 +37,11 @@ public:
   result<void> run();
 
   result<void> exit();
-  result<void> exit(system_code sc);
+  result<void> exit(std::error_code ec);
 
 private:
   std::unique_ptr<sd_event, sd_event *(*) (sd_event *)> event_;
-  system_code error_;
+  std::error_code error_;
 };
 
 }

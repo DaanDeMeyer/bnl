@@ -10,7 +10,7 @@
 #include <bnl/quic/export.hpp>
 #include <bnl/quic/params.hpp>
 #include <bnl/quic/path.hpp>
-#include <bnl/result.hpp>
+#include <bnl/quic/result.hpp>
 
 #include <map>
 #include <random>
@@ -27,7 +27,7 @@ public:
 
   bool next();
 
-  bnl::result<event> result();
+  result<event> get();
 
 private:
   connection &connection_;

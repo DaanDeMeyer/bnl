@@ -1,8 +1,5 @@
 #include <bnl/http3/server/stream/control.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 static constexpr uint64_t CLIENT_STREAM_CONTROL_ID = 0x02;
 static constexpr uint64_t SERVER_STREAM_CONTROL_ID = 0x03;
 
@@ -32,9 +29,9 @@ receiver::process(frame frame) noexcept
       // TODO: Implement PRIORITY
       return error::not_implemented;
     case frame::type::goaway:
-      return http3::connection::error::unexpected_frame;
+      return error::unexpected_frame;
     default:
-      return http3::connection::error::internal;
+      return error::internal;
   }
 }
 

@@ -1,16 +1,8 @@
-#include <bnl/log.hpp>
-
-#include <bnl/base/error.hpp>
-
-#include <ostream>
-
-std::ostream &
-operator<<(std::ostream &os, const bnl::status_code_domain::string_ref &string)
-{
-  return os.write(string.data(), string.size());
-}
+#include <bnl/base/log.hpp>
 
 namespace bnl {
+namespace base {
+
 namespace log {
 
 api::~api() noexcept = default;
@@ -35,4 +27,5 @@ api::log(log::level level,
 
 log::api *logger = nullptr;
 
+}
 }

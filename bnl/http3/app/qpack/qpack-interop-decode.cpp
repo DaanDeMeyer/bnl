@@ -1,6 +1,4 @@
-#include <bnl/base/error.hpp>
 #include <bnl/http3/codec/qpack.hpp>
-#include <bnl/http3/error.hpp>
 #include <bnl/log/console.hpp>
 
 #include <fstream>
@@ -8,11 +6,11 @@
 
 using namespace bnl;
 
-static result<uint64_t>
+static http3::result<uint64_t>
 id_decode(base::buffer &encoded)
 {
   if (encoded.size() < sizeof(uint64_t)) {
-    return base::error::incomplete;
+    return http3::error::incomplete;
   };
 
   uint64_t id = static_cast<uint64_t>(encoded[0]) << 56U |
@@ -29,11 +27,11 @@ id_decode(base::buffer &encoded)
   return id;
 }
 
-static result<size_t>
+static http3::result<size_t>
 size_decode(base::buffer &encoded)
 {
   if (encoded.size() < sizeof(uint32_t)) {
-    return base::error::incomplete;
+    return http3::error::incomplete;
   }
 
   size_t encoded_size = static_cast<uint32_t>(encoded[0]) << 24U |
@@ -56,7 +54,7 @@ write(std::ostream &dest, const std::vector<http3::header> &headers)
   dest << '\n';
 }
 
-static result<void>
+static http3::result<void>
 decode(base::buffer &encoded, std::ofstream &output)
 {
   BNL_TRY(id_decode(encoded));
@@ -72,7 +70,7 @@ decode(base::buffer &encoded, std::ofstream &output)
 
   write(output, headers);
 
-  return success();
+  return base::success();
 }
 
 int
@@ -125,7 +123,7 @@ main(int argc, char *argv[])
   // Decode input
 
   while (!encoded.empty()) {
-    result<void> r = decode(encoded, output);
+    http3::result<void> r = decode(encoded, output);
     if (!r) {
       BNL_LOG_E("Error decoding headers");
       return 1;

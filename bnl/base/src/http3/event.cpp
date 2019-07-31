@@ -3,7 +3,7 @@
 namespace bnl {
 namespace http3 {
 
-event::event(payload::settings settings) noexcept // NOLINE
+event::event(payload::settings settings) noexcept // NOLINT
   : type_(event::type::settings)
   , settings(settings)
 {}
@@ -18,7 +18,7 @@ event::event(payload::body body) noexcept // NOLINT
   , body(std::move(body))
 {}
 
-event::event(payload::finished finished) noexcept // NOLINE
+event::event(payload::finished finished) noexcept // NOLINT
   : type_(event::type::finished)
   , finished(finished)
 {}

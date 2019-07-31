@@ -1,8 +1,5 @@
 #include <bnl/http3/codec/body.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace body {
@@ -11,19 +8,19 @@ result<void>
 encoder::add(base::buffer body)
 {
   if (fin_) {
-    return connection::error::internal;
+    return error::internal;
   }
 
   buffers_.push(std::move(body));
 
-  return success();
+  return base::success();
 }
 
 result<void>
 encoder::fin() noexcept
 {
   if (state_ == state::fin) {
-    return connection::error::internal;
+    return error::internal;
   }
 
   fin_ = true;
@@ -32,7 +29,7 @@ encoder::fin() noexcept
     state_ = state::fin;
   }
 
-  return success();
+  return base::success();
 }
 
 bool
@@ -50,7 +47,7 @@ encoder::encode() noexcept
 
     case state::frame: {
       if (buffers_.empty()) {
-        return base::error::idle;
+        return error::idle;
       }
 
       frame frame = frame::payload::data{ buffers_.front().size() };
@@ -69,10 +66,10 @@ encoder::encode() noexcept
     }
 
     case state::fin:
-      return connection::error::internal;
+      return error::internal;
   }
 
-  return connection::error::internal;
+  return error::internal;
 }
 
 bool
@@ -91,7 +88,7 @@ decoder::decode(Sequence &encoded)
       frame::type type = BNL_TRY(frame::peek(encoded));
 
       if (type != frame::type::data) {
-        return base::error::delegate;
+        return error::delegate;
       }
 
       frame frame = BNL_TRY(frame::decode(encoded));
@@ -102,7 +99,7 @@ decoder::decode(Sequence &encoded)
     /* FALLTHRU */
     case state::data: {
       if (encoded.empty()) {
-        return base::error::incomplete;
+        return error::incomplete;
       }
 
       size_t body_part_size = encoded.size() < remaining_
@@ -120,7 +117,7 @@ decoder::decode(Sequence &encoded)
     }
   }
 
-  return connection::error::internal;
+  return error::internal;
 }
 
 BNL_BASE_SEQUENCE_IMPL(BNL_HTTP3_BODY_DECODE_IMPL);

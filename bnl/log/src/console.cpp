@@ -22,7 +22,7 @@ console::console(bool log_source)
 {}
 
 void
-console::log(log::level level,
+console::log(base::log::level level,
              const char *file,
              const char *function,
              int line,
@@ -38,8 +38,8 @@ console::log(log::level level,
   FILE *output = nullptr;
 
   switch (level) {
-    case log::level::warning:
-    case log::level::error:
+    case base::log::level::warning:
+    case base::log::level::error:
       output = stderr;
       break;
     default:

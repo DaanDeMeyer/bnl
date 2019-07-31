@@ -7,6 +7,7 @@
 #include <bnl/http3/codec/qpack.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/header.hpp>
+#include <bnl/http3/result.hpp>
 
 namespace bnl {
 namespace http3 {

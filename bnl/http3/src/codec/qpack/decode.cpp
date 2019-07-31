@@ -1,8 +1,6 @@
 #include <bnl/http3/codec/qpack.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 #include <tuple>
 
@@ -26,7 +24,7 @@ decoder::decode(Sequence &encoded)
 {
   if (state_ == state::prefix) {
     if (encoded.size() < QPACK_PREFIX_ENCODED_SIZE) {
-      return base::error::incomplete;
+      return error::incomplete;
     }
 
     encoded.consume(QPACK_PREFIX_ENCODED_SIZE);
@@ -38,7 +36,7 @@ decoder::decode(Sequence &encoded)
   typename Sequence::lookahead_type lookahead(encoded);
 
   if (lookahead.empty()) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   switch (table::fixed::find_type(*lookahead)) {
@@ -46,7 +44,7 @@ decoder::decode(Sequence &encoded)
     case table::fixed::type::header_value: {
       if ((*lookahead & 0x40U) == 0) {
         BNL_LOG_E("'S' (static table) bit not set in indexed header field");
-        return connection::error::qpack_decompression_failed;
+        return error::qpack_decompression_failed;
       }
 
       uint8_t index =
@@ -57,7 +55,7 @@ decoder::decode(Sequence &encoded)
 
       if (!found) {
         BNL_LOG_E("Indexed header field ({}) not found in static table", index);
-        return connection::error::qpack_decompression_failed;
+        return error::qpack_decompression_failed;
       }
 
       break;
@@ -67,7 +65,7 @@ decoder::decode(Sequence &encoded)
       if ((*lookahead & 0x10U) == 0) {
         BNL_LOG_E(
           "'S' (static table) bit not set in literal with name reference");
-        return connection::error::qpack_decompression_failed;
+        return error::qpack_decompression_failed;
       }
 
       uint8_t index =
@@ -80,7 +78,7 @@ decoder::decode(Sequence &encoded)
       if (!found) {
         BNL_LOG_E("Header name reference ({}) not found in static table",
                   index);
-        return connection::error::qpack_decompression_failed;
+        return error::qpack_decompression_failed;
       }
 
       base::string value = BNL_TRY(literal::decode(lookahead, 7));
@@ -105,7 +103,7 @@ decoder::decode(Sequence &encoded)
 
     case table::fixed::type::unknown:
       BNL_LOG_E("Unexpected header block instruction prefix ({})", *lookahead);
-      return connection::error::qpack_decompression_failed;
+      return error::qpack_decompression_failed;
   }
 
   count_ += lookahead.consumed();

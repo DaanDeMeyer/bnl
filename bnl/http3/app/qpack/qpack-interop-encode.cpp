@@ -1,5 +1,4 @@
 #include <bnl/http3/codec/qpack.hpp>
-#include <bnl/http3/error.hpp>
 #include <bnl/log/console.hpp>
 
 #include <algorithm>
@@ -47,7 +46,7 @@ write(std::ostream &dest, const base::buffer &encoded)
              static_cast<int32_t>(encoded.size()));
 }
 
-static result<void>
+static http3::result<void>
 encode(uint64_t id,
        const std::vector<http3::header> &headers,
        std::ofstream &output)
@@ -57,7 +56,7 @@ encode(uint64_t id,
   std::queue<base::buffer> buffers;
 
   for (const http3::header &header : headers) {
-    result<base::buffer> r = BNL_TRY(qpack.encode(header));
+    http3::result<base::buffer> r = BNL_TRY(qpack.encode(header));
     buffers.emplace(std::move(r).value());
   }
 
@@ -75,7 +74,7 @@ encode(uint64_t id,
     write(output, encoded);
   }
 
-  return success();
+  return base::success();
 }
 
 int
@@ -124,7 +123,7 @@ main(int argc, char *argv[])
         continue;
       }
 
-      result<void> r = encode(id, headers, output);
+      http3::result<void> r = encode(id, headers, output);
       if (!r) {
         BNL_LOG_E("Error encoding headers");
         return 1;

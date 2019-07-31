@@ -2,7 +2,7 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/quic/export.hpp>
-#include <bnl/result.hpp>
+#include <bnl/quic/result.hpp>
 
 #include <cstddef>
 

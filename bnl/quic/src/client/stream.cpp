@@ -1,10 +1,7 @@
 #include <bnl/quic/client/stream.hpp>
 
-#include <bnl/base/error.hpp>
+#include <bnl/base/log.hpp>
 #include <bnl/quic/client/ngtcp2/connection.hpp>
-#include <bnl/quic/client/ngtcp2/error.hpp>
-
-#include <bnl/log.hpp>
 
 namespace bnl {
 namespace quic {
@@ -20,15 +17,14 @@ result<base::buffer>
 stream::send()
 {
   if (buffers_.empty()) {
-    return base::error::idle;
+    return error::idle;
   }
 
   if (!opened()) {
     result<void> r = ngtcp2_->open(id_);
     if (!r) {
-      return r.error() == ngtcp2::error::stream_id_blocked
-               ? base::error::idle
-               : std::move(r).error();
+      return r.error() == error::stream_id_blocked ? error::idle
+                                                   : r.error();
     }
 
     opened_ = true;
@@ -44,12 +40,12 @@ stream::send()
     ngtcp2_->write_stream(id_, first, fin);
 
   if (!r) {
-    if (r.error() == ngtcp2::error::stream_id_blocked ||
-        r.error() == ngtcp2::error::stream_data_blocked) {
-      return base::error::idle;
+    if (r.error() == error::stream_id_blocked ||
+        r.error() == error::stream_data_blocked) {
+      return error::idle;
     }
 
-    return std::move(r).error();
+    return r.error();
   }
 
   std::tie(packet, stream_bytes_written) = std::move(r).value();
@@ -67,7 +63,7 @@ stream::add(base::buffer buffer)
 
   buffers_.push(std::move(buffer));
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -77,7 +73,7 @@ stream::fin()
 
   fin_ = true;
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -89,12 +85,12 @@ stream::ack(size_t size)
       id_,
       size,
       keepalive_.size());
-    return quic::connection::error::internal;
+    return error::internal;
   }
 
   keepalive_.consume(size);
 
-  return success();
+  return base::success();
 }
 
 bool

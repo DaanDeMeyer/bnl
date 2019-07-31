@@ -1,8 +1,5 @@
 #include <bnl/http3/codec/varint.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace varint {
@@ -74,7 +71,7 @@ decode(Sequence &encoded) noexcept
   typename Sequence::lookahead_type lookahead(encoded);
 
   if (lookahead.empty()) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   size_t varint_size = 1;
@@ -84,7 +81,7 @@ decode(Sequence &encoded) noexcept
   varint_size <<= header; // shift left => x2
 
   if (lookahead.size() < varint_size) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   uint64_t varint = 0;

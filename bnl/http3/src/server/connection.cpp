@@ -1,8 +1,5 @@
 #include <bnl/http3/server/connection.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace server {
@@ -18,8 +15,8 @@ connection::send() noexcept
       return r;
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != error::idle) {
+      return r.error();
     }
   }
 
@@ -40,12 +37,12 @@ connection::send() noexcept
       return r;
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != error::idle) {
+      return r.error();
     }
   }
 
-  return base::error::idle;
+  return error::idle;
 }
 
 result<generator>
@@ -105,7 +102,7 @@ connection::process(uint64_t id)
         break;
     }
 
-    return success(std::move(event));
+    return base::success(std::move(event));
   }
 
   server::stream::request::receiver &request = requests_.at(id).second;

@@ -1,10 +1,7 @@
 #include <doctest.h>
 
-#include <bnl/base/error.hpp>
 #include <bnl/http3/client/connection.hpp>
-#include <bnl/http3/error.hpp>
 #include <bnl/http3/server/connection.hpp>
-#include <bnl/log.hpp>
 
 #include <array>
 #include <map>
@@ -44,11 +41,11 @@ static void
 start(Handle &handle, const message &message)
 {
   for (const http3::header &header : message.headers) {
-    result<void> r = handle.header(header);
+    http3::result<void> r = handle.header(header);
     REQUIRE(r);
   }
 
-  result<void> r = handle.start();
+  http3::result<void> r = handle.start();
   REQUIRE(r);
 
   r = handle.body(message.body);
@@ -59,22 +56,22 @@ start(Handle &handle, const message &message)
 }
 
 template<typename Sender, typename Receiver>
-static result<message>
+static http3::result<message>
 transfer(Sender &sender, Receiver &receiver)
 {
   message decoded;
 
   while (true) {
-    result<quic::event> r = sender.send();
+    http3::result<quic::event> r = sender.send();
     if (!r) {
-      REQUIRE(r.error() == base::error::idle);
+      REQUIRE(r.error() == http3::error::idle);
       break;
     }
 
     auto generator = BNL_TRY(receiver.recv(std::move(r).value()));
 
     while (generator.next()) {
-      http3::event event = BNL_TRY(generator.result());
+      http3::event event = BNL_TRY(generator.get());
 
       switch (event) {
         case http3::event::type::settings:
@@ -99,8 +96,6 @@ transfer(Sender &sender, Receiver &receiver)
 
 TEST_CASE("endpoint")
 {
-  log::api logger;
-
   http3::client::connection client;
   http3::server::connection server;
 

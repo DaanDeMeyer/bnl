@@ -1,6 +1,7 @@
 #pragma once
 
 #include <os/fd.hpp>
+#include <os/result.hpp>
 #include <sd/event/loop.hpp>
 
 #include <bnl/base/buffer.hpp>
@@ -25,7 +26,7 @@ public:
 
   const os::fd &fd() const noexcept;
 
-  system_code error() const noexcept;
+  std::error_code error() const noexcept;
 
   result<void> send();
   result<base::buffer> recv();

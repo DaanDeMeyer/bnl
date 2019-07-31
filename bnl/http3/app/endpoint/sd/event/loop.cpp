@@ -1,6 +1,5 @@
 #include <sd/event/loop.hpp>
 
-#include <os/error.hpp>
 #include <os/fd.hpp>
 
 #include <systemd/sd-event.h>
@@ -37,10 +36,10 @@ loop::now() const noexcept
   return duration(result);
 }
 
-std::function<result<duration>()>
+std::function<sd::event::duration()>
 loop::clock() const noexcept
 {
-  return [this]() -> result<duration> { return now(); };
+  return [this]() { return now(); };
 }
 
 result<io>
@@ -102,7 +101,7 @@ loop::signal(int signal)
     THROW_SYSTEM(sd_event_add_signal, -rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -110,15 +109,15 @@ loop::run()
 {
   int rv = sd_event_loop(event_.get());
 
-  if (!error_.empty()) {
-    return error_.clone();
+  if (error_) {
+    return error_;
   }
 
   if (rv != 0) {
     THROW_SYSTEM(sd_event_loop, -rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -129,19 +128,20 @@ loop::exit()
     THROW_SYSTEM(sd_event_exit, -rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
-loop::exit(system_code sc)
+loop::exit(std::error_code ec)
 {
-  int rv = sd_event_exit(event_.get(), static_cast<int>(sc.value()));
+  int rv = sd_event_exit(event_.get(), ec.value());
   if (rv < 0) {
     THROW_SYSTEM(sd_event_exit, -rv);
   }
 
-  error_ = std::move(sc);
-  return success();
+  error_ = ec;
+
+  return base::success();
 }
 
 }

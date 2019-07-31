@@ -1,8 +1,6 @@
 #include <bnl/http3/endpoint/stream/control.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -31,11 +29,11 @@ sender::send() noexcept
     }
 
     case state::idle:
-      return base::error::idle;
+      return error::idle;
   }
 
   assert(false);
-  return connection::error::internal;
+  return error::internal;
 }
 
 receiver::receiver(uint64_t id) noexcept
@@ -54,12 +52,12 @@ result<void>
 receiver::recv(quic::data data)
 {
   if (data.fin) {
-    return connection::error::closed_critical_stream;
+    return error::closed_critical_stream;
   }
 
   buffers_.push(std::move(data.buffer));
 
-  return success();
+  return base::success();
 }
 
 result<event>
@@ -85,7 +83,7 @@ receiver::process() noexcept
         BNL_LOG_E(
           "First frame on the control stream ({}) is not a SETTINGS frame",
           frame);
-        return connection::error::missing_settings;
+        return error::missing_settings;
       };
 
       state_ = state::active;
@@ -101,9 +99,9 @@ receiver::process() noexcept
         case frame::type::data:
         case frame::type::push_promise:
         case frame::type::duplicate_push:
-          return connection::error::wrong_stream;
+          return error::wrong_stream;
         case frame::type::settings:
-          return connection::error::unexpected_frame;
+          return error::unexpected_frame;
         default:
           break;
       }
@@ -113,7 +111,7 @@ receiver::process() noexcept
   }
 
   assert(false);
-  return connection::error::internal;
+  return error::internal;
 }
 
 }

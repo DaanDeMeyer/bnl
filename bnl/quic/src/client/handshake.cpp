@@ -1,10 +1,8 @@
 #include <bnl/quic/client/handshake.hpp>
 
 #include <bnl/base/enum.hpp>
-#include <bnl/base/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 #include <bnl/quic/client/ngtcp2/connection.hpp>
-#include <bnl/quic/error.hpp>
 
 #include <openssl/ssl.h>
 
@@ -199,7 +197,7 @@ handshake::init(const ip::host &host, base::buffer_view dcid)
     return quic::error::handshake;
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -219,7 +217,7 @@ handshake::send()
     }
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -239,7 +237,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
       return quic::error::handshake;
     }
 
-    return success();
+    return base::success();
   }
 
   rv = SSL_do_handshake(ssl_.get());
@@ -249,10 +247,10 @@ handshake::recv(crypto::level level, base::buffer_view data)
     switch (error) {
       case SSL_ERROR_WANT_READ:
       case SSL_ERROR_WANT_WRITE:
-        return base::error::incomplete;
+        return error::incomplete;
       default:
         log_errors();
-        return quic::error::handshake;
+        return error::handshake;
     }
   }
 
@@ -265,7 +263,7 @@ handshake::recv(crypto::level level, base::buffer_view data)
   base::buffer_view view(peer_tp, peer_tp_len);
   BNL_TRY(ngtcp2_->set_remote_transport_parameters(view));
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -277,12 +275,12 @@ handshake::ack(crypto::level level, size_t size)
     BNL_LOG_E("ngtcp2's acked crypto data ({}) exceeds remaining data ({})",
               size,
               keepalive.size());
-    return quic::connection::error::internal;
+    return error::internal;
   }
 
   keepalive.consume(size);
 
-  return success();
+  return base::success();
 }
 
 bool
@@ -351,7 +349,7 @@ handshake::update_keys()
   crypto::key read_key = BNL_TRY(crypto.packet_protection_key(rx_secret_));
   BNL_TRY(ngtcp2_->update_rx_keys(read_key));
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -396,7 +394,7 @@ handshake::set_encryption_secrets(crypto::level level,
       break;
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -409,7 +407,7 @@ handshake::add_handshake_data(crypto::level level, base::buffer_view data)
 
   BNL_TRY(ngtcp2_->submit_crypto_data(level, buffer));
 
-  return success();
+  return base::success();
 }
 
 void

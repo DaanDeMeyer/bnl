@@ -1,9 +1,6 @@
 #include <doctest.h>
 
-#include <bnl/base/error.hpp>
 #include <bnl/http3/codec/frame.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
 
 using namespace bnl;
 
@@ -120,7 +117,7 @@ TEST_CASE("frame")
   {
     http3::frame frame = http3::frame::payload::data{ 4611686018427387904 };
 
-    result<base::buffer> r = http3::frame::encode(frame);
+    http3::result<base::buffer> r = http3::frame::encode(frame);
     REQUIRE(r.error() == http3::error::varint_overflow);
   }
 
@@ -131,9 +128,9 @@ TEST_CASE("frame")
     base::buffer encoded = http3::frame::encode(frame).value();
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    result<http3::frame> r = http3::frame::decode(incomplete);
+    http3::result<http3::frame> r = http3::frame::decode(incomplete);
 
-    REQUIRE(r.error() == base::error::incomplete);
+    REQUIRE(r.error() == http3::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
 
     http3::frame decoded = http3::frame::decode(encoded).value();
@@ -152,9 +149,9 @@ TEST_CASE("frame")
     // Mangle the frame length.
     const_cast<uint8_t *>(encoded.data())[1] = 16; // NOLINT
 
-    result<http3::frame> r = http3::frame::decode(encoded);
+    http3::result<http3::frame> r = http3::frame::decode(encoded);
 
-    REQUIRE(r.error() == http3::connection::error::malformed_frame);
+    REQUIRE(r.error() == http3::error::malformed_frame);
     REQUIRE(encoded.size() == 6);
   }
 }

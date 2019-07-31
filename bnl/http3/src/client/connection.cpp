@@ -1,8 +1,6 @@
 #include <bnl/http3/client/connection.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -19,8 +17,8 @@ connection::send() noexcept
       return r;
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != error::idle) {
+      return r.error();
     }
   }
 
@@ -42,12 +40,12 @@ connection::send() noexcept
       return r;
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != error::idle) {
+      return r.error();
     }
   }
 
-  return base::error::idle;
+  return error::idle;
 }
 
 result<generator>
@@ -80,13 +78,13 @@ connection::recv(quic::data data)
 
   // TODO: Actually handle unidirectional streams.
   if ((data.id & 0x2U) != 0) {
-    return success();
+    return base::success();
   }
 
   auto match = requests_.find(id);
   // TODO: Better error
   if (match == requests_.end()) {
-    return http3::connection::error::internal;
+    return error::internal;
   }
 
   client::stream::request::receiver &request = match->second.second;
@@ -110,18 +108,18 @@ connection::process(uint64_t id)
         break;
     }
 
-    return success(std::move(event));
+    return base::success(std::move(event));
   }
 
   // TODO: Actually handle unidirectional streams.
   if ((id & 0x2U) != 0) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   auto match = requests_.find(id);
   // TODO: Better error
   if (match == requests_.end()) {
-    return http3::connection::error::internal;
+    return error::internal;
   }
 
   client::stream::request::receiver &request = match->second.second;
@@ -132,7 +130,7 @@ connection::process(uint64_t id)
     requests_.erase(id);
   }
 
-  return success(std::move(event));
+  return base::success(std::move(event));
 }
 
 result<request::handle>

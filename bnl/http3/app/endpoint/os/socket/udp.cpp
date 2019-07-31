@@ -1,9 +1,6 @@
 #include <os/socket/udp.hpp>
 
-#include <os/error.hpp>
-
-#include <bnl/base/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 #include <arpa/inet.h>
 #include <cassert>
@@ -105,7 +102,7 @@ make_socket(ip::endpoint peer)
     THROW_SYSTEM(setsocktop, errno);
   }
 
-  return success(std::move(fd));
+  return base::success(std::move(fd));
 }
 
 namespace os {
@@ -151,7 +148,7 @@ udp::fd() const noexcept
   return socket_;
 }
 
-system_code
+std::error_code
 udp::error() const noexcept
 {
   int error = 0;
@@ -162,14 +159,14 @@ udp::error() const noexcept
     THROW_SYSTEM(getsockopt, errno);
   }
 
-  return posix_code(errno);
+  return {};
 }
 
 result<void>
 udp::send()
 {
   if (send_buffer_.empty()) {
-    return base::error::idle;
+    return error::idle;
   }
 
   const base::buffer &first = send_buffer_.front();
@@ -177,7 +174,7 @@ udp::send()
 
   if (rv == -1) {
     if (errno == EAGAIN) {
-      return posix_code(errno);
+      return { errno, std::system_category() };
     }
 
     THROW_SYSTEM(write, errno);
@@ -187,7 +184,7 @@ udp::send()
 
   BNL_LOG_T("send: {}", rv);
 
-  return success();
+  return base::success();
 }
 
 void
@@ -210,7 +207,7 @@ udp::recv()
   ssize_t rv = ::recv(socket_, datagram.data(), datagram.size(), 0);
   if (rv == -1) {
     if (errno == EAGAIN) {
-      return posix_code(errno);
+      return { errno, std::system_category() };
     }
 
     THROW_SYSTEM(read, errno);

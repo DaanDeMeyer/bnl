@@ -6,6 +6,7 @@
 #include <bnl/http3/codec/qpack/huffman.hpp>
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 #include <bnl/http3/export.hpp>
+#include <bnl/http3/result.hpp>
 
 #include <cstddef>
 #include <cstdint>

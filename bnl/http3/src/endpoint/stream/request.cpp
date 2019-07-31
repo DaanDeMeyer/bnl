@@ -1,8 +1,6 @@
 #include <bnl/http3/endpoint/stream/request.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 namespace bnl {
 namespace http3 {
@@ -89,11 +87,11 @@ sender::send() noexcept
     }
 
     case state::fin:
-      return connection::error::internal;
+      return error::internal;
   }
 
   assert(false);
-  return connection::error::internal;
+  return error::internal;
 }
 
 result<void>
@@ -228,7 +226,7 @@ receiver::start() noexcept
 
   state_ = state::headers;
 
-  return success();
+  return base::success();
 }
 
 const headers::decoder &
@@ -241,29 +239,29 @@ result<void>
 receiver::recv(quic::data data)
 {
   if (fin_received_) {
-    return connection::error::internal;
+    return error::internal;
   }
 
   fin_received_ = data.fin;
   buffers_.push(std::move(data.buffer));
 
-  return success();
+  return base::success();
 }
 
 result<event>
 receiver::process() noexcept
 {
-  result<void>::error_type sc;
+  http3::error error;
 
   switch (state_) {
 
     case state::closed:
-      return connection::error::internal;
+      return error::internal;
 
     case state::headers: {
       result<header> r = headers_.decode(buffers_);
       if (!r) {
-        sc = std::move(r).error();
+        error = r.error();
         break;
       }
 
@@ -283,7 +281,7 @@ receiver::process() noexcept
     case state::body: {
       result<base::buffer> r = body_.decode(buffers_);
       if (!r) {
-        sc = std::move(r).error();
+        error = r.error();
         break;
       }
 
@@ -293,24 +291,24 @@ receiver::process() noexcept
         // We've processed all stream data but there still frame data left to be
         // received.
         if (body_.in_progress()) {
-          return (connection::error::malformed_frame);
+          return (error::malformed_frame);
         }
 
         state_ = state::fin;
       }
 
-      return event::payload::body{ id_, fin, std::move(r.value()) };
+      return event::payload::body{ id_, fin, std::move(r).value() };
     }
 
     case state::fin:
       return event::payload::finished{ id_ };
   };
 
-  if (sc == base::error::incomplete && fin_received_) {
-    return connection::error::malformed_frame;
+  if (error == error::incomplete && fin_received_) {
+    return error::malformed_frame;
   }
 
-  if (sc == base::error::delegate) {
+  if (error == error::delegate) {
     frame frame = BNL_TRY(frame::decode(buffers_));
 
     switch (frame) {
@@ -324,18 +322,18 @@ receiver::process() noexcept
         }
         break;
       case frame::type::data:
-        return connection::error::unexpected_frame;
+        return error::unexpected_frame;
       case frame::type::settings:
       case frame::type::max_push_id:
       case frame::type::cancel_push:
       case frame::type::goaway:
-        return connection::error::wrong_stream;
+        return error::wrong_stream;
       default:
         return process(frame);
     }
   }
 
-  return failure(std::move(sc));
+  return error;
 }
 
 }

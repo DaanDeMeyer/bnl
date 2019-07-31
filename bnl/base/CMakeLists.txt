@@ -10,6 +10,7 @@ target_sources(bnl-base PRIVATE
   src/base/buffer.cpp
   src/base/buffers.cpp
   src/base/string_view.cpp
+  src/base/system_error.cpp
   src/http3/event.cpp
   src/http3/header.cpp
   src/http3/settings.cpp

@@ -1,9 +1,8 @@
 #pragma once
 
 #include <bnl/base/buffers.hpp>
-#include <bnl/quic/error.hpp>
 #include <bnl/quic/export.hpp>
-#include <bnl/result.hpp>
+#include <bnl/quic/result.hpp>
 
 namespace bnl {
 namespace quic {

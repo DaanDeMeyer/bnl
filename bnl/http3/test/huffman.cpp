@@ -1,8 +1,6 @@
 #include <doctest.h>
 
-#include <bnl/base/error.hpp>
 #include <bnl/http3/codec/qpack/huffman.hpp>
-#include <bnl/log.hpp>
 
 #include <random>
 
@@ -57,10 +55,10 @@ TEST_CASE("huffman")
 
     base::buffer incomplete(encoded.data(), encoded.size() - 1);
 
-    result<base::string> r =
+    http3::result<base::string> r =
       http3::qpack::huffman::decode(incomplete, encoded.size());
 
-    REQUIRE(r.error() == base::error::incomplete);
+    REQUIRE(r.error() == http3::error::incomplete);
     REQUIRE(incomplete.size() == encoded.size() - 1);
   }
 }

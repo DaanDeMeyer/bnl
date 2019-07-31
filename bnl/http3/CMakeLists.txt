@@ -83,6 +83,7 @@ if(systemd_FOUND)
     app/endpoint/os/socket/udp.cpp
     app/endpoint/os/dns.cpp
     app/endpoint/os/fd.cpp
+    app/endpoint/os/result.cpp
     app/endpoint/os/ip/address.cpp
     app/endpoint/sd/event/loop.cpp
     app/endpoint/sd/event/source.cpp

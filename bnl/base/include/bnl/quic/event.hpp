@@ -2,8 +2,7 @@
 
 #include <bnl/base/buffer.hpp>
 #include <bnl/base/export.hpp>
-#include <bnl/quic/error.hpp>
-#include <bnl/result.hpp>
+#include <bnl/quic/result.hpp>
 
 #include <cstdint>
 #include <iosfwd>

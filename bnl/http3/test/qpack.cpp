@@ -1,9 +1,6 @@
 #include <doctest.h>
 
-#include <bnl/base/error.hpp>
 #include <bnl/http3/codec/qpack.hpp>
-#include <bnl/http3/error.hpp>
-#include <bnl/log.hpp>
 
 #include <algorithm>
 
@@ -54,7 +51,7 @@ TEST_CASE("qpack")
   SUBCASE("encode: malformed header")
   {
     http3::header via = { "Via", "1.0.fred" };
-    result<base::buffer> r = encoder.encode(via);
+    http3::result<base::buffer> r = encoder.encode(via);
     REQUIRE(r.error() == http3::error::malformed_header);
   }
 
@@ -65,9 +62,9 @@ TEST_CASE("qpack")
 
     encoded = encoded.slice(10);
 
-    result<http3::header> r = decoder.decode(encoded);
+    http3::result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(r.error() == base::error::incomplete);
+    REQUIRE(r.error() == http3::error::incomplete);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 8);
   }
@@ -80,9 +77,9 @@ TEST_CASE("qpack")
     encoded[2] = 0xff; // 0xff = indexed header field
     encoded[3] = 100;  // 100 = unassigned index
 
-    result<http3::header> r = decoder.decode(encoded);
+    http3::result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(r.error() == http3::connection::error::qpack_decompression_failed);
+    REQUIRE(r.error() == http3::error::qpack_decompression_failed);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }
@@ -95,9 +92,9 @@ TEST_CASE("qpack")
     encoded[2] = 0x5f; // 0x5f = literal with name reference
     encoded[3] = 100;  // 100 = unassigned index
 
-    result<http3::header> r = decoder.decode(encoded);
+    http3::result<http3::header> r = decoder.decode(encoded);
 
-    REQUIRE(r.error() == http3::connection::error::qpack_decompression_failed);
+    REQUIRE(r.error() == http3::error::qpack_decompression_failed);
     // Prefix has been decoded so size is 2 less than before.
     REQUIRE(encoded.size() == 2);
   }

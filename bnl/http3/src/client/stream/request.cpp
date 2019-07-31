@@ -1,8 +1,5 @@
 #include <bnl/http3/client/stream/request.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace client {
@@ -24,9 +21,9 @@ receiver::process(frame frame) noexcept
       return error::not_implemented;
     case frame::type::headers:
     case frame::type::priority:
-      return http3::connection::error::unexpected_frame;
+      return error::unexpected_frame;
     default:
-      return http3::connection::error::internal;
+      return error::internal;
   }
 }
 

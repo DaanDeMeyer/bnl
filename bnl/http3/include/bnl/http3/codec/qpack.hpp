@@ -7,6 +7,7 @@
 #include <bnl/http3/codec/qpack/prefix_int.hpp>
 #include <bnl/http3/export.hpp>
 #include <bnl/http3/header.hpp>
+#include <bnl/http3/result.hpp>
 
 // https://quicwg.org/base-drafts/draft-ietf-quic-qpack.html
 

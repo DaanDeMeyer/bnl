@@ -1,10 +1,7 @@
 #include <bnl/quic/client/ngtcp2/connection.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 #include <bnl/quic/client/connection.hpp>
-#include <bnl/quic/client/ngtcp2/error.hpp>
-#include <bnl/quic/error.hpp>
 #include <bnl/quic/path.hpp>
 
 #include <ngtcp2/ngtcp2.h>
@@ -19,8 +16,8 @@ namespace ngtcp2 {
 
 #define THROW_NGTCP2(function, rv)                                             \
   {                                                                            \
-    code code_ = make_status_code(static_cast<error>(rv));                     \
-    return code_;                                                              \
+    BNL_LOG_E("{}: {}", #function, ngtcp2_strerror(rv));                       \
+    return error::ngtcp2;                                                      \
   }                                                                            \
   (void) 0
 
@@ -695,7 +692,6 @@ connection::connection(path path,
   : connection_(nullptr, ngtcp2_conn_del)
   , path_(path)
   , clock_(std::move(clock))
-
 {
   ngtcp2_cid scid = make_cid(prng);
   ngtcp2_cid dcid = make_cid(prng);
@@ -733,7 +729,7 @@ connection::connection(path path,
 
   ngtcp2_settings settings = make_settings(params);
 
-  duration initial_ts = clock_().assume_value(); // TODO: Handle error
+  duration initial_ts = clock_(); // TODO: Handle error
 
   settings.initial_ts = make_timestamp(initial_ts);
   settings.log_printf = log;
@@ -790,8 +786,7 @@ connection::get_local_transport_parameters() noexcept
   ssize_t nwrite = ngtcp2_encode_transport_params(
     tp.data(), tp.size(), NGTCP2_TRANSPORT_PARAMS_TYPE_CLIENT_HELLO, &params);
   if (nwrite < 0) {
-    THROW_NGTCP2(ngtcp2_set_remote_transport_params,
-                 static_cast<error>(nwrite));
+    THROW_NGTCP2(ngtcp2_set_remote_transport_params, static_cast<int>(nwrite));
   }
 
   return base::buffer(tp.data(), static_cast<size_t>(nwrite));
@@ -808,15 +803,15 @@ connection::set_remote_transport_parameters(base::buffer_view encoded) noexcept
     encoded.data(),
     encoded.size());
   if (rv != 0) {
-    THROW_NGTCP2(ngtcp2_decode_transport_params, static_cast<error>(rv));
+    THROW_NGTCP2(ngtcp2_decode_transport_params, rv);
   }
 
   rv = ngtcp2_conn_set_remote_transport_params(connection_.get(), &params);
   if (rv != 0) {
-    THROW_NGTCP2(ngtcp2_set_remote_transport_params, static_cast<error>(rv));
+    THROW_NGTCP2(ngtcp2_set_remote_transport_params, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -833,7 +828,7 @@ connection::install_initial_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_initial_tx_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -850,7 +845,7 @@ connection::install_initial_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_initial_rx_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -867,7 +862,7 @@ connection::install_early_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_early_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -884,7 +879,7 @@ connection::install_handshake_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_handshake_tx_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -901,7 +896,7 @@ connection::install_handshake_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_handshake_rx_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -918,7 +913,7 @@ connection::install_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_tx_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -935,7 +930,7 @@ connection::install_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_install_rx_keys, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -950,7 +945,7 @@ connection::update_tx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_update_tx_key, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -965,7 +960,7 @@ connection::update_rx_keys(crypto::key_view key)
     THROW_NGTCP2(ngtcp2_conn_update_rx_key, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -974,10 +969,10 @@ connection::submit_crypto_data(crypto::level level, base::buffer_view data)
   int rv = ngtcp2_conn_submit_crypto_data(
     connection_.get(), make_crypto_level(level), data.data(), data.size());
   if (rv != 0) {
-    THROW_NGTCP2(ngtcp2_submit_crypto_data, static_cast<error>(rv));
+    THROW_NGTCP2(ngtcp2_submit_crypto_data, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 result<base::buffer>
@@ -988,18 +983,18 @@ connection::write_pkt()
   // TODO: Handle IPV6
   std::array<uint8_t, NGTCP2_MAX_PKTLEN_IPV4> storage = {};
 
-  duration ts = BNL_TRY(clock_());
+  duration ts = clock_();
   ssize_t rv = ngtcp2_conn_write_pkt(connection_.get(),
                                      &path.path,
                                      storage.data(),
                                      storage.size(),
                                      make_timestamp(ts));
   if (rv == 0) {
-    return base::error::idle;
+    return error::idle;
   }
 
   if (rv < 0) {
-    THROW_NGTCP2(ngtcp2_conn_write_pkt, static_cast<error>(rv));
+    THROW_NGTCP2(ngtcp2_conn_write_pkt, static_cast<int>(rv));
   }
 
   return base::buffer(storage.data(), static_cast<size_t>(rv));
@@ -1012,7 +1007,7 @@ connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
 
   ssize_t stream_data_written = 0;
 
-  duration ts = BNL_TRY(clock_());
+  duration ts = clock_();
   ssize_t rv = ngtcp2_conn_write_stream(connection_.get(),
                                         nullptr,
                                         storage.data(),
@@ -1024,8 +1019,13 @@ connection::write_stream(uint64_t id, base::buffer_view data, bool fin)
                                         data.data(),
                                         data.size(),
                                         make_timestamp(ts));
+
+  if (rv == NGTCP2_ERR_STREAM_DATA_BLOCKED) {
+    return error::stream_data_blocked;
+  }
+
   if (rv < 0) {
-    THROW_NGTCP2(ngtcp2_conn_write_stream, rv);
+    THROW_NGTCP2(ngtcp2_conn_write_stream, static_cast<int>(rv));
   }
 
   stream_data_written = stream_data_written == -1 ? 0 : stream_data_written;
@@ -1041,17 +1041,17 @@ connection::read_pkt(base::buffer_view packet)
 {
   ngtcp2_path_storage path = make_path(path_);
 
-  duration ts = BNL_TRY(clock_());
+  duration ts = clock_();
   int rv = ngtcp2_conn_read_pkt(connection_.get(),
                                 &path.path,
                                 packet.data(),
                                 packet.size(),
                                 make_timestamp(ts));
   if (rv != 0) {
-    THROW_NGTCP2(ngtcp2_conn_read_pkt, static_cast<error>(rv));
+    THROW_NGTCP2(ngtcp2_conn_read_pkt, rv);
   }
 
-  return success();
+  return base::success();
 }
 
 base::buffer_view
@@ -1078,13 +1078,13 @@ connection::expiry() const noexcept
 result<void>
 connection::expire()
 {
-  duration now = BNL_TRY(clock_());
+  duration now = clock_();
   ngtcp2_tstamp ts = make_timestamp(now);
 
   if (ngtcp2_conn_loss_detection_expiry(connection_.get()) <= ts) {
     int rv = ngtcp2_conn_on_loss_detection_timer(connection_.get(), ts);
     if (rv != 0) {
-      THROW_NGTCP2(ngtcp2_conn_on_loss_detection_timer, static_cast<error>(rv));
+      THROW_NGTCP2(ngtcp2_conn_on_loss_detection_timer, rv);
     }
   }
 
@@ -1092,7 +1092,7 @@ connection::expire()
     ngtcp2_conn_cancel_expired_ack_delay_timer(connection_.get(), ts);
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -1107,6 +1107,10 @@ connection::open(uint64_t id)
     rv = ngtcp2_conn_open_uni_stream(connection_.get(), &quic_id, nullptr);
   }
 
+  if (rv == NGTCP2_ERR_STREAM_ID_BLOCKED) {
+    return error::stream_id_blocked;
+  }
+
   if (rv != 0) {
     THROW_NGTCP2(ngtcp2_conn_open_uni_stream, rv);
   }
@@ -1114,7 +1118,7 @@ connection::open(uint64_t id)
   // Users are required to open streams in ascending order.
   assert(static_cast<uint64_t>(quic_id) == id);
 
-  return success();
+  return base::success();
 }
 
 }

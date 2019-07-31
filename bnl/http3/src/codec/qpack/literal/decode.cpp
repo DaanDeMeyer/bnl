@@ -1,10 +1,5 @@
 #include <bnl/http3/codec/qpack/literal.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
-#include <algorithm>
-
 namespace bnl {
 namespace http3 {
 namespace qpack {
@@ -17,7 +12,7 @@ decode(Sequence &encoded, uint8_t prefix)
   typename Sequence::lookahead_type lookahead(encoded);
 
   if (lookahead.empty()) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   bool is_huffman = static_cast<uint8_t>(*lookahead >> prefix) & 0x01; // NOLINT
@@ -26,7 +21,7 @@ decode(Sequence &encoded, uint8_t prefix)
     BNL_TRY(prefix_int::decode(lookahead, prefix));
 
   if (literal_encoded_size > lookahead.size()) {
-    return base::error::incomplete;
+    return error::incomplete;
   }
 
   size_t bounded_encoded_size = static_cast<size_t>(literal_encoded_size);

@@ -3,8 +3,8 @@ include(FetchContent)
 if(NOT EXISTS ${FETCHCONTENT_BASE_DIR}/outcome)
   file(
     DOWNLOAD
-    https://raw.githubusercontent.com/ned14/outcome/v2.1/single-header/outcome-experimental.hpp
-    ${FETCHCONTENT_BASE_DIR}/outcome/outcome-experimental.hpp
+    https://raw.githubusercontent.com/ned14/outcome/v2.1/single-header/outcome-basic.hpp
+    ${FETCHCONTENT_BASE_DIR}/outcome/outcome-basic.hpp
   )
 endif()
 

@@ -1,7 +1,6 @@
 #include <bnl/quic/client/connection.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/log.hpp>
+#include <bnl/base/log.hpp>
 
 namespace bnl {
 namespace quic {
@@ -17,10 +16,10 @@ generator::next()
   return !connection_.event_buffer_.empty();
 }
 
-bnl::result<quic::event>
-generator::result()
+result<quic::event>
+generator::get()
 {
-  bnl::result<event> result = std::move(connection_.event_buffer_.front());
+  result<event> result = std::move(connection_.event_buffer_.front());
   connection_.event_buffer_.pop_front();
   return result;
 }
@@ -49,11 +48,11 @@ connection::recv_crypto_data(crypto::level level, base::buffer_view data)
 
   result<void> r = handshake_.recv(level, data);
 
-  if (r || r.error() == base::error::incomplete) {
-    return success();
+  if (r || r.error() == error::incomplete) {
+    return base::success();
   }
 
-  return std::move(r).error();
+  return r.error();
 }
 
 void
@@ -84,7 +83,7 @@ connection::acked_stream_data_offset(uint64_t id, size_t size)
   auto match = streams_.find(id);
   if (match == streams_.end()) {
     BNL_LOG_E("ngtcp2 acked data for stream {} which does not exist", id);
-    return quic::connection::error::internal;
+    return error::internal;
   }
 
   stream &stream = match->second;
@@ -94,7 +93,7 @@ connection::acked_stream_data_offset(uint64_t id, size_t size)
     streams_.erase(id);
   }
 
-  return success();
+  return base::success();
 }
 
 void
@@ -218,7 +217,7 @@ connection::path_validation(base::buffer_view local,
     return error::path_validation;
   }
 
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -246,7 +245,7 @@ connection::select_preferred_address(base::buffer_view_mut dest,
       assert(false);
   }
 
-  return success();
+  return base::success();
 }
 
 void
@@ -266,13 +265,13 @@ connection::send()
       return r;
     }
 
-    if (r.error() != base::error::idle) {
-      return std::move(r).error();
+    if (r.error() != error::idle) {
+      return r.error();
     }
   }
 
   if (!handshake_.completed()) {
-    return base::error::idle;
+    return error::idle;
   }
 
   {
@@ -284,13 +283,13 @@ connection::send()
         return r;
       }
 
-      if (r.error() != base::error::idle) {
-        return std::move(r).error();
+      if (r.error() != error::idle) {
+        return r.error();
       }
     }
   }
 
-  return base::error::idle;
+  return error::idle;
 }
 
 result<generator>
@@ -299,7 +298,7 @@ connection::recv(base::buffer_view data)
   result<void> r = ngtcp2_.read_pkt(data);
 
   if (!r) {
-    event_buffer_.emplace_back(std::move(r).error());
+    event_buffer_.emplace_back(r.error());
   }
 
   return generator(*this);
@@ -316,7 +315,7 @@ connection::add(event event)
   }
 
   assert(false);
-  return success();
+  return base::success();
 }
 
 result<void>
@@ -336,7 +335,7 @@ connection::add(quic::data data) // NOLINT
     BNL_TRY(stream.fin());
   }
 
-  return success();
+  return base::success();
 }
 
 duration

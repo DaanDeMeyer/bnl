@@ -1,8 +1,5 @@
 #include <bnl/http3/codec/varint.hpp>
 
-#include <bnl/base/error.hpp>
-#include <bnl/http3/error.hpp>
-
 namespace bnl {
 namespace http3 {
 namespace varint {

@@ -5,8 +5,8 @@
 #include <bnl/base/template.hpp>
 #include <bnl/http3/codec/varint.hpp>
 #include <bnl/http3/export.hpp>
+#include <bnl/http3/result.hpp>
 #include <bnl/http3/settings.hpp>
-#include <bnl/result.hpp>
 
 #include <cstddef>
 #include <cstdint>
