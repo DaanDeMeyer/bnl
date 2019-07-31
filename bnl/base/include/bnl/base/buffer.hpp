@@ -83,9 +83,9 @@ private:
 private:
   static constexpr size_t SSO_THRESHOLD = 20;
 
-  uint8_t sso_[SSO_THRESHOLD];
   uint8_t *begin_ = nullptr;
   uint8_t *end_ = nullptr;
+  uint8_t sso_[SSO_THRESHOLD];
 };
 
 class BNL_BASE_EXPORT buffer::lookahead {
