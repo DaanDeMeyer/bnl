@@ -26,9 +26,6 @@ public:
     : buffer(reinterpret_cast<const uint8_t *>(data), Size - 1)
   {}
 
-  buffer(const buffer &other);
-  buffer &operator=(const buffer &other);
-
   buffer(buffer &&other) noexcept;
   buffer &operator=(buffer &&other) noexcept;
 

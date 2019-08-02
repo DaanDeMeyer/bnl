@@ -8,7 +8,7 @@ using namespace bnl;
 
 TEST_CASE("buffer")
 {
-  SUBCASE("unique")
+  SUBCASE("move")
   {
     base::buffer first(1000);
     REQUIRE(first.size() == 1000);
@@ -19,17 +19,6 @@ TEST_CASE("buffer")
     REQUIRE(second.size() == 1000);
 
     REQUIRE(second[30] == 10);
-  }
-
-  SUBCASE("upgrade")
-  {
-    base::buffer first(1000);
-    first[5] = 104;
-
-    base::buffer second(first);  // NOLINT
-    base::buffer third = second; // NOLINT
-
-    REQUIRE(third[5] == 104);
   }
 
   SUBCASE("scope")
@@ -53,10 +42,10 @@ TEST_CASE("buffer")
 
   SUBCASE("sso")
   {
-    base::buffer first(20);
+    base::buffer first(12);
     first[10] = 123;
 
-    base::buffer second = first; // NOLINT
+    base::buffer second(first.data(), first.size()); // NOLINT
 
     REQUIRE(second[10] == 123);
   }

@@ -27,27 +27,6 @@ buffer::buffer(buffer_view data) noexcept
   : buffer(data.data(), data.size())
 {}
 
-buffer::buffer(const buffer &other)
-  : buffer(other.data(), other.size())
-{}
-
-buffer &
-buffer::operator=(const buffer &other)
-{
-  if (&other != this) {
-    if (other.size() > size()) {
-      destroy();
-      init(other.size());
-    } else {
-      end_ = begin_ + other.size();
-    }
-
-    std::copy(other.begin(), other.end(), begin());
-  }
-
-  return *this;
-}
-
 void
 buffer::init(size_t size)
 {

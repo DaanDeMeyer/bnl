@@ -14,9 +14,9 @@ TEST_CASE("buffers")
   base::buffer second = "fdeapdf";
   base::buffer third = "a";
 
-  buffers.push(first);
-  buffers.push(second);
-  buffers.push(third);
+  buffers.push({ first.data(), first.size() });
+  buffers.push({ second.data(), second.size() });
+  buffers.push({ third.data(), third.size() });
 
   REQUIRE(buffers.size() == first.size() + second.size() + third.size());
 

@@ -48,7 +48,7 @@ start(Handle &handle, const message &message)
   http3::result<void> r = handle.start();
   REQUIRE(r);
 
-  r = handle.body(message.body);
+  r = handle.body({ message.body.data(), message.body.size() });
   REQUIRE(r);
 
   r = handle.fin();
@@ -94,7 +94,7 @@ transfer(Sender &sender, Receiver &receiver)
   return decoded;
 }
 
-TEST_CASE("endpoint")
+TEST_CASE("connection")
 {
   http3::client::connection client;
   http3::server::connection server;
