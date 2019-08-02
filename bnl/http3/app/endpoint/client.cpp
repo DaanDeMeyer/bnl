@@ -86,12 +86,8 @@ client::setup()
 result<http3::request::handle>
 client::request()
 {
-  http3::result<http3::request::handle> r = http3_.request();
-  if (!r) {
-    return r.error();
-  }
-
-  return std::move(r).value();
+  http3::request::handle handle = BNL_TRY(http3_.request());
+  return handle;
 }
 
 result<void>
@@ -169,12 +165,7 @@ client::send_once()
   {
     http3::result<quic::event> r = http3_.send();
     if (r) {
-      quic::result<void> qr = quic_.add(std::move(r).value());
-      if (qr) {
-        return base::success();
-      }
-
-      return qr.error();
+      BNL_TRY(quic_.add(std::move(r).value()));
     }
 
     if (r.error() != http3::error::idle) {
@@ -219,13 +210,8 @@ client::recv_once()
       http3::event event = BNL_TRY(http3.get());
 
       result<void> r = on_event_(std::move(event));
-
-      if (!r && r.error() == error::finished) {
-        return sd_.exit();
-      }
-
       if (!r) {
-        return sd_.exit(r.error());
+        return r.error() == error::finished ? sd_.exit() : sd_.exit(r.error());
       }
     }
   }
