@@ -166,6 +166,7 @@ client::send_once()
     http3::result<quic::event> r = http3_.send();
     if (r) {
       BNL_TRY(quic_.add(std::move(r).value()));
+      return base::success();
     }
 
     if (r.error() != http3::error::idle) {
