@@ -102,7 +102,7 @@ connection::process(uint64_t id)
         break;
     }
 
-    return base::success(std::move(event));
+    return event;
   }
 
   server::stream::request::receiver &request = requests_.at(id).second;

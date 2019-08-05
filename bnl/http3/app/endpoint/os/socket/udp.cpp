@@ -102,7 +102,7 @@ make_socket(ip::endpoint peer)
     THROW_SYSTEM(setsocktop, errno);
   }
 
-  return base::success(std::move(fd));
+  return fd;
 }
 
 namespace os {

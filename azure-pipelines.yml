@@ -100,12 +100,12 @@ jobs:
 
   - template: ci/linux.yml
     parameters:
-      name: linux_gcc_6
+      name: linux_gcc_8
       variables:
-        PACKAGES: g++-6
+        PACKAGES: g++-8
         REPOSITORY: ppa:ubuntu-toolchain-r/test
-        CC: gcc-6
-        CXX: g++-6
+        CC: gcc-8
+        CXX: g++-8
 
   - template: ci/linux.yml
     parameters:

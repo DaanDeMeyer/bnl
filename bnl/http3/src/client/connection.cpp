@@ -108,7 +108,7 @@ connection::process(uint64_t id)
         break;
     }
 
-    return base::success(std::move(event));
+    return event;
   }
 
   // TODO: Actually handle unidirectional streams.
@@ -130,7 +130,7 @@ connection::process(uint64_t id)
     requests_.erase(id);
   }
 
-  return base::success(std::move(event));
+  return event;
 }
 
 result<request::handle>

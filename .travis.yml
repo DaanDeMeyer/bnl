@@ -20,15 +20,6 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-6
-      env: CC=gcc-6 CXX=g++-6
-
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
             - g++-8
       env: CC=gcc-8 CXX=g++-8
 
