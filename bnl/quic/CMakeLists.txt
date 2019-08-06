@@ -12,6 +12,10 @@ target_sources(bnl-quic PRIVATE
   src/client/connection.cpp
   src/client/handshake.cpp
   src/client/stream.cpp
-  src/crypto/boringssl.cpp
   src/crypto.cpp
+)
+
+target_sources(bnl-quic PRIVATE
+  src/client/handshake/boringssl.cpp
+  src/crypto/boringssl.cpp
 )

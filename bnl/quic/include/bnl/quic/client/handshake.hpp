@@ -50,17 +50,14 @@ public:
 
   result<void> add_handshake_data(crypto::level level, base::buffer_view data);
 
+
+  struct impl;
+
 private:
   result<void> init(const ip::host &host, base::buffer_view dcid);
 
-  void log_errors();
-
-  result<crypto::aead> make_aead(const SSL_CIPHER *cipher) const noexcept;
-  result<crypto::hash> make_hash(const SSL_CIPHER *cipher) const noexcept;
-
 private:
-  std::unique_ptr<SSL, void (*)(SSL *)> ssl_;
-  std::unique_ptr<SSL_QUIC_METHOD> ssl_quic_method_;
+  std::unique_ptr<impl> impl_;
 
   base::buffers keepalive_[4];
 
