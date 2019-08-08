@@ -70,8 +70,6 @@ private:
   void rc_(uint32_t *location);
   uint32_t *rc_();
 
-  void init(size_t size);
-
   bool sso() const noexcept;
   static bool sso(size_t size) noexcept;
 

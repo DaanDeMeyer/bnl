@@ -8,28 +8,6 @@ namespace base {
 
 buffer::buffer(size_t size) // NOLINT
 {
-  init(size);
-}
-
-buffer::buffer(const uint8_t *data, size_t size)
-  : buffer(size)
-{
-  std::copy_n(data, size, begin());
-}
-
-buffer::buffer(const char *data, size_t size)
-  : buffer(size)
-{
-  std::copy_n(data, size, begin());
-}
-
-buffer::buffer(buffer_view data) noexcept
-  : buffer(data.data(), data.size())
-{}
-
-void
-buffer::init(size_t size)
-{
   if (sso(size)) {
     begin_ = sso_;
     rc_(nullptr);
@@ -48,6 +26,22 @@ buffer::init(size_t size)
 
   end_ = begin_ + size;
 }
+
+buffer::buffer(const uint8_t *data, size_t size)
+  : buffer(size)
+{
+  std::copy_n(data, size, begin());
+}
+
+buffer::buffer(const char *data, size_t size)
+  : buffer(size)
+{
+  std::copy_n(data, size, begin());
+}
+
+buffer::buffer(buffer_view data) noexcept
+  : buffer(data.data(), data.size())
+{}
 
 buffer::buffer(buffer &&other) noexcept
   : buffer()
