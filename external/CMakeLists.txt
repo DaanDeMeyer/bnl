@@ -56,7 +56,7 @@ target_include_directories(xxhash INTERFACE ${xxhash_SOURCE_DIR})
 FetchContent_Declare(
   ngtcp2
   GIT_REPOSITORY https://github.com/ngtcp2/ngtcp2.git
-  GIT_TAG draft-22
+  GIT_TAG 8217c61d0b5d57e1585bbdcb352d701ee7d8a4b9
 )
 
 reproc_MakeAvailable(ngtcp2)
