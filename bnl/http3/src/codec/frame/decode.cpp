@@ -187,6 +187,10 @@ decode_single(Lookahead &lookahead) noexcept
         // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#extensions
         // https://quicwg.org/base-drafts/draft-ietf-quic-http.html#frame-grease
 
+        if (payload_encoded_size > lookahead.size()) {
+          return error::incomplete;
+        }
+
         // TODO: Error on unreasonable unknown frame payload size.
         lookahead.consume(static_cast<size_t>(payload_encoded_size));
         return error::delegate;
